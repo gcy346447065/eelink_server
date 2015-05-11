@@ -29,6 +29,15 @@ int mc_msg_send(void* msg, size_t len, CB_CTX* ctx)
 	return 0;
 }
 
+void send_data_giz(const void* data, const int len, OBJ_MC* obj)
+{
+
+	char topic[1024] = {0}; //FIXME: how long should be?
+	snprintf(topic, 100, "dev2app/%s", obj->DID);
+
+	LOG_DEBUG("Send PUBLISH msg to app: topic = %s", topic);
+}
+
 int mc_login(const void* msg, CB_CTX* ctx)
 {
 	const MC_MSG_LOGIN_REQ* req = msg;
@@ -233,6 +242,12 @@ int mc_operator(const void* msg, CB_CTX* ctx)
 	LOG_INFO("MC operator response %s", req->data);
 
 	return 0; //TODO:
+	int len = req->header.length + MC_MSG_HEADER_LEN - sizeof(MC_MSG_OPERATOR_RSP);
+	APP_SESSION* session = (APP_SESSION*)req->token;
+	char topic[1024] = {0}; //FIXME: how long should be?
+	snprintf(topic, 100, "dev2app/%s/%s", session->DID, session->clientID);
+
+	return 0;
 }
 
 int mc_data(const void* msg, CB_CTX* ctx __attribute__((unused)))

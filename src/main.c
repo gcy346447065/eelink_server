@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     {
     	LOG_ERROR("Can't catch SIGTERM");
     }
-//    mosquitto_lib_init();
+    mosquitto_lib_init();
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
 
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
     mc_obj_destruct();
     evconnlistener_free(listener);
     event_base_free(base);
-//	mosquitto_lib_cleanup();
+	mosquitto_lib_cleanup();
     curl_global_cleanup();
     clcanupLeancloudHeader();
     cleanupYeelinkHeader();

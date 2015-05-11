@@ -8,6 +8,7 @@
 #include <errno.h>
 
 #include "log.h"
+#include "fsm.h"
 #include "curl.h"
 #include "server_mc.h"
 
