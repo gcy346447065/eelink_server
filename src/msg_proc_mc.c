@@ -71,7 +71,7 @@ int mc_login(const void* msg, CB_CTX* ctx)
 			obj->language = req->language;
 			obj->locale = req->locale;
 
-			leancloud_saveDid(obj);
+			//leancloud_saveDid(obj);
 			mc_obj_add(obj);
 		}
 
@@ -138,12 +138,11 @@ int mc_gps(const void* msg, CB_CTX* ctx)
 
 	if(!(req->location&0x01) && obj->lon != 0)
 	{
-		LOG_INFO("no gps,only send to app");
+		LOG_INFO("gps not fixed,discard");
 		time_t rawtime;
 		time ( &rawtime );
 		obj->timestamp = rawtime;
 		obj->isGPSlocated = 0;
-		app_sendGpsMsg2App(obj, ctx);
 		return 0;
 	}
 	if (obj->lat == ntohl(req->lat)
@@ -230,21 +229,9 @@ int mc_alarm(const void* msg, CB_CTX* ctx)
 
 	MC_MSG_ALARM_RSP* rsp = NULL;
 	size_t rspMsgLength = 0;
-	if(req->location & 0x01)
-	{
-		char alarm_message[]={0xE7,0x94,0xB5,0xE5,0x8A,0xA8,0xE8,0xBD,0xA6,0xe7,0xa7,0xbb,0xe5,0x8a,0xa8,0xe6,0x8a,0xa5,0xe8,0xad,0xa6};
-		rspMsgLength = sizeof(MC_MSG_ALARM_RSP) + sizeof(alarm_message);
-		rsp = alloc_msg(req->header.cmd, rspMsgLength);
-		if (rsp)
-		{
-			memcpy(rsp->sms,alarm_message,sizeof(alarm_message));
-		}
-	}
-	else
-	{
-		rspMsgLength = sizeof(MC_MSG_ALARM_RSP);
-		rsp = alloc_msg(req->header.cmd, rspMsgLength);
-	}
+
+	rspMsgLength = sizeof(MC_MSG_ALARM_RSP);
+	rsp = alloc_msg(req->header.cmd, rspMsgLength);
 
 	if (rsp)
 	{
