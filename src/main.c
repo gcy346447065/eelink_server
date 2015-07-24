@@ -110,7 +110,7 @@ int main(int argc, char **argv)
     }
 
     struct evconnlistener* slb = slb_start(base, 9870);
-    if (listener)
+    if (slb)
     {
         LOG_INFO("start SLB check server successfully at port:%d", 9870);
     }
