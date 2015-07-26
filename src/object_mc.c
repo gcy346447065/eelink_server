@@ -49,7 +49,7 @@ static int mc_readConfig()
 			OBJ_MC* obj = mc_obj_new();
 			memcpy(obj->IMEI, objBuf.IMEI, IMEI_LENGTH);
 			memcpy(obj->DID, objBuf.DID, MAX_DID_LEN);
-			memcpy(obj->pwd, objBuf.PWD, MAX_DID_LEN);
+			memcpy(obj->pwd, objBuf.PWD, MAX_PWD_LEN);
             obj->device_id = objBuf.device_id;
             obj->sensor_id = objBuf.sensor_id;
 
