@@ -37,7 +37,6 @@ static int mc_readConfig()
 	if (fd == -1)
 	{
         LOG_FATAL("open file for read fail");
-        close(fd);
         return -1;
 	}
 
@@ -98,7 +97,6 @@ int mc_saveConfig()
     if(-1 == fd)
     {
         LOG_FATAL("open file for write fail");
-        close(fd);
         return -1;
     }
 
