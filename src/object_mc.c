@@ -143,9 +143,9 @@ static void make_pwd(char pwd[])
 {
     srand(time(NULL));
 
-    for(int i = 0; i < MAX_PWD_LEN; i++)
+    for(int i = 0; i < MAX_PWD_LEN - 1; i++)
 	{
-        pwd[i] = 65 + rand() % (90 - 65);
+        pwd[i] = 'A' + rand() % ('Z' - 'A' + 1);
 	}
     pwd[MAX_PWD_LEN - 1] = '\0';
 }
