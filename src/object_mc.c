@@ -49,7 +49,7 @@ static int mc_readConfig()
 			OBJ_MC* obj = mc_obj_new();
 			memcpy(obj->IMEI, objBuf.IMEI, IMEI_LENGTH);
 			memcpy(obj->DID, objBuf.DID, MAX_DID_LEN);
-			memcpy(obj->pwd, objBuf.PWD, MAX_DID_LEN);
+			memcpy(obj->pwd, objBuf.PWD, MAX_PWD_LEN);
             obj->device_id = objBuf.device_id;
             obj->sensor_id = objBuf.sensor_id;
 
@@ -143,9 +143,9 @@ static void make_pwd(char pwd[])
 {
     srand(time(NULL));
 
-    for(int i = 0; i < MAX_PWD_LEN; i++)
+    for(int i = 0; i < MAX_PWD_LEN - 1; i++)
 	{
-        pwd[i] = 65 + rand() % (90 - 65);
+        pwd[i] = 'A' + rand() % ('Z' - 'A' + 1);
 	}
     pwd[MAX_PWD_LEN - 1] = '\0';
 }
