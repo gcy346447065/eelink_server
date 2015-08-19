@@ -185,7 +185,7 @@ void mc_obj_del(OBJ_MC* obj)
     }
 }
 
-OBJ_MC* mc_get(char IMEI[])
+OBJ_MC* mc_get(char* IMEI)
 {
     return g_hash_table_lookup(g_table, IMEI);
 }
@@ -257,3 +257,21 @@ int isYeelinkDeviceCreated(OBJ_MC* obj)
 {
 	return obj->device_id != 0 && obj->sensor_id != 0 ;
 }
+void print_online(gpointer key,  gpointer value, gpointer user_data)
+{
+	OBJ_MC* obj = (OBJ_MC*)value;
+
+        if (obj)
+        {
+        	if (obj->isOnline)
+        	        printf("%s online\n", get_IMEI_STRING(obj->IMEI));
+        	else
+        		printf("%s offline\n", get_IMEI_STRING(obj->IMEI));
+        }
+}
+
+void mc_print_online()
+{
+	g_hash_table_foreach(g_table, print_online, NULL);
+}
+
