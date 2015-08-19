@@ -43,7 +43,7 @@ struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 		void* ctx)
 {
 	int keepalive = 200;
-	bool clean_session = false;
+	bool clean_session = true;
 
 	LOG_INFO("login MQTT: id = %s,host=%s, port=%d", id, host, port);
 
