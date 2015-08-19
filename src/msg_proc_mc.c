@@ -95,6 +95,8 @@ int mc_login(const void* msg, CB_CTX* ctx)
 		//TODO: LOG_ERROR
 	}
 
+	app_subscribe(env_get()->mosq, obj);
+
 	return 0;
 }
 
