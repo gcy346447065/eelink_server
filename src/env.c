@@ -6,6 +6,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <mosquitto.h>
 
@@ -29,7 +30,12 @@ void env_resetChunk(MemroyBuf* chunk)
 
 void env_initial()
 {
-    struct mosquitto* mosq = mqtt_login("elink", "127.0.0.1", 1883,
+    char mqtt_id[32] = {0};
+    pid_t self_pid = getpid();
+
+    snprintf(mqtt_id, 32, "eelink_%d", self_pid);
+
+    struct mosquitto* mosq = mqtt_login(mqtt_id, "server.xiaoan110.com", 1883,
                     app_log_callback,
                     app_connect_callback,
                     app_disconnect_callback,
