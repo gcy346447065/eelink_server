@@ -136,7 +136,7 @@ int db_doWithOBJ(void (*func1)(const char*, int), void (*func2)(const char *))
     result = mysql_use_result(conn);
     while(row= mysql_fetch_row(result))
     {
-        func1(row[0], row[1]);
+        func1(row[0], atoi(row[1]));
         func2(row[0]);
     }
     mysql_free_result(result);
