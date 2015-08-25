@@ -81,6 +81,8 @@ int main(int argc, char **argv)
     	return -1;
     }
 
+    mqtt_initial();
+    
     rc = yunba_connect();
     if (rc)
     {
