@@ -267,5 +267,6 @@ void app_log_callback(struct mosquitto *mosq __attribute__((unused)), void *user
 
 void app_publish_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int mid __attribute__((unused)))
 {
-
+	LOG_DEBUG("Published mid: %d", mid);
+	LOG_INFO("Publish mid: %d successfully", mid);
 }
