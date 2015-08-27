@@ -8,6 +8,7 @@
 #ifndef SRC_MSG_PROC_APP_H_
 #define SRC_MSG_PROC_APP_H_
 
+#include <mosquitto.h>
 
 void app_message_callback(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message);
 void app_connect_callback(struct mosquitto *mosq, void *userdata, int result);

@@ -17,6 +17,7 @@
 #include "yunba_push.h"
 #include "log.h"
 #include "mqtt.h"
+#include "db.h"
 
 
 int msg_send(void *msg, size_t len, SESSION *ctx)
@@ -85,7 +86,7 @@ int tk115_login(const void *msg, SESSION *ctx)
     session_add(ctx);
 
 
-	MC_MSG_LOGIN_RSP *rsp = alloc_rspMsg(msg);
+	MC_MSG_LOGIN_RSP *rsp = (MC_MSG_LOGIN_RSP *)alloc_rspMsg(msg);
 	if (rsp)
 	{
 		msg_send(rsp, sizeof(MC_MSG_LOGIN_RSP), ctx);
@@ -197,7 +198,7 @@ int tk115_ping(const void *msg, SESSION *ctx)
 
 	LOG_INFO("GPS located:%s", (status & 1) ? "YES" : "NO");
 
-	MC_MSG_PING_RSP* rsp = alloc_rspMsg(msg);
+	MC_MSG_PING_RSP* rsp = (MC_MSG_PING_RSP *)alloc_rspMsg(msg);
 	if (rsp)
 	{
 		msg_send(rsp, sizeof(MC_MSG_PING_RSP), ctx);
@@ -246,7 +247,7 @@ int tk115_alarm(const void *msg, SESSION *ctx)
 	{
 		char alarm_message[]={0xE7,0x94,0xB5,0xE5,0x8A,0xA8,0xE8,0xBD,0xA6,0xe7,0xa7,0xbb,0xe5,0x8a,0xa8,0xe6,0x8a,0xa5,0xe8,0xad,0xa6};
 		rspMsgLength = sizeof(MC_MSG_ALARM_RSP) + sizeof(alarm_message);
-		rsp = alloc_msg(req->header.cmd, rspMsgLength);
+		rsp = (MC_MSG_ALARM_RSP *)alloc_msg(req->header.cmd, rspMsgLength);
 		if (rsp)
 		{
 			memcpy(rsp->sms,alarm_message,sizeof(alarm_message));
@@ -255,12 +256,12 @@ int tk115_alarm(const void *msg, SESSION *ctx)
 	else
 	{
 		rspMsgLength = sizeof(MC_MSG_ALARM_RSP);
-		rsp = alloc_msg(req->header.cmd, rspMsgLength);
+		rsp = (MC_MSG_ALARM_RSP *)alloc_msg(req->header.cmd, rspMsgLength);
 	}
 
 	if (rsp)
 	{
-		set_msg_seq(&rsp->header, get_msg_seq(req));
+		set_msg_seq(&rsp->header, get_msg_seq((const MC_MSG_HEADER *)req));
 		msg_send(&rsp->header, rspMsgLength, ctx);
 	}
 	else
@@ -324,7 +325,7 @@ int tk115_status(const void *msg, SESSION *ctx)
 		break;
 	}
 
-	MC_MSG_STATUS_RSP* rsp = alloc_rspMsg(msg);
+	MC_MSG_STATUS_RSP* rsp = (MC_MSG_STATUS_RSP *)alloc_rspMsg(msg);
 	if (rsp)
 	{
 		msg_send(rsp, sizeof(MC_MSG_PING_RSP), ctx);
@@ -339,7 +340,7 @@ int tk115_sms(const void *msg, SESSION *ctx)
 
 	LOG_INFO("GPS located:%s", (req->location & 1) ? "YES" : "NO");
 
-	MC_MSG_SMS_RSP* rsp = alloc_rspMsg(msg);
+	MC_MSG_SMS_RSP* rsp = (MC_MSG_SMS_RSP *)alloc_rspMsg(msg);
 	if (rsp)
 	{
 		msg_send(rsp, sizeof(MC_MSG_PING_RSP), ctx);
@@ -361,7 +362,7 @@ int tk115_operator(const void *msg, SESSION *ctx)
 
 		short cmd = (session & 0xffff0000) >> 16;
 		short seq = session & 0xffff;
-		app_sendRspMsg2App(cmd, seq, req->data, sizeof(MC_MSG_HEADER) + ntohs(req->header.length) - sizeof(MC_MSG_OPERATOR_RSP), ctx);
+		app_sendRspMsg2App(cmd, seq, (void *)req->data, sizeof(MC_MSG_HEADER) + ntohs(req->header.length) - sizeof(MC_MSG_OPERATOR_RSP), ctx);
 		break;
 	}
 

@@ -74,7 +74,7 @@ int handle_one_msg(const void* m, SESSION* ctx)
 
 int handle_msg(const char *m, size_t msgLen, SESSION *ctx)
 {
-	MC_MSG_HEADER* msg = (MC_MSG_HEADER*)m;
+	MC_MSG_HEADER* msg = (MC_MSG_HEADER *)m;
 
 	if (msgLen < sizeof(MC_MSG_HEADER))
 	{
@@ -97,7 +97,7 @@ int handle_msg(const char *m, size_t msgLen, SESSION *ctx)
 		handle_one_msg(msg, ctx);
 
 		leftMsgLen = leftMsgLen - MC_MSG_HEADER_LEN - ntohs(msg->length);
-		msg = m + (msgLen - leftMsgLen);
+		msg = (MC_MSG_HEADER *)(m + (msgLen - leftMsgLen));
 	};
 
 	return 0;

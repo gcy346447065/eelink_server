@@ -6,6 +6,7 @@
  */
 #include <time.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "yunba.h"
 #include "yunba_push.h"
