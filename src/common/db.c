@@ -149,7 +149,7 @@ int db_insertOBJ(const char *imeiName, int lastLoginTime)
     snprintf(query, MAX_QUERY, "insert into object(imei, lastlogintime) values(\'%s\', %d)", imeiName, lastLoginTime);
     if(mysql_query(conn, query))
     {
-        LOG_ERROR("can't insert %s into object", imei);
+        LOG_ERROR("can't insert %s into object", imeiName);
         return -1;
     }
     return 0;
