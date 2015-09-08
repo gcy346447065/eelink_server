@@ -7,12 +7,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <mosquitto.h>
 #include <netinet/in.h>
 
 #include "msg_app.h"
 #include "msg_tk115.h"
 #include "msg_proc_tk115.h"
+#include "msg_proc_app.h"
 #include "log.h"
 #include "macro.h"
 #include "session.h"
@@ -89,7 +89,7 @@ void app_sendRspMsg2App(short cmd, short seq, void* data, int len, void* session
 
 	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/e2link/cmd", obj->IMEI);
 
-	app_sendRawData2App(topic, msg, sizeof(APP_MSG) + len, session);
+	app_sendRawData2App(topic, (char *)msg, sizeof(APP_MSG) + len, session);
 }
 
 
@@ -121,7 +121,7 @@ void app_sendGpsMsg2App(void* session)
 	char topic[IMEI_LENGTH + 20] = {0};
 	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/e2link/gps", obj->IMEI);
 
-	app_sendRawData2App(topic, msg, sizeof(GPS_MSG), session);
+	app_sendRawData2App(topic, (char *)msg, sizeof(GPS_MSG), session);
 }
 
 int app_handleApp2devMsg(const char* topic, const char* data, const int len, void* userdata)
@@ -147,7 +147,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 //		return -1;
 //	}
 
-	APP_MSG* pMsg = data;
+	APP_MSG* pMsg = (APP_MSG *)data;
 	if (!pMsg)
 	{
 		LOG_FATAL("internal error: msg null");

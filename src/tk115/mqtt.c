@@ -42,7 +42,7 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 	mosquitto_message_callback_set(mosq, on_message);
 	mosquitto_subscribe_callback_set(mosq, on_subscribe);
 	mosquitto_publish_callback_set(mosq, on_publish);
-	mosquitto_reconnect_delay_set(mosq, 10, 120, false);
+//	mosquitto_reconnect_delay_set(mosq, 10, 120, false);
 
 //	OBJECT* obj = ctx;
 
