@@ -27,6 +27,7 @@ typedef struct
 
 static int simcom_login(const void* msg, SIMCOM_CTX* ctx);
 static int simcom_gps(const void* msg, SIMCOM_CTX* ctx);
+static int simcom_cell(const void* msg, SIMCOM_CTX* ctx);
 static int simcom_ping(const void* msg, SIMCOM_CTX* ctx);
 static int simcom_alarm(const void* msg, SIMCOM_CTX* ctx);
 
@@ -35,6 +36,7 @@ static MSG_PROC_MAP msgProcs[] =
 {
         {CMD_LOGIN, simcom_login},
         {CMD_GPS,   simcom_gps},
+		{CMD_CELL,	simcom_cell},
         {CMD_PING,  simcom_ping},
         {CMD_ALARM, simcom_alarm},
 };
@@ -203,6 +205,30 @@ static int simcom_gps(const void* msg, SIMCOM_CTX* ctx)
     //stop upload data to yeelink
     //yeelink_saveGPS(obj, ctx);
 
+    return 0;
+}
+
+static int simcom_cell(const void* msg, SIMCOM_CTX* ctx)
+{
+    const MSG_HEADER* req = msg;
+
+    if (!req)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+
+    if (req->length < sizeof(CGI))
+    {
+        LOG_ERROR("message length not enough");
+        return -1;
+    }
+
+    CGI* cgi = req + 1;
+
+    LOG_INFO("CELL: mcc(%d), mnc(%d), total cell number = %d", cgi->mcc, cgi->mnc, cgi->cellNo);
+
+    //TODO
     return 0;
 }
 
