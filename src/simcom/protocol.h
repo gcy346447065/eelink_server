@@ -9,8 +9,10 @@
 #define _PROTOCOL_H_
 
 #define START_FLAG (0xAA55)
-#define IMEI_LENGTH 15
+//#define IMEI_LENGTH 16
 #define MAX_CELL_NUM 7
+
+#include "macro.h"
 
 enum
 {
@@ -74,7 +76,7 @@ typedef struct
 typedef struct
 {
     MSG_HEADER header;
-    char IMEI[IMEI_LENGTH + 1];
+    char IMEI[IMEI_LENGTH];
 }MSG_LOGIN_REQ;
 
 typedef MSG_HEADER MSG_LOGIN_RSP;

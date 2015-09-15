@@ -18,45 +18,59 @@
 #include "object.h"
 #include "msg_simcom.h"
 
-typedef int (*MSG_PROC)(const void* msg, SIMCOM_CTX* ctx);
+typedef int (*MSG_PROC)(const void *msg, SIMCOM_CTX *ctx);
 typedef struct
 {
     char cmd;
     MSG_PROC pfn;
 } MSG_PROC_MAP;
 
-static int simcom_login(const void* msg, SIMCOM_CTX* ctx);
-static int simcom_gps(const void* msg, SIMCOM_CTX* ctx);
-static int simcom_ping(const void* msg, SIMCOM_CTX* ctx);
-static int simcom_alarm(const void* msg, SIMCOM_CTX* ctx);
+static int handle_one_msg(const void *msg, SIMCOM_CTX *ctx);
+static int simcom_login(const void *msg, SIMCOM_CTX *ctx);
+static int simcom_gps(const void *msg, SIMCOM_CTX *ctx);
+static int simcom_cell(const void *msg, SIMCOM_CTX *ctx);
+static int simcom_ping(const void *msg, SIMCOM_CTX *ctx);
+static int simcom_alarm(const void *msg, SIMCOM_CTX *ctx);
 
 
 static MSG_PROC_MAP msgProcs[] =
 {
         {CMD_LOGIN, simcom_login},
         {CMD_GPS,   simcom_gps},
+        {CMD_CELL,  simcom_cell},
         {CMD_PING,  simcom_ping},
         {CMD_ALARM, simcom_alarm},
 };
 
-
-int handle_simcom_msg(const char* m, size_t msgLen, void* arg)
+int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
 {
-    MSG_HEADER* msg = (MSG_HEADER*)m;
+    const MSG_HEADER *msg = (MSG_HEADER *)m;
 
-    if (msgLen < sizeof(MSG_HEADER))
+    if(msgLen < MSG_HEADER_LEN)
     {
         LOG_ERROR("message length not enough: %zu(at least(%zu)", msgLen, sizeof(MSG_HEADER));
 
         return -1;
     }
-
-    if (msg->signature != ntohs(START_FLAG))
+    size_t leftLen = msgLen;
+    while(leftLen >= ntohs(msg->length) + MSG_HEADER_LEN)
     {
-        LOG_ERROR("message head signature error:%d", msg->signature);
-        return -1;
+        char *status = (char *)(msg->signature);
+        if((status[0] == 0x55) && (status[1] == 0xAA)) //TODO:
+        {
+            LOG_ERROR("receive message header signature error:%x%x", msg->signature);
+            return -1;
+        }
+        handle_one_msg(msg, (SIMCOM_CTX *)arg);
+        leftLen = leftLen - MSG_HEADER_LEN - ntohs(msg->length);
+        msg = (MSG_HEADER *)(m + msgLen - leftLen);
     }
+}
 
+
+int handle_one_msg(const void *m, SIMCOM_CTX *ctx)
+{
+    const MSG_HEADER *msg = (MSG_HEADER *)m;
     for (size_t i = 0; i < sizeof(msgProcs) / sizeof(msgProcs[0]); i++)
     {
         if (msgProcs[i].cmd == msg->cmd)
@@ -64,7 +78,7 @@ int handle_simcom_msg(const char* m, size_t msgLen, void* arg)
             MSG_PROC pfn = msgProcs[i].pfn;
             if (pfn)
             {
-                return pfn(msg, arg);
+                return pfn(msg, ctx);
             }
             else
             {
@@ -79,7 +93,7 @@ int handle_simcom_msg(const char* m, size_t msgLen, void* arg)
 }
 
 
-static int simcom_msg_send(void* msg, size_t len, SIMCOM_CTX* ctx)
+static int simcom_msg_send(void *msg, size_t len, SIMCOM_CTX *ctx)
 {
     if (!ctx)
     {
@@ -103,26 +117,28 @@ static int simcom_msg_send(void* msg, size_t len, SIMCOM_CTX* ctx)
     return 0;
 }
 
-static int simcom_login(const void* msg, SIMCOM_CTX* ctx)
+static int simcom_login(const void *msg, SIMCOM_CTX *ctx)
 {
     const MSG_LOGIN_REQ* req = msg;
 
-
     OBJECT * obj = ctx->obj;
+    
+    const char *imei = get_IMEI(req->IMEI); 
+
     if (!obj)
     {
-        LOG_DEBUG("mc IMEI(%s) login", req->IMEI);
+        LOG_DEBUG("mc IMEI(%s) login", imei);
 
-        obj = obj_get(req->IMEI);
+        obj = obj_get(imei);
 
         if (!obj)
         {
-            LOG_INFO("the first time of simcom IMEI(%s)'s login", req->IMEI);
+            LOG_INFO("the first time of simcom IMEI(%s)'s login", imei);
 
             obj = obj_new();
 
-            memcpy(obj->IMEI, req->IMEI, IMEI_LENGTH);
-            memcpy(obj->DID, req->IMEI, strlen(req->IMEI));
+            memcpy(obj->IMEI, imei, IMEI_LENGTH + 1);
+            memcpy(obj->DID, imei, strlen(req->IMEI) + 1);
 
             obj_add(obj);
         }
@@ -131,9 +147,8 @@ static int simcom_login(const void* msg, SIMCOM_CTX* ctx)
     }
     else
     {
-        LOG_DEBUG("simcom IMEI(%s) already login", get_IMEI_STRING(req->IMEI));
+        LOG_DEBUG("simcom IMEI(%s) already login", imei);
     }
-
 
     MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg(msg);
     if (rsp)
@@ -144,11 +159,11 @@ static int simcom_login(const void* msg, SIMCOM_CTX* ctx)
     {
         //TODO: LOG_ERROR
     }
-
+    //TODO : session mqtt mysql
     return 0;
 }
 
-static int simcom_gps(const void* msg, SIMCOM_CTX* ctx)
+static int simcom_gps(const void *msg, SIMCOM_CTX *ctx)
 {
     const MSG_GPS* req = msg;
 
@@ -174,18 +189,6 @@ static int simcom_gps(const void* msg, SIMCOM_CTX* ctx)
     }
     //no response message needed
 
-
-    if(obj->lon != 0)   //TODO
-    {
-        LOG_INFO("no gps,only send to app");
-        time_t rawtime;
-        time ( &rawtime );
-        obj->timestamp = rawtime;
-        obj->isGPSlocated = 0;
-        app_sendGpsMsg2App(ctx);
-        return 0;
-    }
-
     if (obj->lat == ntohl(req->gps.latitude)
         && obj->lon == ntohl(req->gps.longitude))
     {
@@ -195,6 +198,10 @@ static int simcom_gps(const void* msg, SIMCOM_CTX* ctx)
     }
 
     //update local object
+    time_t rawtime;
+    time(&rawtime);
+    obj->timestamp = rawtime;
+    obj->isGPSlocated = 0x01;
     obj->lat = ntohl(req->gps.latitude);
     obj->lon = ntohl(req->gps.longitude);
 
@@ -202,16 +209,22 @@ static int simcom_gps(const void* msg, SIMCOM_CTX* ctx)
 
     //stop upload data to yeelink
     //yeelink_saveGPS(obj, ctx);
+    //TODO:save to DB
 
     return 0;
 }
 
-static int simcom_ping(const void* msg, SIMCOM_CTX* ctx)
+int simcom_cell(const void *msg, SIMCOM_CTX *ctx)
 {
     return 0;
 }
 
-static int simcom_alarm(const void* msg, SIMCOM_CTX* ctx)
+static int simcom_ping(const void *msg, SIMCOM_CTX *ctx)
+{
+    return 0;
+}
+
+static int simcom_alarm(const void *msg, SIMCOM_CTX *ctx)
 {
     return 0;
 }
