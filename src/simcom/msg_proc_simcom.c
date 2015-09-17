@@ -31,7 +31,7 @@ static int simcom_gps(const void *msg, SESSION *ctx);
 static int simcom_cell(const void *msg, SESSION *ctx);
 static int simcom_ping(const void *msg, SESSION *ctx);
 static int simcom_alarm(const void *msg, SESSION *ctx);
-
+static int get_msg_cmd(const void *msg);
 
 static MSG_PROC_MAP msgProcs[] =
 {
@@ -236,4 +236,18 @@ static int simcom_ping(const void *msg, SESSION *ctx)
 static int simcom_alarm(const void *msg, SESSION *ctx)
 {
     return 0;
+}
+
+static int get_msg_cmd(const void *m)
+{
+    const MSG_HEADER *msg = (MSG_HEADER *)m;
+
+    for (size_t i = 0; i < sizeof(msgProcs) / sizeof(msgProcs[0]); i++)
+    {
+        if (msgProcs[i].cmd == msg->cmd)
+        {
+            return i;
+        }
+    }
+    return -1;
 }
