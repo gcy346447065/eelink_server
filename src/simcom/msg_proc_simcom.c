@@ -14,23 +14,23 @@
 #include "msg_proc_simcom.h"
 #include "protocol.h"
 #include "log.h"
-#include "cb_ctx_simcom.h"
+#include "session.h"
 #include "object.h"
 #include "msg_simcom.h"
 
-typedef int (*MSG_PROC)(const void *msg, SIMCOM_CTX *ctx);
+typedef int (*MSG_PROC)(const void *msg, SESSION *ctx);
 typedef struct
 {
     char cmd;
     MSG_PROC pfn;
 } MSG_PROC_MAP;
 
-static int handle_one_msg(const void *msg, SIMCOM_CTX *ctx);
-static int simcom_login(const void *msg, SIMCOM_CTX *ctx);
-static int simcom_gps(const void *msg, SIMCOM_CTX *ctx);
-static int simcom_cell(const void *msg, SIMCOM_CTX *ctx);
-static int simcom_ping(const void *msg, SIMCOM_CTX *ctx);
-static int simcom_alarm(const void *msg, SIMCOM_CTX *ctx);
+static int handle_one_msg(const void *msg, SESSION *ctx);
+static int simcom_login(const void *msg, SESSION *ctx);
+static int simcom_gps(const void *msg, SESSION *ctx);
+static int simcom_cell(const void *msg, SESSION *ctx);
+static int simcom_ping(const void *msg, SESSION *ctx);
+static int simcom_alarm(const void *msg, SESSION *ctx);
 
 
 static MSG_PROC_MAP msgProcs[] =
@@ -61,14 +61,14 @@ int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
             LOG_ERROR("receive message header signature error:%x%x", msg->signature);
             return -1;
         }
-        handle_one_msg(msg, (SIMCOM_CTX *)arg);
+        handle_one_msg(msg, (SESSION *)arg);
         leftLen = leftLen - MSG_HEADER_LEN - ntohs(msg->length);
         msg = (MSG_HEADER *)(m + msgLen - leftLen);
     }
 }
 
 
-int handle_one_msg(const void *m, SIMCOM_CTX *ctx)
+int handle_one_msg(const void *m, SESSION *ctx)
 {
     const MSG_HEADER *msg = (MSG_HEADER *)m;
     for (size_t i = 0; i < sizeof(msgProcs) / sizeof(msgProcs[0]); i++)
@@ -93,7 +93,7 @@ int handle_one_msg(const void *m, SIMCOM_CTX *ctx)
 }
 
 
-static int simcom_msg_send(void *msg, size_t len, SIMCOM_CTX *ctx)
+static int simcom_msg_send(void *msg, size_t len, SESSION *ctx)
 {
     if (!ctx)
     {
@@ -117,13 +117,13 @@ static int simcom_msg_send(void *msg, size_t len, SIMCOM_CTX *ctx)
     return 0;
 }
 
-static int simcom_login(const void *msg, SIMCOM_CTX *ctx)
+static int simcom_login(const void *msg, SESSION *ctx)
 {
     const MSG_LOGIN_REQ* req = msg;
 
     OBJECT * obj = ctx->obj;
     
-    const char *imei = get_IMEI(req->IMEI); 
+    const char *imei = getIMEI(req->IMEI); 
 
     if (!obj)
     {
@@ -141,6 +141,7 @@ static int simcom_login(const void *msg, SIMCOM_CTX *ctx)
             memcpy(obj->DID, imei, strlen(req->IMEI) + 1);
 
             obj_add(obj);
+            mqtt_subscribe(obj->IMEI);
         }
 
         ctx->obj = obj;
@@ -159,11 +160,17 @@ static int simcom_login(const void *msg, SIMCOM_CTX *ctx)
     {
         //TODO: LOG_ERROR
     }
-    //TODO : session mqtt mysql
+    
+    if(!db_isTableCreated(obj->IMEI))
+    {
+        db_createCGI(obj->IMEI);
+        db_createGPS(obj->IMEI);
+    }
+
     return 0;
 }
 
-static int simcom_gps(const void *msg, SIMCOM_CTX *ctx)
+static int simcom_gps(const void *msg, SESSION *ctx)
 {
     const MSG_GPS* req = msg;
 
@@ -209,22 +216,24 @@ static int simcom_gps(const void *msg, SIMCOM_CTX *ctx)
 
     //stop upload data to yeelink
     //yeelink_saveGPS(obj, ctx);
-    //TODO:save to DB
+
+    //speed course
+    db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, 0, 0);
 
     return 0;
 }
 
-int simcom_cell(const void *msg, SIMCOM_CTX *ctx)
+int simcom_cell(const void *msg, SESSION *ctx)
 {
     return 0;
 }
 
-static int simcom_ping(const void *msg, SIMCOM_CTX *ctx)
+static int simcom_ping(const void *msg, SESSION *ctx)
 {
     return 0;
 }
 
-static int simcom_alarm(const void *msg, SIMCOM_CTX *ctx)
+static int simcom_alarm(const void *msg, SESSION *ctx)
 {
     return 0;
 }

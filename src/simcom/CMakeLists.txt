@@ -5,8 +5,6 @@ SET(SOURCE_FILE
     ../common/yunba_push.h
     ../common/curl.c
     ../common/curl.h
-    ../common/session.h
-    ../common/session.c
     ../common/object.c
     ../common/object.h
     ../common/db.c
@@ -30,7 +28,9 @@ SET(SOURCE_FILE
     msg_simcom.c
     msg_simcom.h
     env.c
-    env.h)
+    env.h
+    session.c
+    session.h)
 
 MESSAGE(STATUS "configure Server for SIMCOM")
 add_executable(simcom_server ${SOURCE_FILE})

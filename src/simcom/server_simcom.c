@@ -15,7 +15,7 @@
 #include <arpa/inet.h>
 
 #include "log.h"
-
+#include "session.h"
 #include "server_simcom.h"
 #include "msg_proc_simcom.h"
 #include "cb_ctx_simcom.h"
@@ -88,7 +88,7 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
 static void accept_conn_cb(struct evconnlistener *listener,
     evutil_socket_t fd, struct sockaddr *address, int socklen, void *arg)
 {
-	struct sockaddr_in* p = address;
+	struct sockaddr_in* p = (struct sockaddr_in *)address;
 	//TODO: just handle the IPv4, no IPv6
 	char addr[INET_ADDRSTRLEN] = {0};
 	inet_ntop(address->sa_family, &p->sin_addr, addr, sizeof addr);
@@ -103,7 +103,7 @@ static void accept_conn_cb(struct evconnlistener *listener,
 		return;
 	}
 
-	SIMCOM_CTX* ctx = malloc(sizeof(SIMCOM_CTX));
+	SESSION* ctx = malloc(sizeof(SESSION));
 	if (!ctx)
 	{
 	    LOG_FATAL("memory alloc failed");
