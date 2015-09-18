@@ -19,4 +19,6 @@ int tk115_sms(const void *msg, SESSION *ctx);
 int tk115_operator(const void *msg, SESSION *ctx);
 int tk115_data(const void *msg, SESSION *ctx);
 
+int msg_send(void *msg, size_t len, SESSION *ctx);
+
 #endif /* SRC_MSG_PROC_TK115_H_ */
