@@ -41,11 +41,10 @@ typedef struct
 	int lon;
 	char speed;
 	short course;
-	CGI_MC cell;
+	CGI_MC cell[CELL_NUM];
 	char isGPSlocated;
 	short status;
 	short voltage;
-	short rxl;
 	short analog1;
 	short analog2;
 

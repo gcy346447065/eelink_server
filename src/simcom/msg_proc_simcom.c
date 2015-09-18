@@ -17,6 +17,8 @@
 #include "session.h"
 #include "object.h"
 #include "msg_simcom.h"
+#include "db.h"
+#include "mqtt.h"
 
 typedef int (*MSG_PROC)(const void *msg, SESSION *ctx);
 typedef struct
@@ -55,8 +57,8 @@ int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
     size_t leftLen = msgLen;
     while(leftLen >= ntohs(msg->length) + MSG_HEADER_LEN)
     {
-        char *status = (char *)(msg->signature);
-        if((status[0] == 0x55) && (status[1] == 0xAA)) //TODO:
+        char *status = (char *)(&(msg->signature));
+        if((status[0] != 0xaa) || (status[1] != 0x55))
         {
             LOG_ERROR("receive message header signature error:%x%x", msg->signature);
             return -1;
@@ -65,6 +67,7 @@ int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
         leftLen = leftLen - MSG_HEADER_LEN - ntohs(msg->length);
         msg = (MSG_HEADER *)(m + msgLen - leftLen);
     }
+    return 0;
 }
 
 
@@ -122,10 +125,10 @@ static int simcom_login(const void *msg, SESSION *ctx)
     const MSG_LOGIN_REQ* req = msg;
 
     OBJECT * obj = ctx->obj;
-    
-    const char *imei = getIMEI(req->IMEI); 
 
-    if (!obj)
+    const char *imei = getIMEI(req->IMEI);
+
+    if(!obj)
     {
         LOG_DEBUG("mc IMEI(%s) login", imei);
 
@@ -188,7 +191,7 @@ static int simcom_gps(const void *msg, SESSION *ctx)
 
     LOG_INFO("GPS: lat(%f), lng(%f)", req->gps.latitude, req->gps.longitude);
 
-    OBJECT * obj = ctx->obj;
+    OBJECT * obj = (OBJECT *)ctx->obj;
     if (!obj)
     {
         LOG_WARN("MC must first login");
@@ -196,35 +199,74 @@ static int simcom_gps(const void *msg, SESSION *ctx)
     }
     //no response message needed
 
+    time_t rawtime;
+    time(&rawtime);
+    obj->timestamp = rawtime;
+
     if (obj->lat == ntohl(req->gps.latitude)
         && obj->lon == ntohl(req->gps.longitude))
     {
         LOG_INFO("No need to save data to leancloud");
-        app_sendGpsMsg2App(ctx);
-        return 0;
+    }
+    else
+    {
+        //update local object
+        obj->isGPSlocated = 0x01;
+        obj->lat = ntohl(req->gps.latitude);
+        obj->lon = ntohl(req->gps.longitude);
+        //leancloud_saveGPS(obj, ctx);
     }
 
-    //update local object
-    time_t rawtime;
-    time(&rawtime);
-    obj->timestamp = rawtime;
-    obj->isGPSlocated = 0x01;
-    obj->lat = ntohl(req->gps.latitude);
-    obj->lon = ntohl(req->gps.longitude);
-
     app_sendGpsMsg2App(ctx);
-
     //stop upload data to yeelink
     //yeelink_saveGPS(obj, ctx);
 
-    //speed course
     db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, 0, 0);
 
     return 0;
 }
 
-int simcom_cell(const void *msg, SESSION *ctx)
+static int simcom_cell(const void *msg, SESSION *ctx)
 {
+    const CGI *req = (CGI *)msg;
+    if(!req)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+
+    LOG_INFO("CGI: mcc(%d), mnc(%d)", ntohs(req->mcc), ntohs(req->mnc));
+    OBJECT *obj = ctx->obj;
+    if(!obj)
+    {
+        LOG_WARN("MC must first login");
+        return -1;
+    }
+
+    time_t rawtime;
+    time(&rawtime);
+    obj->timestamp = rawtime;
+    obj->isGPSlocated = 0x00;
+
+    int num = req->cellNo;
+    if(num > CELL_NUM)
+    {
+        LOG_ERROR("Number of cell is over");
+        return -1;
+    }
+
+    for(int i = 0; i < num; ++i)
+    {
+        (obj->cell[i]).mcc = ntohs(req->mcc);
+        (obj->cell[i]).mnc = ntohs(req->mnc);
+        (obj->cell[i]).lac = ntohs((req->cell[i]).lac);
+        (obj->cell[i]).ci = ntohs((req->cell[i]).cellid);
+        (obj->cell[i]).rxl = ntohs((req->cell[i]).rxl);
+        db_saveCGI(obj->IMEI, obj->timestamp, (obj->cell[i]).mcc, (obj->cell[i]).mnc, (obj->cell[i]).lac, (obj->cell[i]).ci, (obj->cell[i]).rxl);
+    }
+
+    //TODO: how to tranform cgi to gps
+
     return 0;
 }
 

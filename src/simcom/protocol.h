@@ -50,7 +50,7 @@ typedef struct
     short mcc;  //mobile country code
     short mnc;  //mobile network code
     char  cellNo;// cell count
-//    CELL cell[];
+    CELL cell[];
 }__attribute__((__packed__)) CGI;       //Cell Global Identifier
 
 
@@ -77,7 +77,7 @@ typedef struct
 {
     MSG_HEADER header;
     char IMEI[IMEI_LENGTH];
-}MSG_LOGIN_REQ;
+}__attribute__((__packed__)) MSG_LOGIN_REQ;
 
 typedef MSG_HEADER MSG_LOGIN_RSP;
 
@@ -88,7 +88,7 @@ typedef struct
 {
     MSG_HEADER header;
     GPS gps;
-}MSG_GPS;
+}__attribute__((__packed__)) MSG_GPS;
 
 /*
  * heartbeat message structure
@@ -97,7 +97,7 @@ typedef struct
 {
     MSG_HEADER header;
     short statue;   //TODO: to define the status bits
-}MSG_PING_REQ;
+}__attribute__((__packed__)) MSG_PING_REQ;
 
 typedef MSG_HEADER MSG_PING_RSP;
 
@@ -109,7 +109,7 @@ typedef struct
     MSG_HEADER header;
     unsigned char alarmType;
     GPS gps;
-}MSG_ALARM_REQ;
+}__attribute__((__packed__)) MSG_ALARM_REQ;
 typedef MSG_HEADER MSG_ALARM_RSP;
 
 /*
@@ -120,7 +120,7 @@ typedef struct
     MSG_HEADER header;
     char telphone[12];
     char sms[];
-}MSG_SMS_REQ;
+}__attribute__((__packed__)) MSG_SMS_REQ;
 
 typedef MSG_SMS_REQ MSG_SMS_RSP;
 

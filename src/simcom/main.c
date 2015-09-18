@@ -62,6 +62,7 @@ int main(int argc, char **argv)
         return 1; /*XXXerr*/
 
     int rc = log_init();
+
     if (rc)
     {
     	return rc;
