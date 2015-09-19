@@ -57,7 +57,7 @@ int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
     size_t leftLen = msgLen;
     while(leftLen >= ntohs(msg->length) + MSG_HEADER_LEN)
     {
-        char *status = (char *)(&(msg->signature));
+        unsigned char *status = (unsigned char *)(&(msg->signature));
         if((status[0] != 0xaa) || (status[1] != 0x55))
         {
             LOG_ERROR("receive message header signature error:%x%x", msg->signature);

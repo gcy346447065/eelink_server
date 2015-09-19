@@ -65,6 +65,7 @@ int main(int argc, char **argv)
 
     if (rc)
     {
+        LOG_ERROR("log initial failed: rc=%d", rc);
     	return rc;
     }
 
