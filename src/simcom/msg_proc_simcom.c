@@ -60,7 +60,7 @@ int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
         unsigned char *status = (unsigned char *)(&(msg->signature));
         if((status[0] != 0xaa) || (status[1] != 0x55))
         {
-            LOG_ERROR("receive message header signature error:%x%x", msg->signature);
+            LOG_ERROR("receive message header signature error:%x", (unsigned)ntohs(msg->signature));
             return -1;
         }
         handle_one_msg(msg, (SESSION *)arg);
@@ -251,7 +251,7 @@ static int simcom_cell(const void *msg, SESSION *ctx)
     int num = req->cellNo;
     if(num > CELL_NUM)
     {
-        LOG_ERROR("Number of cell is over");
+        LOG_ERROR("Number:%d of cell is over", num);
         return -1;
     }
 

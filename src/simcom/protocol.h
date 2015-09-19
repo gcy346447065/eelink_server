@@ -91,6 +91,15 @@ typedef struct
 }__attribute__((__packed__)) MSG_GPS;
 
 /*
+ * CGI message structure
+ */
+ typedef struct $
+ {
+     MSG_HEADER header;
+     CGI cgi;
+ }__attribute__((__packed__)) MSG_CGI;
+
+/*
  * heartbeat message structure
  */
 typedef struct
