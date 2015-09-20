@@ -7,6 +7,7 @@
 
 #include <malloc.h>
 #include <netinet/in.h>
+#include <string.h>
 #include "msg_simcom.h"
 
 static unsigned short seq = 0;

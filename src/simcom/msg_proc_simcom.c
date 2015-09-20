@@ -241,7 +241,7 @@ static int simcom_cell(const void *msg, SESSION *ctx)
         return -1;
     }
 
-    CGI *cgi = req + 1;
+    const CGI *cgi = (CGI *)(req + 1);
 
     LOG_INFO("CGI: mcc(%d), mnc(%d)", ntohs(cgi->mcc), ntohs(cgi->mnc));
     OBJECT *obj = ctx->obj;

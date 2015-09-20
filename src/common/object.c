@@ -56,7 +56,7 @@ static void obj_table_save()
 
 void obj_freeKey(gpointer key)
 {
-    LOG_DEBUG("free key IMEI:%s of object_table", key);
+    LOG_DEBUG("free key IMEI:%s of object_table", (char *)key);
     g_free(key);
 }
 
