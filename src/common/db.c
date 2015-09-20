@@ -107,7 +107,7 @@ int db_saveGPS(const char *imeiName, int timestamp, int lat, int lon, char speed
 }
 
 int db_saveCGI(const char *imeiName, int timestamp, short mcc, short mnc, short lac, short ci, short rxl)
-{insert into cgi_1111111111111111(timestamp,mcc,mnc,lac,ci,rxl) values(1442734640,460,0,7028,15613,9)
+{
     //timestamp INT, mcc SMALLINT, mnc SMALLINT, lac SMALLINT, ci CHAR(3)
     char query[MAX_QUERY];
     snprintf(query, MAX_QUERY, "insert into cgi_%s(timestamp,mcc,mnc,lac,ci,rxl) values(%d,%d,%d,%d,%d,%d)", imeiName, timestamp, mcc, mnc, (unsigned short)lac, (unsigned short)ci, rxl);
