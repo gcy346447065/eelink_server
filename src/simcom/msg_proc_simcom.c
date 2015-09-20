@@ -228,14 +228,21 @@ static int simcom_gps(const void *msg, SESSION *ctx)
 
 static int simcom_cell(const void *msg, SESSION *ctx)
 {
-    const CGI *req = (CGI *)msg;
+    const MSG_HEADER *req = (MSG_HEADER *)msg;
     if(!req)
     {
         LOG_ERROR("msg handle empty");
         return -1;
     }
+    if(req->length < sizeof(CGI))
+    {
+        LOG_ERROR("message length not enough");
+        return -1;
+    }
 
-    LOG_INFO("CGI: mcc(%d), mnc(%d)", ntohs(req->mcc), ntohs(req->mnc));
+    CGI *cgi = req + 1;
+
+    LOG_INFO("CGI: mcc(%d), mnc(%d)", ntohs(cgi->mcc), ntohs(cgi->mnc));
     OBJECT *obj = ctx->obj;
     if(!obj)
     {
@@ -248,7 +255,7 @@ static int simcom_cell(const void *msg, SESSION *ctx)
     obj->timestamp = rawtime;
     obj->isGPSlocated = 0x00;
 
-    int num = req->cellNo;
+    int num = cgi->cellNo;
     if(num > CELL_NUM)
     {
         LOG_ERROR("Number:%d of cell is over", num);
@@ -257,11 +264,11 @@ static int simcom_cell(const void *msg, SESSION *ctx)
 
     for(int i = 0; i < num; ++i)
     {
-        (obj->cell[i]).mcc = ntohs(req->mcc);
-        (obj->cell[i]).mnc = ntohs(req->mnc);
-        (obj->cell[i]).lac = ntohs((req->cell[i]).lac);
-        (obj->cell[i]).ci = ntohs((req->cell[i]).cellid);
-        (obj->cell[i]).rxl = ntohs((req->cell[i]).rxl);
+        (obj->cell[i]).mcc = ntohs(cgi->mcc);
+        (obj->cell[i]).mnc = ntohs(cgi->mnc);
+        (obj->cell[i]).lac = ntohs((cgi->cell[i]).lac);
+        (obj->cell[i]).ci = ntohs((cgi->cell[i]).cellid);
+        (obj->cell[i]).rxl = ntohs((cgi->cell[i]).rxl);
         db_saveCGI(obj->IMEI, obj->timestamp, (obj->cell[i]).mcc, (obj->cell[i]).mnc, (obj->cell[i]).lac, (obj->cell[i]).ci, (obj->cell[i]).rxl);
     }
 

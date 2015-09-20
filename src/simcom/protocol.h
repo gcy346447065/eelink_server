@@ -93,7 +93,7 @@ typedef struct
 /*
  * CGI message structure
  */
- typedef struct $
+ typedef struct
  {
      MSG_HEADER header;
      CGI cgi;
