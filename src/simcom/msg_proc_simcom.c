@@ -148,6 +148,7 @@ static int simcom_login(const void *msg, SESSION *ctx)
         }
 
         ctx->obj = obj;
+        session_add(ctx);
     }
     else
     {
@@ -163,7 +164,7 @@ static int simcom_login(const void *msg, SESSION *ctx)
     {
         //TODO: LOG_ERROR
     }
-    
+
     if(!db_isTableCreated(obj->IMEI))
     {
         db_createCGI(obj->IMEI);
