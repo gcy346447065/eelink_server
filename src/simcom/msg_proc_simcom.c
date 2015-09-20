@@ -27,21 +27,32 @@ typedef struct
     MSG_PROC pfn;
 } MSG_PROC_MAP;
 
+int handle_simcom_msg(const char *m, size_t msgLen, void *arg);
+
 static int handle_one_msg(const void *msg, SESSION *ctx);
+static int get_msg_cmd(const void *msg);
+static int simcom_msg_send(void *msg, size_t len, SESSION *ctx);
+
 static int simcom_login(const void *msg, SESSION *ctx);
 static int simcom_gps(const void *msg, SESSION *ctx);
 static int simcom_cell(const void *msg, SESSION *ctx);
 static int simcom_ping(const void *msg, SESSION *ctx);
 static int simcom_alarm(const void *msg, SESSION *ctx);
-static int get_msg_cmd(const void *msg);
+static int simcom_433(const void *msg, SESSION *ctx);
+static int simcom_defend(const void *msg, SESSION *ctx);
+static int simcom_seek(const void *msg, SESSION *ctx);
+
 
 static MSG_PROC_MAP msgProcs[] =
 {
-        {CMD_LOGIN, simcom_login},
-        {CMD_GPS,   simcom_gps},
-        {CMD_CELL,  simcom_cell},
-        {CMD_PING,  simcom_ping},
-        {CMD_ALARM, simcom_alarm},
+        {CMD_LOGIN,     simcom_login},
+        {CMD_GPS,       simcom_gps},
+        {CMD_CELL,      simcom_cell},
+        {CMD_PING,      simcom_ping},
+        {CMD_ALARM,     simcom_alarm},
+        {CMD_433,       simcom_433},
+        {CMD_DEFEND,    simcom_defend},
+        {CMD_SEEK,      simcom_seek},
 };
 
 int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
@@ -70,33 +81,35 @@ int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
     return 0;
 }
 
+//--------------------------------Utility Function-------------------------
 
 int handle_one_msg(const void *m, SESSION *ctx)
 {
+    int i = get_msg_cmd(m);
+    if(i == -1)
+    {
+        LOG_ERROR("unknown message cmd(%d)", ((MSG_HEADER *)m)->cmd);
+        return -1;
+    }
+
+    return (msgProcs[i].pfn)(m, ctx);
+}
+
+int get_msg_cmd(const void *m)
+{
     const MSG_HEADER *msg = (MSG_HEADER *)m;
+
     for (size_t i = 0; i < sizeof(msgProcs) / sizeof(msgProcs[0]); i++)
     {
         if (msgProcs[i].cmd == msg->cmd)
         {
-            MSG_PROC pfn = msgProcs[i].pfn;
-            if (pfn)
-            {
-                return pfn(msg, ctx);
-            }
-            else
-            {
-                LOG_ERROR("Message %d not processed", msg->cmd);
-                return -1;
-            }
+            return i;
         }
     }
-
-    LOG_ERROR("unknown message cmd(%d)", msg->cmd);
     return -1;
 }
 
-
-static int simcom_msg_send(void *msg, size_t len, SESSION *ctx)
+int simcom_msg_send(void *msg, size_t len, SESSION *ctx)
 {
     if (!ctx)
     {
@@ -120,7 +133,9 @@ static int simcom_msg_send(void *msg, size_t len, SESSION *ctx)
     return 0;
 }
 
-static int simcom_login(const void *msg, SESSION *ctx)
+//-----------------------------Handles for Msg--------------------------------
+
+int simcom_login(const void *msg, SESSION *ctx)
 {
     const MSG_LOGIN_REQ* req = msg;
 
@@ -174,7 +189,7 @@ static int simcom_login(const void *msg, SESSION *ctx)
     return 0;
 }
 
-static int simcom_gps(const void *msg, SESSION *ctx)
+int simcom_gps(const void *msg, SESSION *ctx)
 {
     const MSG_GPS* req = msg;
 
@@ -227,7 +242,7 @@ static int simcom_gps(const void *msg, SESSION *ctx)
     return 0;
 }
 
-static int simcom_cell(const void *msg, SESSION *ctx)
+int simcom_cell(const void *msg, SESSION *ctx)
 {
     const MSG_HEADER *req = (MSG_HEADER *)msg;
     if(!req)
@@ -278,26 +293,28 @@ static int simcom_cell(const void *msg, SESSION *ctx)
     return 0;
 }
 
-static int simcom_ping(const void *msg, SESSION *ctx)
+int simcom_ping(const void *msg, SESSION *ctx)
 {
     return 0;
 }
 
-static int simcom_alarm(const void *msg, SESSION *ctx)
+int simcom_alarm(const void *msg, SESSION *ctx)
 {
     return 0;
 }
 
-static int get_msg_cmd(const void *m)
+int simcom_433(const void *msg, SESSION *ctx)
 {
-    const MSG_HEADER *msg = (MSG_HEADER *)m;
+    //send msg_433 to APP
+    return 0;
+}
 
-    for (size_t i = 0; i < sizeof(msgProcs) / sizeof(msgProcs[0]); i++)
-    {
-        if (msgProcs[i].cmd == msg->cmd)
-        {
-            return i;
-        }
-    }
-    return -1;
+int simcom_defend(const void *msg, SESSION *ctx)
+{
+    return 0;
+}
+
+int simcom_seek(const void *msg, SESSION *ctx)
+{
+    return 0;
 }

@@ -22,6 +22,9 @@ enum
     CMD_PING    = 0x04,
     CMD_ALARM   = 0x05,
     CMD_SMS     = 0x06,
+    CMD_433     = 0x07,
+    CMD_DEFEND  = 0x08,
+    CMD_SEEK    = 0x09,
 };
 
 #pragma pack(push, 1)
