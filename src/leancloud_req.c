@@ -52,7 +52,7 @@ static int leancloud_get(CURL *curl, const char* class)
 {
     char url[256] = {0};
 
-    snprintf(url, 256, "%s/classes/%s", LEANCLOUD_URL_BASE, class);
+    snprintf(url, 256, "%s/classes/%s?limit=1000", LEANCLOUD_URL_BASE, class);
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
