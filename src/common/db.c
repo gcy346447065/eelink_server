@@ -52,7 +52,7 @@ int db_isTableCreated(const char* imeiName)
 
     mysql_free_result(res);
 
-    if(2 != rows)
+    if(0 == rows)
     {
         return 0;
     }
