@@ -106,7 +106,7 @@ int db_saveCGI(const char *imeiName, int timestamp, short mcc, short mnc, short 
 {
     //timestamp INT, mcc SMALLINT, mnc SMALLINT, lac SMALLINT, ci CHAR(3)
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into cgi_%s(timestamp,mcc,mnc,lac,ci) values(%d,%d,%d,%d,%d,%d)", imeiName, timestamp, mcc, mnc, lac, ci, rxl);
+    snprintf(query, MAX_QUERY, "insert into cgi_%s(timestamp,mcc,mnc,lac,ci,rxl) values(%d,%d,%d,%d,%d,%d)", imeiName, timestamp, mcc, mnc, lac, ci, rxl);
     if(mysql_query(conn, query))
     {
         LOG_ERROR("can't insert into cgi_%s", imeiName);
