@@ -35,6 +35,19 @@ enum ALARM_TYPE
     ALARM_VIBRATE,
 };
 
+enum DEFEND_TYPE
+{
+    DEFEND_ON   = 0x01,
+    DEFEND_OFF  = 0x02,
+    DEFEND_GET  = 0x03,
+};
+
+enum SEEK_TYPE
+{
+    SEEK_ON     = 0x01,
+    SEEK_OFF    = 0x02;
+};
+
 #pragma pack(push, 1)
 
 /*
@@ -158,12 +171,32 @@ typedef struct
 /*
  * defend message structure
  */
-typedef MSG_HEADER MSG_DEFEND;
+typedef struct
+{
+    MSG_HEADER header;
+    unsigned char operator;
+}__attribute__((__packed__)) MSG_DEFEND_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    unsigned char result;
+}__attribute__((__packed__)) MSG_DEFEND_RSP;
 
 /*
  * switch on the seek mode
  */
-typedef MSG_HEADER MSG_SEEK;
+typedef struct
+{
+    MSG_HEADER header;
+    unsigned char operator;
+}__attribute__((__packed__)) MSG_SEEK_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    unsigned char result;
+}__attribute__((__packed__)) MSG_SEEK_RSP;
 
 #pragma pack(pop)
 
