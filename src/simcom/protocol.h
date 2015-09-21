@@ -33,7 +33,7 @@ enum ALARM_TYPE
     ALARM_FENCE_OUT,
     ALARM_FENCE_IN,
     ALARM_VIBRATE,
-}
+};
 
 #pragma pack(push, 1)
 
