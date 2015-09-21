@@ -11,6 +11,7 @@
 #define START_FLAG (0xAA55)
 //#define IMEI_LENGTH 16
 #define MAX_CELL_NUM 7
+#define TEL_NO_LENGTH 11
 
 #include "macro.h"
 
@@ -27,6 +28,13 @@ enum
     CMD_SEEK    = 0x09,
 };
 
+enum ALARM_TYPE
+{
+    ALARM_FENCE_OUT,
+    ALARM_FENCE_IN,
+    ALARM_VIBRATE,
+}
+
 #pragma pack(push, 1)
 
 /*
@@ -36,7 +44,7 @@ typedef struct
 {
     float longitude;
     float latitude;
-}GPS;
+}__attribute__((__packed__)) GPS;
 
 /*
  * CELL structure
@@ -120,8 +128,8 @@ typedef struct
 {
     MSG_HEADER header;
     unsigned char alarmType;
-    GPS gps;
 }__attribute__((__packed__)) MSG_ALARM_REQ;
+
 typedef MSG_HEADER MSG_ALARM_RSP;
 
 /*
@@ -130,11 +138,32 @@ typedef MSG_HEADER MSG_ALARM_RSP;
 typedef struct
 {
     MSG_HEADER header;
-    char telphone[12];
+    char telphone[TEL_NO_LENGTH + 1];
+    char smsLen;
     char sms[];
 }__attribute__((__packed__)) MSG_SMS_REQ;
 
 typedef MSG_SMS_REQ MSG_SMS_RSP;
+
+/*
+ * seek message structure
+ * the message has no response
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    int intensity;
+}__attribute__((__packed__)) MSG_433;
+
+/*
+ * defend message structure
+ */
+typedef MSG_HEADER MSG_DEFEND;
+
+/*
+ * switch on the seek mode
+ */
+typedef MSG_HEADER MSG_SEEK;
 
 #pragma pack(pop)
 
