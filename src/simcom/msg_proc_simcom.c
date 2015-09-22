@@ -219,8 +219,8 @@ int simcom_gps(const void *msg, SESSION *ctx)
     time(&rawtime);
     obj->timestamp = rawtime;
 
-    if (obj->lat == ntohf(req->gps.latitude)
-        && obj->lon == ntohf(req->gps.longitude))
+    if (obj->lat == ntohl(req->gps.latitude)
+        && obj->lon == ntohl(req->gps.longitude))
     {
         LOG_INFO("No need to save data to leancloud");
     }
