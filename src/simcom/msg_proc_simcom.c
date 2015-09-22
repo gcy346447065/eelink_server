@@ -219,8 +219,8 @@ int simcom_gps(const void *msg, SESSION *ctx)
     time(&rawtime);
     obj->timestamp = rawtime;
 
-    if (obj->lat == ntohl(req->gps.latitude)
-        && obj->lon == ntohl(req->gps.longitude))
+    if (obj->lat == ntohf(req->gps.latitude)
+        && obj->lon == ntohf(req->gps.longitude))
     {
         LOG_INFO("No need to save data to leancloud");
     }
@@ -228,8 +228,8 @@ int simcom_gps(const void *msg, SESSION *ctx)
     {
         //update local object
         obj->isGPSlocated = 0x01;
-        obj->lat = ntohl(req->gps.latitude);
-        obj->lon = ntohl(req->gps.longitude);
+        obj->lat = ntohf(req->gps.latitude);
+        obj->lon = ntohf(req->gps.longitude);
         //leancloud_saveGPS(obj, ctx);
     }
 
