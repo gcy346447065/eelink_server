@@ -8,6 +8,7 @@
 #ifndef SRC_MSG_PROC_APP_H_
 #define SRC_MSG_PROC_APP_H_
 
+#include <mosquitto.h>
 
 void app_message_callback(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message);
 void app_connect_callback(struct mosquitto *mosq, void *userdata, int result);
@@ -17,9 +18,10 @@ void app_log_callback(struct mosquitto *mosq, void *userdata, int level, const c
 void app_publish_callback(struct mosquitto *mosq, void *userdata, int mid);
 
 void app_sendGpsMsg2App(void *session);
+void app_send433Msg2App(int intensity, void * session);
 void app_sendRspMsg2App(short cmd, short seq, void *data, int len, void *session);
 
-void app_subscribe(struct mosquitto *mosq, void *imei);
-void app_unsubscribe(struct mosquitto *mosq, void *imei);
+void app_subscribe(struct mosquitto *mosq, const void *imei);
+void app_unsubscribe(struct mosquitto *mosq, const void *imei);
 
 #endif /* SRC_MSG_PROC_APP_H_ */

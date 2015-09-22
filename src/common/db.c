@@ -24,12 +24,14 @@ int db_initial()
         LOG_ERROR("can't connect database: %s", DB_NAME);
         return -1;
     }
+    LOG_INFO("connect database: %s", DB_NAME);
     return 0;
 }
 
 int db_destruct()
 {
     mysql_close(conn);
+    LOG_INFO("destruct database: %s", DB_NAME);
     return 0;
 }
 
@@ -67,19 +69,21 @@ int db_createGPS(const char* tableName)
         LOG_ERROR("can't create table: gps_%s", tableName);
         return -1;
     }
+    LOG_INFO("create table: gps_%s", tableName);
     return 0;
 }
 
 int db_createCGI(const char* tableName)
 {
     char query[MAX_QUERY];
-    //create table cgi_IMEI(timestamp INT, mcc SMALLINT, mnc SMALLINT, lac SMALLINT, ci CHAR(3))
-    snprintf(query, MAX_QUERY, "create table cgi_%s(timestamp INT,mcc SMALLINT,mnc SMALLINT,lac SMALLINT,ci CHAR(3),primary key(timestamp))", tableName);
+    //create table cgi_IMEI(timestamp INT, mcc SMALLINT, mnc SMALLINT, lac SMALLINT, ci SMALLINT, rxl SMALLINT)
+    snprintf(query, MAX_QUERY, "create table cgi_%s(timestamp INT,mcc SMALLINT,mnc SMALLINT,lac SMALLINT,ci SMALLINT,rxl SMALLINT)", tableName);
     if(mysql_query(conn, query))
     {
         LOG_ERROR("can't create table: cgi_%s", tableName);
         return -1;
     }
+    LOG_INFO("create table: cgi_%s", tableName);
     return 0;
 }
 
@@ -98,25 +102,21 @@ int db_saveGPS(const char *imeiName, int timestamp, int lat, int lon, char speed
         LOG_ERROR("can't insert into gps_%s", imeiName);
         return -1;
     }
-
+    LOG_INFO("insert into gps_%s: %d, %f, %f, %u, %d", imeiName, timestamp, t_lat, t_lon, speed, course);
     return 0;
 }
 
-int db_saveCGI(const char *imeiName, int timestamp, short mcc, short mnc, short lac, char ci[])
+int db_saveCGI(const char *imeiName, int timestamp, short mcc, short mnc, short lac, short ci, short rxl)
 {
-
-    char tmp_ci[4];
-    memcpy(tmp_ci, ci, 3); // the length os ci is 3...
-    tmp_ci[3] = '\0';
-
     //timestamp INT, mcc SMALLINT, mnc SMALLINT, lac SMALLINT, ci CHAR(3)
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into cgi_%s(timestamp,mcc,mnc,lac,ci) values(%d,%d,%d,%d,\"%s\")", imeiName, timestamp, mcc, mnc, lac, tmp_ci);
+    snprintf(query, MAX_QUERY, "insert into cgi_%s(timestamp,mcc,mnc,lac,ci,rxl) values(%d,%d,%d,%d,%d,%d)", imeiName, timestamp, mcc, mnc, (unsigned short)lac, (unsigned short)ci, rxl);
     if(mysql_query(conn, query))
     {
         LOG_ERROR("can't insert into cgi_%s", imeiName);
         return -1;
     }
+    LOG_INFO("insert into cgi_%s: %d %d %d %d %d %d", imeiName, timestamp, mcc, mnc, (unsigned short)lac, (unsigned short)ci, rxl);
     return 0;
 }
 

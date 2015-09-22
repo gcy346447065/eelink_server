@@ -50,6 +50,13 @@ typedef struct
 
 typedef MC_MSG_HEADER MC_MSG_LOGIN_RSP;
 
+typedef struct
+{
+	short mcc;	//mobile country code
+	short mnc;	//mobile network code
+	short lac;	//local area code
+	char ci[3]; //cell id
+}__attribute__((__packed__)) CGI_TK115;
 
 //GPS message structure
 typedef struct
@@ -60,7 +67,7 @@ typedef struct
 	int lon;
 	char speed;
 	short course;
-	CGI_MC cell;
+	CGI_TK115 cell;
 	char location;
 	short status;
 	short voltage;
@@ -89,7 +96,7 @@ typedef struct
 	int lon;
 	char speed;
 	short course;
-	CGI_MC cell;
+	CGI_TK115 cell;
 	char location;
 	unsigned char type;
 }__attribute__((__packed__)) MC_MSG_ALARM_REQ;
@@ -122,7 +129,7 @@ typedef struct
 	int lon;
 	char speed;
 	short course;
-	CGI_MC cell;
+	CGI_TK115 cell;
 	char location;
 	char type;
 	int deviceTime;
@@ -147,7 +154,7 @@ typedef struct
 	int lon;
 	char speed;
 	short course;
-	CGI_MC cell;
+	CGI_TK115 cell;
 	char location;
 
 	char telphone[21];

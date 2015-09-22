@@ -13,6 +13,8 @@
 #include "object.h"
 #include "env.h"
 #include "mqtt.h"
+#include "db.h"
+#include "session.h"
 
 struct event_base *base = NULL;
 
@@ -41,7 +43,7 @@ int main(int argc, char **argv)
 
     if (argc >= 2)
     {
-    	char* strPort = argv[2];
+    	char* strPort = argv[1];
     	int num = atoi(strPort);
     	if (num)
     	{
@@ -60,8 +62,10 @@ int main(int argc, char **argv)
         return 1; /*XXXerr*/
 
     int rc = log_init();
+
     if (rc)
     {
+        LOG_ERROR("log initial failed: rc=%d", rc);
     	return rc;
     }
 
@@ -82,7 +86,7 @@ int main(int argc, char **argv)
     }
 
     mqtt_initial();
-    
+
     rc = yunba_connect();
     if (rc)
     {
@@ -98,8 +102,15 @@ int main(int argc, char **argv)
 
     env_initial();
 
-    obj_table_initial(mqtt_subscribe);
+    rc = db_initial();
+    if(rc)
+    {
+        LOG_FATAL("connect to mysql failed");
+        return -1;
+    }
 
+    obj_table_initial(mqtt_subscribe);
+    session_table_initial();
 
     struct evconnlistener* listener_simcom = server_simcom(base, simcom_port);
     if (listener_simcom)
@@ -123,9 +134,11 @@ int main(int argc, char **argv)
 
     event_base_free(base);
 
+    session_table_destruct();
     obj_table_destruct();
 
     env_cleanup();
+    db_destruct();
     curl_global_cleanup();
 
     yunba_disconnect();

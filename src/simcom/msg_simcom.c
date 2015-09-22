@@ -7,6 +7,7 @@
 
 #include <malloc.h>
 #include <netinet/in.h>
+#include <string.h>
 #include "msg_simcom.h"
 
 static unsigned short seq = 0;
@@ -63,3 +64,10 @@ void free_simcom_msg(MSG_HEADER* msg)
     free(msg);
 }
 
+const char *getIMEI(const char *imei)
+{
+    static char ret[IMEI_LENGTH + 1];
+    memcpy(ret, imei, IMEI_LENGTH);
+    ret[IMEI_LENGTH] = '\0';
+    return ret;
+}

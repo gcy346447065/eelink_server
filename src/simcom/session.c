@@ -12,7 +12,7 @@ static GHashTable *session_table = NULL;
 
 void session_freeKey(gpointer key)
 {
-	LOG_DEBUG("free key IMEI:%s of session_table", key);
+	LOG_DEBUG("free key IMEI:%s of session_table", (char *)key);
     g_free(key);
 }
 

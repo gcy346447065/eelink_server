@@ -23,4 +23,11 @@ typedef struct
 	SIMCOM_MSG_SEND pSendMsg;
 }SIMCOM_CTX;
 
+void ctx_table_initial();
+void ctx_table_destruct();
+
+int ctx_add(SIMCOM_CTX *);
+int ctx_del(SIMCOM_CTX *);
+SIMCOM_CTX* ctx_get(const char* imei);
+
 #endif /* SRC_CB_CTX_SIMCOM_H_ */

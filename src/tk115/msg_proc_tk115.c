@@ -163,9 +163,14 @@ int tk115_gps(const void *msg, SESSION *ctx)
 	obj->lon = ntohl(req->lon);
 	obj->speed = req->speed;
 	obj->course = ntohs(req->course);
-	obj->cell = req->cell;
 	obj->timestamp = ntohl(req->timestamp);
 	obj->isGPSlocated = req->location & 0x01;
+
+	(obj->cell[0]).mcc = (req->cell).mcc;
+	(obj->cell[0]).mnc = (req->cell).mnc;
+	(obj->cell[0]).lac = (req->cell).lac;
+	//transform ci from char[3] to short
+	(obj->cell[0]).ci = *(short *)(&((req->cell).ci[1]));
 
 	app_sendGpsMsg2App(ctx);
 
@@ -180,8 +185,8 @@ int tk115_gps(const void *msg, SESSION *ctx)
     }
     else
     {
-        //int db_saveCGI(const char *name, int timestamp, short mcc, short mnc, short lac, char ci[])
-        db_saveCGI(obj->IMEI, obj->timestamp, obj->cell.mcc, obj->cell.mnc, obj->cell.lac, obj->cell.ci);
+        //int db_saveCGI(const char *name, int timestamp, short mcc, short mnc, short lac, short ci, short rxl)
+        db_saveCGI(obj->IMEI, obj->timestamp, (obj->cell[0]).mcc, (obj->cell[0]).mnc, (obj->cell[0]).lac, (obj->cell[0]).ci, 0);
     }
 
 
@@ -239,7 +244,11 @@ int tk115_alarm(const void *msg, SESSION *ctx)
 	obj->lon = ntohl(req->lon);
 	obj->speed = req->speed;
 	obj->course = ntohs(req->course);
-	obj->cell = req->cell;
+
+	(obj->cell[0]).mcc = (req->cell).mcc;
+	(obj->cell[0]).mnc = (req->cell).mnc;
+	(obj->cell[0]).lac = (req->cell).lac;
+	(obj->cell[0]).ci = *(short *)(&((req->cell).ci[1]));
 
 	MC_MSG_ALARM_RSP* rsp = NULL;
 	size_t rspMsgLength = 0;

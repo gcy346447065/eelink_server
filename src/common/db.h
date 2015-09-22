@@ -23,7 +23,7 @@ int db_isTableCreated(const char* imeiName);
 int db_createGPS(const char* tableName);
 int db_createCGI(const char* tableName);
 int db_saveGPS(const char* imeiName, int timestamp, int lat, int lon, char speed, short course);
-int db_saveCGI(const char* imeiName, int timestamp, short mcc, short mnc, short lac, char ci[]);
+int db_saveCGI(const char* imeiName, int timestamp, short mcc, short mnc, short lac, short ci, short rxl);
 
 int db_doWithOBJ(void (*func)(const char*, int), void (*func2)(const char *));
 int db_insertOBJ(const char *imeiName, int lastlogintime);
