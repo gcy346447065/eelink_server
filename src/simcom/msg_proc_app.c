@@ -20,33 +20,24 @@
 #include "mqtt.h"
 
 
-static void app_sendRawData2TK115(const void* msg, int len, const char* imei, int token)
+static void app_sendRawData2mc(void* msg, size_t len, const char* imei)
 {
-	/*
 	SESSION *session = session_get(imei);
 	if(!session)
 	{
 		LOG_ERROR("obj %s offline", imei);
+		free(msg);
         return;
 	}
-
-	MC_MSG_OPERATOR_REQ* req = (MC_MSG_OPERATOR_REQ *)alloc_msg(CMD_OPERAT, sizeof(MC_MSG_OPERATOR_REQ) + len);
-	if(req)
+	int rc = simcom_msg_send(msg, len, session);
+	if(rc)
 	{
-		req->type = 0x01;	//FIXME: use enum instead
-		req->token = token;
-		memcpy(req->data, msg, len);
-        simcom_msg_send(req, sizeof(MC_MSG_OPERATOR_REQ) + len, session);
+		LOG_ERROR("send msg to simcom error");
+		free(msg);
 	}
-	else
-	{
-		LOG_FATAL("insufficient memory");
-	}
-	free(msg);
-	*/
 }
 
-static void app_sendRawData2App(const char* topic, char *data, int len, void* session)
+static void app_sendRawData2App(const char* topic, void *data, size_t len, void* session)
 {
 	if (!session)
 	{
@@ -95,7 +86,28 @@ void app_sendRspMsg2App(short cmd, short seq, void* data, int len, void* session
 	app_sendRawData2App(topic, msg, sizeof(APP_MSG) + len, session);
 }
 
+void app_send433Msg2App(int intensity, void * session)
+{
+	OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
+	if (!obj)
+	{
+		LOG_ERROR("obj null, no data to upload");
+		return;
+	}
+	F33_MSG *msg = (F33_MSG *)malloc(sizeof(F33_MSG));
+	if (!msg)
+	{
+		LOG_FATAL("insufficient memory");
+		return;
+	}
+	msg->header = htons(0xAA55);
+	msg->intensity = htonl(intensity);
 
+	char topic[IMEI_LENGTH + 20] = {0};
+	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/e2link/433", obj->IMEI);
+
+	app_sendRawData2App(topic, msg, sizeof(F33_MSG), session);
+}
 
 void app_sendGpsMsg2App(void* session)
 {
@@ -106,7 +118,7 @@ void app_sendGpsMsg2App(void* session)
 		return;
 	}
 
-	GPS_MSG* msg = malloc(sizeof(GPS_MSG));
+	GPS_MSG* msg = (GPS_MSG *)malloc(sizeof(GPS_MSG));
 	if (!msg)
 	{
 		LOG_FATAL("insufficient memory");
@@ -127,8 +139,43 @@ void app_sendGpsMsg2App(void* session)
 	app_sendRawData2App(topic, msg, sizeof(GPS_MSG), session);
 }
 
+static char defendApp2mc(int cmd)
+{
+	if(cmd == CMD_FENCE_SET)
+	{
+		return DEFEND_ON;
+	}
+	else if(cmd == CMD_FENCE_DEL)
+	{
+		return DEFEND_OFF;
+	}
+	else
+	{
+		return DEFEND_GET;
+	}
+}
+
+static char seekApp2mc(int cmd)
+{
+	if(cmd == CMD_SEEK_ON)
+	{
+		return SEEK_ON;
+	}
+	else
+	{
+		return SEEK_OFF;
+	}
+}
+
 int app_handleApp2devMsg(const char* topic, const char* data, const int len, void* userdata)
 {
+	APP_MSG *pMsg = (APP_MSG *)data;
+	if (!pMsg)
+	{
+		LOG_FATAL("internal error: msg null");
+		return -1;
+	}
+
 	LOG_HEX(data, len);
 
 	//check the IMEI
@@ -143,20 +190,13 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 
 	strncpy(strIMEI, pStart, IMEI_LENGTH);
 
-//	OBJECT* obj = obj_get(strIMEI);
-//	if (!obj)
-//	{
-//		LOG_ERROR("obj %s not exist", strIMEI);
-//		return -1;
-//	}
-
-	APP_MSG* pMsg = data;
-	if (!pMsg)
+	OBJECT* obj = obj_get(strIMEI);
+	if (!obj)
 	{
-		LOG_FATAL("internal error: msg null");
+		LOG_ERROR("obj %s not exist", strIMEI);
 		return -1;
 	}
-
+	
 	//check the msg header
 	if (ntohs(pMsg->header) != 0xAA55)
 	{
@@ -173,11 +213,45 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 
 	short cmd = ntohs(pMsg->cmd);
 	short seq = ntohs(pMsg->seq);
-	int token = (cmd << 16) + seq;
+//	int token = (cmd << 16) + seq;
 
-	LOG_INFO("receive app CMD:%#x", cmd);
-	app_sendRawData2TK115(pMsg->data, ntohs(pMsg->length) - sizeof(pMsg->seq), strIMEI, token);
-
+	switch (cmd)
+	{
+	case CMD_WILD:
+		LOG_INFO("receive app wildcard cmd");
+		//app_sendRawData2mc(pMsg->data, ntohs(pMsg->length) - sizeof(pMsg->seq), ctx, token);
+		break;
+	case CMD_FENCE_SET:
+	case CMD_FENCE_DEL:
+	case CMD_FENCE_GET:
+	{
+		LOG_INFO("receive app CMD_FENCE_%d", cmd);
+		MSG_DEFEND_REQ *req = (MSG_DEFEND_REQ *)alloc_simcom_msg(cmd, sizeof(MSG_DEFEND_REQ));
+		if(!req)
+		{
+			LOG_FATAL("insufficient memory");
+			return -1;
+		}
+		req->operator = defendApp2mc(cmd);
+		app_sendRawData2mc(req, sizeof(MSG_DEFEND_REQ), strIMEI);
+		break;
+	}
+	case CMD_SEEK_ON:
+	case CMD_SEEK_OFF:
+		LOG_INFO("receive app CMD_SEEK_MODE cmd");
+		MSG_SEEK_REQ *req = (MSG_SEEK_REQ *)alloc_simcom_msg(cmd, sizeof(MSG_SEEK_REQ));
+		if(!req)
+		{
+			LOG_FATAL("insufficient memory");
+			return -1;
+		}
+		req->operator = seekApp2mc(cmd);
+		app_sendRawData2mc(req, sizeof(MSG_SEEK_REQ), strIMEI);
+		break;
+	default:
+		LOG_ERROR("Unknown cmd: %#x", ntohs(pMsg->cmd));
+		break;
+	}
 	return 0;
 }
 

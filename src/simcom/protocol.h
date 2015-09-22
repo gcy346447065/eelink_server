@@ -28,59 +28,12 @@ enum
     CMD_SEEK    = 0x09,
 };
 
-enum ALARM_TYPE
+enum
 {
-    ALARM_FENCE_OUT,
-    ALARM_FENCE_IN,
-    ALARM_VIBRATE,
-};
-
-enum DEFEND_TYPE
-{
-    DEFEND_ON   = 0x01,
-    DEFEND_OFF  = 0x02,
-    DEFEND_GET  = 0x03,
-};
-
-enum SEEK_TYPE
-{
-    SEEK_ON     = 0x01,
-    SEEK_OFF    = 0x02;
+    MSG_SUCCESS = 0,
 };
 
 #pragma pack(push, 1)
-
-/*
- * GPS structure
- */
-typedef struct
-{
-    float longitude;
-    float latitude;
-}__attribute__((__packed__)) GPS;
-
-/*
- * CELL structure
- */
-typedef struct
-{
-   short lac;       //local area code
-   short cellid;    //cell id
-   short rxl;       //receive level
-}__attribute__((__packed__)) CELL;
-
-typedef struct
-{
-    short mcc;  //mobile country code
-    short mnc;  //mobile network code
-    char  cellNo;// cell count
-    CELL cell[];
-}__attribute__((__packed__)) CGI;       //Cell Global Identifier
-
-
-
-
-
 /*
  * Message header definition
  */
@@ -106,6 +59,15 @@ typedef struct
 typedef MSG_HEADER MSG_LOGIN_RSP;
 
 /*
+ * GPS structure
+ */
+typedef struct
+{
+    float longitude;
+    float latitude;
+}__attribute__((__packed__)) GPS;
+
+/*
  * GPS message structure
  */
 typedef struct
@@ -113,6 +75,24 @@ typedef struct
     MSG_HEADER header;
     GPS gps;
 }__attribute__((__packed__)) MSG_GPS;
+
+/*
+ * CELL structure
+ */
+typedef struct
+{
+   short lac;       //local area code
+   short cellid;    //cell id
+   short rxl;       //receive level
+}__attribute__((__packed__)) CELL;
+
+typedef struct
+{
+    short mcc;  //mobile country code
+    short mnc;  //mobile network code
+    char  cellNo;// cell count
+    CELL cell[];
+}__attribute__((__packed__)) CGI;       //Cell Global Identifier
 
 /*
  * CGI message structure
@@ -137,6 +117,13 @@ typedef MSG_HEADER MSG_PING_RSP;
 /*
  * alarm message structure
  */
+enum ALARM_TYPE
+{
+    ALARM_FENCE_OUT,
+    ALARM_FENCE_IN,
+    ALARM_VIBRATE,
+};
+
 typedef struct
 {
     MSG_HEADER header;
@@ -171,6 +158,13 @@ typedef struct
 /*
  * defend message structure
  */
+ enum DEFEND_TYPE
+{
+    DEFEND_ON   = 0x01,
+    DEFEND_OFF  = 0x02,
+    DEFEND_GET  = 0x03,
+};
+
 typedef struct
 {
     MSG_HEADER header;
@@ -186,6 +180,12 @@ typedef struct
 /*
  * switch on the seek mode
  */
+ enum SEEK_TYPE
+{
+    SEEK_OFF    = 0x01,
+    SEEK_ON     = 0x02,
+};
+
 typedef struct
 {
     MSG_HEADER header;

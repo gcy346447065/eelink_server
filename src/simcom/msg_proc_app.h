@@ -18,6 +18,7 @@ void app_log_callback(struct mosquitto *mosq, void *userdata, int level, const c
 void app_publish_callback(struct mosquitto *mosq, void *userdata, int mid);
 
 void app_sendGpsMsg2App(void *session);
+void app_send433Msg2App(int intensity, void * session);
 void app_sendRspMsg2App(short cmd, short seq, void *data, int len, void *session);
 
 void app_subscribe(struct mosquitto *mosq, const void *imei);

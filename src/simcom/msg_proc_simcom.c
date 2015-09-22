@@ -28,10 +28,10 @@ typedef struct
 } MSG_PROC_MAP;
 
 int handle_simcom_msg(const char *m, size_t msgLen, void *arg);
+int simcom_msg_send(void *msg, size_t len, SESSION *ctx);
 
 static int handle_one_msg(const void *msg, SESSION *ctx);
 static int get_msg_cmd(const void *msg);
-static int simcom_msg_send(void *msg, size_t len, SESSION *ctx);
 
 static int simcom_login(const void *msg, SESSION *ctx);
 static int simcom_gps(const void *msg, SESSION *ctx);
@@ -81,6 +81,30 @@ int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
     return 0;
 }
 
+int simcom_msg_send(void *msg, size_t len, SESSION *ctx)
+{
+    if (!ctx)
+    {
+        return -1;
+    }
+
+    SIMCOM_MSG_SEND pfn = ctx->pSendMsg;
+    if (!pfn)
+    {
+        LOG_ERROR("device offline");
+        return -1;
+    }
+
+    pfn(ctx->bev, msg, len);
+
+    LOG_DEBUG("send msg(cmd=%d), length(%ld)", get_msg_cmd(msg), len);
+    LOG_HEX(msg, len);
+
+    free(msg);
+
+    return 0;
+}
+
 //--------------------------------Utility Function-------------------------
 
 int handle_one_msg(const void *m, SESSION *ctx)
@@ -107,30 +131,6 @@ int get_msg_cmd(const void *m)
         }
     }
     return -1;
-}
-
-int simcom_msg_send(void *msg, size_t len, SESSION *ctx)
-{
-    if (!ctx)
-    {
-        return -1;
-    }
-
-    SIMCOM_MSG_SEND pfn = ctx->pSendMsg;
-    if (!pfn)
-    {
-        LOG_ERROR("device offline");
-        return -1;
-    }
-
-    pfn(ctx->bev, msg, len);
-
-    LOG_DEBUG("send msg(cmd=%d), length(%ld)", get_msg_cmd(msg), len);
-    LOG_HEX(msg, len);
-
-    free(msg);
-
-    return 0;
 }
 
 //-----------------------------Handles for Msg--------------------------------
@@ -300,21 +300,64 @@ int simcom_ping(const void *msg, SESSION *ctx)
 
 int simcom_alarm(const void *msg, SESSION *ctx)
 {
+    const MSG_ALARM_REQ *req = (MSG_ALARM_REQ *)msg;
+    if(!req)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(req->header.length < sizeof(MSG_ALARM_REQ) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("message length not enough");
+        return -1;
+    }
+
+    LOG_INFO("ALARM: %d", req->alarmType);
+    OBJECT *obj = ctx->obj;
+    if(!obj)
+    {
+        LOG_WARN("MC must first login");
+        return -1;
+    }
+    //send to APP by yunba
+
     return 0;
 }
 
 int simcom_433(const void *msg, SESSION *ctx)
 {
-    //send msg_433 to APP
+    const MSG_433 *req = (MSG_433 *)msg;
+    if(!req)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(req->header.length < sizeof(MSG_433) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("message length not enough");
+        return -1;
+    }
+
+    LOG_INFO("433: %d", req->intensity);
+    OBJECT *obj = ctx->obj;
+    if(!obj)
+    {
+        LOG_WARN("MC must first login");
+        return -1;
+    }
+
+    app_send433Msg2App(ntohl(req->intensity), ctx);
     return 0;
 }
 
 int simcom_defend(const void *msg, SESSION *ctx)
 {
+    //send ack to APP
     return 0;
 }
 
 int simcom_seek(const void *msg, SESSION *ctx)
 {
+    //send ack to APP
     return 0;
 }

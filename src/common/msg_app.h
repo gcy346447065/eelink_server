@@ -8,6 +8,15 @@
 #ifndef SRC_MSG_APP_H_
 #define SRC_MSG_APP_H_
 
+enum CMD
+{
+	CMD_WILD		= 0x00,
+	CMD_FENCE_SET	= 0x01,
+	CMD_FENCE_DEL	= 0x02,
+	CMD_FENCE_GET	= 0x03,
+	CMD_SEEK_ON		= 0x04,
+	CMD_SEEK_OFF	= 0x05,
+};
 
 //Message definition
 typedef struct
@@ -31,5 +40,10 @@ typedef struct
 	char isGPS;
 }__attribute__((__packed__)) GPS_MSG;
 
+typedef struct
+{
+	short header;
+	char intensity;
+}__attribute__((__packed__)) F33_MSG;//433
 
 #endif /* SRC_MSG_APP_H_ */
