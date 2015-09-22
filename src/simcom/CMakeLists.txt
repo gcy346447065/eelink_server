@@ -1,21 +1,4 @@
 SET(SOURCE_FILE
-    ../common/log.c
-    ../common/log.h
-    ../common/yunba_push.c
-    ../common/yunba_push.h
-    ../common/curl.c
-    ../common/curl.h
-    ../common/object.c
-    ../common/object.h
-    ../common/db.c
-    ../common/db.h
-    ../common/conf.c
-    ../common/conf.h
-
-    ../3rd/cJSON/cJSON.c
-    ../3rd/cJSON/cJSON.h
-
-
     main.c
     mqtt.c
     mqtt.h
@@ -36,4 +19,4 @@ MESSAGE(STATUS "configure Server for SIMCOM")
 link_directories(/usr/lib64/mysql)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 add_executable(simcom_server ${SOURCE_FILE})
-TARGET_LINK_LIBRARIES(simcom_server m event zlog curl mosquitto paho-mqtt3c mysqlclient)
+TARGET_LINK_LIBRARIES(simcom_server m event zlog curl mosquitto paho-mqtt3c mysqlclient electromble)
