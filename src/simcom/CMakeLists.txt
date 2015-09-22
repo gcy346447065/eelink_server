@@ -33,5 +33,7 @@ SET(SOURCE_FILE
     session.h)
 
 MESSAGE(STATUS "configure Server for SIMCOM")
+link_directories(/usr/lib64/mysql)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 add_executable(simcom_server ${SOURCE_FILE})
 TARGET_LINK_LIBRARIES(simcom_server m event zlog curl mosquitto paho-mqtt3c mysqlclient)
