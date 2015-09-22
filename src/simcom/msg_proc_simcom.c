@@ -228,8 +228,8 @@ int simcom_gps(const void *msg, SESSION *ctx)
     {
         //update local object
         obj->isGPSlocated = 0x01;
-        obj->lat = ntohf(req->gps.latitude);
-        obj->lon = ntohf(req->gps.longitude);
+        obj->lat = ntohl(req->gps.latitude);
+        obj->lon = ntohl(req->gps.longitude);
         //leancloud_saveGPS(obj, ctx);
     }
 
