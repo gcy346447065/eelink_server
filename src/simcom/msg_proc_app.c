@@ -263,7 +263,7 @@ void app_subscribe(struct mosquitto *mosq, const void *imei)
 	char topic[IMEI_LENGTH + 20];
 	memset(topic, 0, sizeof(topic));
 
-	snprintf(topic, IMEI_LENGTH + 20, "app2dev/%s/e2link/cmd", (const char *)imei);
+	snprintf(topic, IMEI_LENGTH + 20, "app2dev/%s/simcom/cmd", (const char *)imei);
     LOG_INFO("subscribe topic: %s", topic);
 	mosquitto_subscribe(mosq, NULL, topic, 0);
 }
@@ -273,7 +273,7 @@ void app_unsubscribe(struct mosquitto *mosq, const void *imei)
 	char topic[IMEI_LENGTH + 20];
 	memset(topic, 0, sizeof(topic));
 
-	snprintf(topic, IMEI_LENGTH + 20, "app2dev/%s/e2link/cmd", (const char *)imei);
+	snprintf(topic, IMEI_LENGTH + 20, "app2dev/%s/simcom/cmd", (const char *)imei);
     LOG_INFO("unsubscribe topic: %s", topic);
 	mosquitto_unsubscribe(mosq, NULL, topic);
 }
