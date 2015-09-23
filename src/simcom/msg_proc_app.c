@@ -81,9 +81,10 @@ void app_sendRspMsg2App(short cmd, short seq, void* data, int len, void* session
 
 	char topic[IMEI_LENGTH + 20] = {0};
 
-	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/e2link/cmd", obj->IMEI);
+	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/simcom/cmd", obj->IMEI);
 
 	app_sendRawData2App(topic, msg, sizeof(APP_MSG) + len, session);
+
 }
 
 void app_send433Msg2App(int intensity, void * session)
@@ -104,9 +105,10 @@ void app_send433Msg2App(int intensity, void * session)
 	msg->intensity = htonl(intensity);
 
 	char topic[IMEI_LENGTH + 20] = {0};
-	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/e2link/433", obj->IMEI);
+	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/simcom/433", obj->IMEI);
 
 	app_sendRawData2App(topic, msg, sizeof(F33_MSG), session);
+	LOG_INFO("send 433 msg to APP");
 }
 
 void app_sendGpsMsg2App(void* session)
@@ -127,16 +129,17 @@ void app_sendGpsMsg2App(void* session)
 
 	msg->header = htons(0xAA55);
 	msg->timestamp = htonl(obj->timestamp);
-	msg->lat = htonl(obj->lat);
-	msg->lon = htonl(obj->lon);
+	msg->lat = obj->lat;
+	msg->lon = obj->lon;
 	msg->course = htons(obj->course);
 	msg->speed = obj->speed;
 	msg->isGPS = obj->isGPSlocated;
 
 	char topic[IMEI_LENGTH + 20] = {0};
-	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/e2link/gps", obj->IMEI);
+	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/simcom/gps", obj->IMEI);
 
 	app_sendRawData2App(topic, msg, sizeof(GPS_MSG), session);
+	LOG_INFO("send gps msg to APP");
 }
 
 static char defendApp2mc(int cmd)

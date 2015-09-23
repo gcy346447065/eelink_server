@@ -33,8 +33,8 @@ typedef struct
 {
 	short header;
 	int timestamp;
-	int lat;
-	int lon;
+	float lat;
+	float lon;
 	short course;
 	char speed;
 	char isGPS;

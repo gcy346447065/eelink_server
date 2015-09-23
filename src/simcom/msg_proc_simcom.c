@@ -177,7 +177,9 @@ int simcom_login(const void *msg, SESSION *ctx)
     }
     else
     {
-        //TODO: LOG_ERROR
+        free(rsp);
+        LOG_ERROR("insufficient memory");
+        return -1;
     }
 
     if(!db_isTableCreated(obj->IMEI))
@@ -219,8 +221,8 @@ int simcom_gps(const void *msg, SESSION *ctx)
     time(&rawtime);
     obj->timestamp = rawtime;
 
-    if (obj->lat == ntohl(req->gps.latitude)
-        && obj->lon == ntohl(req->gps.longitude))
+    if (obj->lat == req->gps.latitude
+        && obj->lon == req->gps.longitude)
     {
         LOG_INFO("No need to save data to leancloud");
     }
@@ -228,8 +230,8 @@ int simcom_gps(const void *msg, SESSION *ctx)
     {
         //update local object
         obj->isGPSlocated = 0x01;
-        obj->lat = ntohl(req->gps.latitude);
-        obj->lon = ntohl(req->gps.longitude);
+        obj->lat = req->gps.latitude;
+        obj->lon = req->gps.longitude;
         //leancloud_saveGPS(obj, ctx);
     }
 

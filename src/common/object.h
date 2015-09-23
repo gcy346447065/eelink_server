@@ -37,8 +37,8 @@ typedef struct
 	char locale;
 
 	int timestamp;
-	int lat;
-	int lon;
+	float lat;
+	float lon;
 	char speed;
 	short course;
 	CGI_MC cell[CELL_NUM];

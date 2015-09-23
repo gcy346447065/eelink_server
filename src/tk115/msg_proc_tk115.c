@@ -121,9 +121,14 @@ int tk115_gps(const void *msg, SESSION *ctx)
 		return -1;
 	}
 
+    //transform gps from int to double
+    static const int transGPS = 1800000;
+    double t_lat = (double)ntohl(req->lat) / transGPS;
+    double t_lon = (double)ntohl(req->lon) / transGPS;
+
 	LOG_INFO("GPS: lat(%f), lng(%f), speed(%d), course(%d), GPS(%s)",
-			ntohl(req->lat) / 30000.0 / 60.0,
-			ntohl(req->lon) / 30000.0 / 60.0,
+			t_lat,
+			t_lon,
 			req->speed,
 			ntohs(req->course),
 			req->location & 0x01 ? "YES" : "NO");
@@ -146,8 +151,9 @@ int tk115_gps(const void *msg, SESSION *ctx)
 		return 0;
 	}
 	
-	if (obj->lat == ntohl(req->lat)
-		&& obj->lon == ntohl(req->lon)
+	//problem about double equal
+	if (obj->lat == t_lat
+		&& obj->lon == t_lon
 		&& obj->speed == req->speed
 		&& obj->course == ntohs(req->course))
 	{
@@ -159,8 +165,8 @@ int tk115_gps(const void *msg, SESSION *ctx)
 	}
 
 	//update local object
-	obj->lat = ntohl(req->lat);
-	obj->lon = ntohl(req->lon);
+	obj->lat = t_lat;
+	obj->lon = t_lon;
 	obj->speed = req->speed;
 	obj->course = ntohs(req->course);
 	obj->timestamp = ntohl(req->timestamp);
