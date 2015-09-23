@@ -109,6 +109,7 @@ void mqtt_publish(const char *topic, const void *payload, int payloadlen)
 	{
 		LOG_ERROR("mosq pub error: rc = %d(%s)", rc, mosquitto_strerror(rc));
 	}
+	LOG_INFO("mosq pub succeed: IMEI(%s)", topic);
 }
 
 void mqtt_subscribe(const char *imei)
