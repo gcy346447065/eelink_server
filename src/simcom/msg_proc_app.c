@@ -18,6 +18,7 @@
 #include "session.h"
 #include "object.h"
 #include "mqtt.h"
+#include "protocol.h"
 
 
 static void app_sendRawData2mc(void* msg, size_t len, const char* imei)
@@ -234,7 +235,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 	case CMD_FENCE_GET:
 	{
 		LOG_INFO("receive app CMD_FENCE_%d", cmd);
-		MSG_DEFEND_REQ *req = (MSG_DEFEND_REQ *)alloc_simcom_msg(cmd, sizeof(MSG_DEFEND_REQ));
+		MSG_DEFEND_REQ *req = (MSG_DEFEND_REQ *)alloc_simcom_msg(CMD_DEFEND, sizeof(MSG_DEFEND_REQ));
 		if(!req)
 		{
 			LOG_FATAL("insufficient memory");
@@ -247,7 +248,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 	case CMD_SEEK_ON:
 	case CMD_SEEK_OFF:
 		LOG_INFO("receive app CMD_SEEK_MODE cmd");
-		MSG_SEEK_REQ *req = (MSG_SEEK_REQ *)alloc_simcom_msg(cmd, sizeof(MSG_SEEK_REQ));
+		MSG_SEEK_REQ *req = (MSG_SEEK_REQ *)alloc_simcom_msg(CMD_SEEK, sizeof(MSG_SEEK_REQ));
 		if(!req)
 		{
 			LOG_FATAL("insufficient memory");
