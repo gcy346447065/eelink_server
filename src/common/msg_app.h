@@ -44,7 +44,7 @@ typedef struct
 typedef struct
 {
 	short header;
-	char intensity;
+	int intensity;
 }__attribute__((__packed__)) F33_MSG;//433
 
 #endif /* SRC_MSG_APP_H_ */
