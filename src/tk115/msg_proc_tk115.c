@@ -122,9 +122,9 @@ int tk115_gps(const void *msg, SESSION *ctx)
 	}
 
     //transform gps from int to double
-    //static const int transGPS = 1800000;
-    //double t_lat = (double)ntohl(req->lat) / transGPS;
-    //double t_lon = (double)ntohl(req->lon) / transGPS;
+    static const int transGPS = 1800000;
+    double t_lat = (double)ntohl(req->lat) / transGPS;
+    double t_lon = (double)ntohl(req->lon) / transGPS;
 
 	LOG_INFO("GPS: lat(%f), lng(%f), speed(%d), course(%d), GPS(%s)",
 			t_lat,
