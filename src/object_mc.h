@@ -9,6 +9,16 @@
 #define SRC_OBJECT_MC_
 
 #include "macro_mc.h"
+#include "cb_ctx_mc.h"
+
+
+typedef struct
+{
+//	char DID[MAX_DID_LEN];
+//	char clientID[CLIENT_ID_LEN];
+	short cmd;
+	unsigned short seq;
+}APP_SESSION;
 
 
 typedef struct
@@ -33,7 +43,7 @@ typedef struct
 	char speed;
 	short course;
 	CGI cell;
-	char location;
+	char isGPSlocated;
 	short status;
 	short voltage;
 	short rxl;
@@ -49,19 +59,15 @@ typedef struct
     int device_id;
     int sensor_id;
 
-	struct mosquitto *mosq;
+    int isOnline;
+    CB_CTX* session;
 }OBJ_MC;
-
-typedef struct
-{
-	char DID[MAX_DID_LEN];
-	char clientID[CLIENT_ID_LEN];
-}APP_SESSION;
 
 void mc_obj_initial();
 OBJ_MC* mc_obj_new();
-void mc_obj_del(OBJ_MC* obj);
+void mc_obj_add(OBJ_MC* obj);
 OBJ_MC* mc_get(char IMEI[]);
+void mc_obj_destruct();
 
 int isYeelinkDeviceCreated(OBJ_MC* obj);
 int mc_obj_did_got(OBJ_MC* obj);
