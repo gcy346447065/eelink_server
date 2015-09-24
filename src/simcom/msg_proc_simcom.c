@@ -19,6 +19,8 @@
 #include "msg_simcom.h"
 #include "db.h"
 #include "mqtt.h"
+#include "cJSON.h"
+#include "yunba_push.h"
 
 typedef int (*MSG_PROC)(const void *msg, SESSION *ctx);
 typedef struct
@@ -323,6 +325,23 @@ int simcom_alarm(const void *msg, SESSION *ctx)
         return -1;
     }
     //send to APP by yunba
+    char topic[128];
+    memset(topic, 0, sizeof(topic));
+    snprintf(topic, 128, "simcom_%s", obj->IMEI);
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON *alarm = cJSON_CreateObject();
+    cJSON_AddNumberToObject(alarm,"type", req->alarmType);
+
+    cJSON_AddItemToObject(root, "alarm", alarm);
+
+    char* json = cJSON_PrintUnformatted(root);
+
+    yunba_publish(topic, json, strlen(json));
+    LOG_INFO("send alarm: %s", topic);
+
+    free(json);
+    cJSON_Delete(root);
 
     return 0;
 }
