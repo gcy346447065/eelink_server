@@ -89,11 +89,6 @@ int db_createCGI(const char* tableName)
 
 int db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, short course)
 {
-    //transform gps from int to double
-  //  static const int transGPS = 1800000;
- //   double t_lat = (double)lat / transGPS;
- //   double t_lon = (double)lon / transGPS;
-
     //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
     char query[MAX_QUERY];
     snprintf(query, MAX_QUERY, "insert into gps_%s(timestamp,lat,lon,speed,course) values(%d,%f,%f,%u,%d)",imeiName, timestamp, lat, lon, speed, course);

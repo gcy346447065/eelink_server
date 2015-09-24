@@ -199,7 +199,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 		LOG_ERROR("obj %s not exist", strIMEI);
 		return -1;
 	}
-	
+
 	//check the msg header
 	if (ntohs(pMsg->header) != 0xAA55)
 	{
@@ -256,26 +256,6 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 		break;
 	}
 	return 0;
-}
-
-void app_subscribe(struct mosquitto *mosq, const void *imei)
-{
-	char topic[IMEI_LENGTH + 20];
-	memset(topic, 0, sizeof(topic));
-
-	snprintf(topic, IMEI_LENGTH + 20, "app2dev/%s/simcom/cmd", (const char *)imei);
-    LOG_INFO("subscribe topic: %s", topic);
-	mosquitto_subscribe(mosq, NULL, topic, 0);
-}
-
-void app_unsubscribe(struct mosquitto *mosq, const void *imei)
-{
-	char topic[IMEI_LENGTH + 20];
-	memset(topic, 0, sizeof(topic));
-
-	snprintf(topic, IMEI_LENGTH + 20, "app2dev/%s/simcom/cmd", (const char *)imei);
-    LOG_INFO("unsubscribe topic: %s", topic);
-	mosquitto_unsubscribe(mosq, NULL, topic);
 }
 
 void app_message_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata, const struct mosquitto_message *message)
