@@ -16,6 +16,7 @@ enum CMD
 	CMD_FENCE_GET	= 0x03,
 	CMD_SEEK_ON		= 0x04,
 	CMD_SEEK_OFF	= 0x05,
+	CMD_GPS_GET		= 0x06,
 };
 
 //Message definition

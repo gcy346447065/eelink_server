@@ -199,7 +199,12 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 		LOG_ERROR("obj %s not exist", strIMEI);
 		return -1;
 	}
-
+	SESSION *ctx = session_get(strIMEI);
+	if(!ctx)
+	{
+		LOG_ERROR("simcom %s offline", strIMEI);
+		return -1;
+	}
 	//check the msg header
 	if (ntohs(pMsg->header) != 0xAA55)
 	{
@@ -250,6 +255,10 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 		}
 		req->operator = seekApp2mc(cmd);
 		app_sendRawData2mc(req, sizeof(MSG_SEEK_REQ), strIMEI);
+		break;
+	case CMD_GPS_GET:
+		LOG_INFO("receive app CMD_GPS_GET");
+		app_sendGpsMsg2App(ctx);
 		break;
 	default:
 		LOG_ERROR("Unknown cmd: %#x", ntohs(pMsg->cmd));
