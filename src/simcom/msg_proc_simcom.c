@@ -21,6 +21,7 @@
 #include "mqtt.h"
 #include "cJSON.h"
 #include "yunba_push.h"
+#include "msg_app.h"
 
 typedef int (*MSG_PROC)(const void *msg, SESSION *ctx);
 typedef struct
@@ -372,15 +373,44 @@ int simcom_433(const void *msg, SESSION *ctx)
     return 0;
 }
 
-
 int simcom_defend(const void *msg, SESSION *ctx)
 {
     //send ack to APP
+    static seq = 0;
+    MSG_DEFEND_RSP *rsp = (MSG_DEFEND_RSP *)msg;
+    if(rsp->result == DEFEND_ON)
+    {
+    app_sendRspMsg2App(CMD_FENCE_SET, seq++, NULL, 0, ctx);
+    }
+    else if(rsp->result == DEFEND_OFF)
+    {
+    app_sendRspMsg2App(CMD_FENCE_DEL, seq++, NULL, 0, ctx);
+    }
+    else
+    {
+        LOG_ERROR("response defend cmd error");
+        return -1;
+    }
     return 0;
 }
 
 int simcom_seek(const void *msg, SESSION *ctx)
 {
     //send ack to APP
+    static seq = 0;
+    MSG_SEEK_RSP *rsp = (MSG_SEEK_RSP *)msg;
+    if(rsp->result == SEEK_ON)
+    {
+        app_sendRspMsg2App(CMD_SEEK_ON, seq++, NULL, 0, ctx);
+    }
+    else if(rsp->result == SEEK_OFF)
+    {
+        app_sendRspMsg2App(CMD_SEEK_OFF, seq++, NULL, 0, ctx);
+    }
+    else
+    {
+        LOG_ERROR("response seek cmd not exist");
+        return -1;
+    }
     return 0;
 }
