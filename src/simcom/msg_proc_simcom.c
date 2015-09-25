@@ -378,13 +378,31 @@ int simcom_defend(const void *msg, SESSION *ctx)
     //send ack to APP
     static short seq = 0;
     MSG_DEFEND_RSP *rsp = (MSG_DEFEND_RSP *)msg;
-    if(rsp->result == DEFEND_ON)
+    unsigned char defend = ((object *)(ctx->obj))->defend;
+    if(defend == CMD_FENCE_SET)
     {
-    app_sendRspMsg2App(CMD_FENCE_SET, seq++, NULL, 0, ctx);
+        if(rsp->result == 0)
+        {
+            app_sendRspMsg2App(CMD_FENCE_SET, seq++, NULL, 0, ctx);
+        }
     }
-    else if(rsp->result == DEFEND_OFF)
+    else if(defend == CMD_FENCE_DEL)
     {
-    app_sendRspMsg2App(CMD_FENCE_DEL, seq++, NULL, 0, ctx);
+        if(rsp->result == 0)
+        {
+            app_sendRspMsg2App(CMD_FENCE_DEL, seq++, NULL, 0, ctx);
+        }
+    }
+    else if(defend == CMD_FENCE_GET)
+    {
+        if(rsp->result == DEFEND_ON)
+        {
+            app_sendRspMsg2App(CMD_FENCE_SET, seq++, NULL, 0, ctx);
+        }
+        else
+        {
+            app_sendRspMsg2App(CMD_FENCE_DEL, seq++, NULL, 0, ctx);
+        }
     }
     else
     {

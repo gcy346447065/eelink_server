@@ -56,6 +56,7 @@ typedef struct
 
     int device_id;
     int sensor_id;
+    unsigned char defend;
 } OBJECT;
 
 void obj_table_initial(void (*func)(const char *));

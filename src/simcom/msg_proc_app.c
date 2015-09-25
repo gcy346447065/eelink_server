@@ -235,6 +235,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 	case CMD_FENCE_GET:
 	{
 		LOG_INFO("receive app CMD_FENCE_%d", cmd);
+		obj->defend = cmd;
 		MSG_DEFEND_REQ *req = (MSG_DEFEND_REQ *)alloc_simcom_msg(CMD_DEFEND, sizeof(MSG_DEFEND_REQ));
 		if(!req)
 		{
