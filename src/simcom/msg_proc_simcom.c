@@ -376,7 +376,7 @@ int simcom_433(const void *msg, SESSION *ctx)
 int simcom_defend(const void *msg, SESSION *ctx)
 {
     //send ack to APP
-    static seq = 0;
+    static short seq = 0;
     MSG_DEFEND_RSP *rsp = (MSG_DEFEND_RSP *)msg;
     if(rsp->result == DEFEND_ON)
     {
@@ -397,7 +397,7 @@ int simcom_defend(const void *msg, SESSION *ctx)
 int simcom_seek(const void *msg, SESSION *ctx)
 {
     //send ack to APP
-    static seq = 0;
+    static short seq = 0;
     MSG_SEEK_RSP *rsp = (MSG_SEEK_RSP *)msg;
     if(rsp->result == SEEK_ON)
     {
