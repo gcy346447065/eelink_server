@@ -249,6 +249,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 	case CMD_SEEK_ON:
 	case CMD_SEEK_OFF:
 		LOG_INFO("receive app CMD_SEEK_MODE cmd");
+		obj->seek = cmd;
 		MSG_SEEK_REQ *req = (MSG_SEEK_REQ *)alloc_simcom_msg(CMD_SEEK, sizeof(MSG_SEEK_REQ));
 		if(!req)
 		{
