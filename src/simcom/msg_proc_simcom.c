@@ -372,6 +372,7 @@ int simcom_433(const void *msg, SESSION *ctx)
     return 0;
 }
 
+
 int simcom_defend(const void *msg, SESSION *ctx)
 {
     //send ack to APP
