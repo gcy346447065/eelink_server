@@ -66,11 +66,6 @@ int mc_login(const void* msg, CB_CTX* ctx)
 		mc_msg_send(rsp, sizeof(MC_MSG_LOGIN_RSP), ctx);
 	}
 
-	//change the server setting
-	char serverSetting[] = "SERVER,1,server.xiaoan110.com,9876#";
-	send_raw_data2mc(serverSetting, strlen(serverSetting), ctx, 0);
-
-
 	return 0;
 }
 
