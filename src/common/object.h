@@ -37,8 +37,8 @@ typedef struct
 	char locale;
 
 	int timestamp;
-	int lat;
-	int lon;
+	float lat;
+	float lon;
 	char speed;
 	short course;
 	CGI_MC cell[CELL_NUM];
@@ -56,6 +56,8 @@ typedef struct
 
     int device_id;
     int sensor_id;
+    unsigned char defend;
+    unsigned char seek;
 } OBJECT;
 
 void obj_table_initial(void (*func)(const char *));

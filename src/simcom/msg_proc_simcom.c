@@ -19,6 +19,9 @@
 #include "msg_simcom.h"
 #include "db.h"
 #include "mqtt.h"
+#include "cJSON.h"
+#include "yunba_push.h"
+#include "msg_app.h"
 
 typedef int (*MSG_PROC)(const void *msg, SESSION *ctx);
 typedef struct
@@ -177,7 +180,9 @@ int simcom_login(const void *msg, SESSION *ctx)
     }
     else
     {
-        //TODO: LOG_ERROR
+        free(rsp);
+        LOG_ERROR("insufficient memory");
+        return -1;
     }
 
     if(!db_isTableCreated(obj->IMEI))
@@ -219,8 +224,8 @@ int simcom_gps(const void *msg, SESSION *ctx)
     time(&rawtime);
     obj->timestamp = rawtime;
 
-    if (obj->lat == ntohl(req->gps.latitude)
-        && obj->lon == ntohl(req->gps.longitude))
+    if (obj->lat == req->gps.latitude
+        && obj->lon == req->gps.longitude)
     {
         LOG_INFO("No need to save data to leancloud");
     }
@@ -228,8 +233,8 @@ int simcom_gps(const void *msg, SESSION *ctx)
     {
         //update local object
         obj->isGPSlocated = 0x01;
-        obj->lat = ntohl(req->gps.latitude);
-        obj->lon = ntohl(req->gps.longitude);
+        obj->lat = req->gps.latitude;
+        obj->lon = req->gps.longitude;
         //leancloud_saveGPS(obj, ctx);
     }
 
@@ -277,14 +282,15 @@ int simcom_cell(const void *msg, SESSION *ctx)
         LOG_ERROR("Number:%d of cell is over", num);
         return -1;
     }
+    const CELL *cell = (CELL *)(cgi + 1);
 
     for(int i = 0; i < num; ++i)
     {
         (obj->cell[i]).mcc = ntohs(cgi->mcc);
         (obj->cell[i]).mnc = ntohs(cgi->mnc);
-        (obj->cell[i]).lac = ntohs((cgi->cell[i]).lac);
-        (obj->cell[i]).ci = ntohs((cgi->cell[i]).cellid);
-        (obj->cell[i]).rxl = ntohs((cgi->cell[i]).rxl);
+        (obj->cell[i]).lac = ntohs((cell[i]).lac);
+        (obj->cell[i]).ci = ntohs((cell[i]).cellid);
+        (obj->cell[i]).rxl = ntohs((cell[i]).rxl);
         db_saveCGI(obj->IMEI, obj->timestamp, (obj->cell[i]).mcc, (obj->cell[i]).mnc, (obj->cell[i]).lac, (obj->cell[i]).ci, (obj->cell[i]).rxl);
     }
 
@@ -320,6 +326,23 @@ int simcom_alarm(const void *msg, SESSION *ctx)
         return -1;
     }
     //send to APP by yunba
+    char topic[128];
+    memset(topic, 0, sizeof(topic));
+    snprintf(topic, 128, "simcom_%s", obj->IMEI);
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON *alarm = cJSON_CreateObject();
+    cJSON_AddNumberToObject(alarm,"type", req->alarmType);
+
+    cJSON_AddItemToObject(root, "alarm", alarm);
+
+    char* json = cJSON_PrintUnformatted(root);
+
+    yunba_publish(topic, json, strlen(json));
+    LOG_INFO("send alarm: %s", topic);
+
+    free(json);
+    cJSON_Delete(root);
 
     return 0;
 }
@@ -350,15 +373,84 @@ int simcom_433(const void *msg, SESSION *ctx)
     return 0;
 }
 
-
 int simcom_defend(const void *msg, SESSION *ctx)
 {
     //send ack to APP
+    static short seq = 0;
+    MSG_DEFEND_RSP *rsp = (MSG_DEFEND_RSP *)msg;
+    unsigned char defend = ((OBJECT *)(ctx->obj))->defend;
+    if(defend == CMD_FENCE_SET)
+    {
+        if(rsp->result == 0)
+        {
+            app_sendRspMsg2App(CMD_FENCE_SET, seq++, NULL, 0, ctx);
+        }
+    }
+    else if(defend == CMD_FENCE_DEL)
+    {
+        if(rsp->result == 0)
+        {
+            app_sendRspMsg2App(CMD_FENCE_DEL, seq++, NULL, 0, ctx);
+        }
+    }
+    else if(defend == CMD_FENCE_GET)
+    {
+        if(rsp->result == DEFEND_ON)
+        {
+            app_sendRspMsg2App(CMD_FENCE_SET, seq++, NULL, 0, ctx);
+        }
+        else
+        {
+            app_sendRspMsg2App(CMD_FENCE_DEL, seq++, NULL, 0, ctx);
+        }
+    }
+    else
+    {
+        LOG_ERROR("response defend cmd error");
+        return -1;
+    }
     return 0;
 }
 
 int simcom_seek(const void *msg, SESSION *ctx)
 {
     //send ack to APP
+    static short seq = 0;
+    MSG_SEEK_RSP *rsp = (MSG_SEEK_RSP *)msg;
+    unsigned char seek = ((OBJECT *)(ctx->obj))->seek;
+    if(seek == CMD_SEEK_ON)
+    {
+        if(rsp->result == 0)
+        {
+            app_sendRspMsg2App(CMD_SEEK_ON, seq++, NULL, 0, ctx);  
+        }
+    }
+    else if(seek == CMD_SEEK_OFF)
+    {
+        if(rsp->result == 0)
+        {
+            app_sendRspMsg2App(CMD_SEEK_OFF, seq++, NULL, 0, ctx);
+        }
+    }
+    else
+    {
+        LOG_ERROR("response seek cmd not exist");
+        return -1;
+    }
+    /*
+    if(rsp->result == SEEK_ON)
+    {
+        app_sendRspMsg2App(CMD_SEEK_ON, seq++, NULL, 0, ctx);
+    }
+    else if(rsp->result == SEEK_OFF)
+    {
+        app_sendRspMsg2App(CMD_SEEK_OFF, seq++, NULL, 0, ctx);
+    }
+    else
+    {
+        LOG_ERROR("response seek cmd not exist");
+        return -1;
+    }
+    */
     return 0;
 }

@@ -45,6 +45,11 @@ int session_add(SESSION *session)
 
 int session_del(SESSION *session)
 {
+	if(!session)
+	{
+		LOG_ERROR("session not exist");
+		return -1;
+	}
 	OBJECT *t_obj = (OBJECT *)session->obj;
 	SESSION *t_session = session_get(t_obj->IMEI);
 	if(NULL != t_session)

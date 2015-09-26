@@ -18,6 +18,7 @@
 #include "session.h"
 #include "object.h"
 #include "mqtt.h"
+#include "protocol.h"
 
 
 static void app_sendRawData2mc(void* msg, size_t len, const char* imei)
@@ -81,9 +82,10 @@ void app_sendRspMsg2App(short cmd, short seq, void* data, int len, void* session
 
 	char topic[IMEI_LENGTH + 20] = {0};
 
-	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/e2link/cmd", obj->IMEI);
+	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/simcom/cmd", obj->IMEI);
 
 	app_sendRawData2App(topic, msg, sizeof(APP_MSG) + len, session);
+
 }
 
 void app_send433Msg2App(int intensity, void * session)
@@ -104,9 +106,10 @@ void app_send433Msg2App(int intensity, void * session)
 	msg->intensity = htonl(intensity);
 
 	char topic[IMEI_LENGTH + 20] = {0};
-	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/e2link/433", obj->IMEI);
+	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/simcom/433", obj->IMEI);
 
 	app_sendRawData2App(topic, msg, sizeof(F33_MSG), session);
+	LOG_INFO("send 433 msg to APP");
 }
 
 void app_sendGpsMsg2App(void* session)
@@ -127,16 +130,17 @@ void app_sendGpsMsg2App(void* session)
 
 	msg->header = htons(0xAA55);
 	msg->timestamp = htonl(obj->timestamp);
-	msg->lat = htonl(obj->lat);
-	msg->lon = htonl(obj->lon);
+	msg->lat = obj->lat;
+	msg->lon = obj->lon;
 	msg->course = htons(obj->course);
 	msg->speed = obj->speed;
 	msg->isGPS = obj->isGPSlocated;
 
 	char topic[IMEI_LENGTH + 20] = {0};
-	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/e2link/gps", obj->IMEI);
+	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/simcom/gps", obj->IMEI);
 
 	app_sendRawData2App(topic, msg, sizeof(GPS_MSG), session);
+	LOG_INFO("send gps msg to APP");
 }
 
 static char defendApp2mc(int cmd)
@@ -196,7 +200,12 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 		LOG_ERROR("obj %s not exist", strIMEI);
 		return -1;
 	}
-	
+	SESSION *ctx = session_get(strIMEI);
+	if(!ctx)
+	{
+		LOG_ERROR("simcom %s offline", strIMEI);
+		return -1;
+	}
 	//check the msg header
 	if (ntohs(pMsg->header) != 0xAA55)
 	{
@@ -226,7 +235,8 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 	case CMD_FENCE_GET:
 	{
 		LOG_INFO("receive app CMD_FENCE_%d", cmd);
-		MSG_DEFEND_REQ *req = (MSG_DEFEND_REQ *)alloc_simcom_msg(cmd, sizeof(MSG_DEFEND_REQ));
+		obj->defend = cmd;
+		MSG_DEFEND_REQ *req = (MSG_DEFEND_REQ *)alloc_simcom_msg(CMD_DEFEND, sizeof(MSG_DEFEND_REQ));
 		if(!req)
 		{
 			LOG_FATAL("insufficient memory");
@@ -239,7 +249,8 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 	case CMD_SEEK_ON:
 	case CMD_SEEK_OFF:
 		LOG_INFO("receive app CMD_SEEK_MODE cmd");
-		MSG_SEEK_REQ *req = (MSG_SEEK_REQ *)alloc_simcom_msg(cmd, sizeof(MSG_SEEK_REQ));
+		obj->seek = cmd;
+		MSG_SEEK_REQ *req = (MSG_SEEK_REQ *)alloc_simcom_msg(CMD_SEEK, sizeof(MSG_SEEK_REQ));
 		if(!req)
 		{
 			LOG_FATAL("insufficient memory");
@@ -248,31 +259,15 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 		req->operator = seekApp2mc(cmd);
 		app_sendRawData2mc(req, sizeof(MSG_SEEK_REQ), strIMEI);
 		break;
+	case CMD_GPS_GET:
+		LOG_INFO("receive app CMD_GPS_GET");
+		app_sendGpsMsg2App(ctx);
+		break;
 	default:
 		LOG_ERROR("Unknown cmd: %#x", ntohs(pMsg->cmd));
 		break;
 	}
 	return 0;
-}
-
-void app_subscribe(struct mosquitto *mosq, const void *imei)
-{
-	char topic[IMEI_LENGTH + 20];
-	memset(topic, 0, sizeof(topic));
-
-	snprintf(topic, IMEI_LENGTH + 20, "app2dev/%s/e2link/cmd", (const char *)imei);
-    LOG_INFO("subscribe topic: %s", topic);
-	mosquitto_subscribe(mosq, NULL, topic, 0);
-}
-
-void app_unsubscribe(struct mosquitto *mosq, const void *imei)
-{
-	char topic[IMEI_LENGTH + 20];
-	memset(topic, 0, sizeof(topic));
-
-	snprintf(topic, IMEI_LENGTH + 20, "app2dev/%s/e2link/cmd", (const char *)imei);
-    LOG_INFO("unsubscribe topic: %s", topic);
-	mosquitto_unsubscribe(mosq, NULL, topic);
 }
 
 void app_message_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata, const struct mosquitto_message *message)

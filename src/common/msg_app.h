@@ -16,6 +16,7 @@ enum CMD
 	CMD_FENCE_GET	= 0x03,
 	CMD_SEEK_ON		= 0x04,
 	CMD_SEEK_OFF	= 0x05,
+	CMD_GPS_GET		= 0x06,
 };
 
 //Message definition
@@ -33,8 +34,8 @@ typedef struct
 {
 	short header;
 	int timestamp;
-	int lat;
-	int lon;
+	float lat;
+	float lon;
 	short course;
 	char speed;
 	char isGPS;
@@ -43,7 +44,7 @@ typedef struct
 typedef struct
 {
 	short header;
-	char intensity;
+	int intensity;
 }__attribute__((__packed__)) F33_MSG;//433
 
 #endif /* SRC_MSG_APP_H_ */

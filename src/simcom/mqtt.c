@@ -8,9 +8,11 @@
 
 #include <stdio.h>
 #include <mosquitto.h>
+#include <string.h>
 
 #include "log.h"
 #include "msg_proc_app.h"
+#include "macro.h"
 
 static struct mosquitto* mosq = NULL;
 
@@ -107,14 +109,27 @@ void mqtt_publish(const char *topic, const void *payload, int payloadlen)
 	{
 		LOG_ERROR("mosq pub error: rc = %d(%s)", rc, mosquitto_strerror(rc));
 	}
+	LOG_INFO("mosq pub succeed: IMEI(%s)", topic);
 }
 
 void mqtt_subscribe(const char *imei)
 {
-	app_subscribe(mosq, imei);
+//	app_subscribe(mosq, imei);
+	char topic[IMEI_LENGTH + 20];
+	memset(topic, 0, sizeof(topic));
+
+	snprintf(topic, IMEI_LENGTH + 20, "app2dev/%s/simcom/cmd", (const char *)imei);
+    LOG_INFO("subscribe topic: %s", topic);
+	mosquitto_subscribe(mosq, NULL, topic, 0);
 }
 
 void mqtt_unsubscribe(const char *imei)
 {
-	app_unsubscribe(mosq, imei);
+//	app_unsubscribe(mosq, imei);
+	char topic[IMEI_LENGTH + 20];
+	memset(topic, 0, sizeof(topic));
+
+	snprintf(topic, IMEI_LENGTH + 20, "app2dev/%s/simcom/cmd", (const char *)imei);
+    LOG_INFO("unsubscribe topic: %s", topic);
+	mosquitto_unsubscribe(mosq, NULL, topic);
 }
