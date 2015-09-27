@@ -232,7 +232,7 @@ void mqtt_unsubscribe(const char *imei)
 	char topic[IMEI_LENGTH + 20];
 	memset(topic, 0, sizeof(topic));
 
-	snprintf(topic, IMEI_LENGTH + 20, "app2dev/%s/cmd", (char *)imei);
+	snprintf(topic, IMEI_LENGTH + 20, "app2dev/%s/+/cmd", (char *)imei);
     LOG_INFO("unsubscribe topic: %s", topic);
 	mosquitto_unsubscribe(mosq, NULL, topic);
 }
