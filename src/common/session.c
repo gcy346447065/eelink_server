@@ -50,7 +50,13 @@ int session_del(SESSION *session)
 		LOG_ERROR("session not exist");
 		return -1;
 	}
+
 	OBJECT *t_obj = (OBJECT *)session->obj;
+	if (!t_obj)
+	{
+	    LOG_WARN("object not login in before timeout");
+	    return 0;
+	}
 	SESSION *t_session = session_get(t_obj->IMEI);
 	if(NULL != t_session)
 	{
