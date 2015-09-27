@@ -15,6 +15,7 @@
 #include "mqtt.h"
 #include "db.h"
 #include "session.h"
+#include "msg_proc_app.h"
 
 struct event_base *base = NULL;
 
@@ -85,7 +86,7 @@ int main(int argc, char **argv)
     	return -1;
     }
 
-    mqtt_initial();
+    mqtt_initial(app_handleApp2devMsg);
 
     rc = yunba_connect();
     if (rc)

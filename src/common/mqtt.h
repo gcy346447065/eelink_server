@@ -8,8 +8,9 @@
 #ifndef SRC_MQTT_H_
 #define SRC_MQTT_H_
 
+typedef int (*APP_MSG_HANDLER)(const char* topic, const char* data, const int len, void* userdata);
 
-void mqtt_initial();
+void mqtt_initial(APP_MSG_HANDLER app_msg_handle);
 void mqtt_cleanup();
 
 void mqtt_publish(const char *topic, const void *payload, int payloadlen);

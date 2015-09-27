@@ -8,14 +8,7 @@
 #ifndef SRC_MSG_PROC_APP_H_
 #define SRC_MSG_PROC_APP_H_
 
-#include <mosquitto.h>
-
-void app_message_callback(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message);
-void app_connect_callback(struct mosquitto *mosq, void *userdata, int result);
-void app_disconnect_callback(struct mosquitto *mosq, void *userdata, int rc);
-void app_subscribe_callback(struct mosquitto *mosq, void *userdata, int mid, int qos_count, const int *granted_qos);
-void app_log_callback(struct mosquitto *mosq, void *userdata, int level, const char *str);
-void app_publish_callback(struct mosquitto *mosq, void *userdata, int mid);
+int app_handleApp2devMsg(const char* topic, const char* data, const int len, void* userdata);
 
 void app_sendGpsMsg2App(void *session);
 void app_send433Msg2App(int intensity, void * session);

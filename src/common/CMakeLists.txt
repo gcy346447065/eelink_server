@@ -14,6 +14,9 @@ SET(SOURCE_FILE
     
     session.h
     session.c
+    
+    mqtt.h
+    mqtt.c
 
     ../3rd/cJSON/cJSON.c
     ../3rd/cJSON/cJSON.h

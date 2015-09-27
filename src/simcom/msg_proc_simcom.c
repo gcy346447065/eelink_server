@@ -9,6 +9,7 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <malloc.h>
+#include <time.h>
 
 #include "msg_proc_app.h"
 #include "msg_proc_simcom.h"

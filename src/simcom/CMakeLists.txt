@@ -1,7 +1,5 @@
 SET(SOURCE_FILE
     main.c
-    mqtt.c
-    mqtt.h
     server_simcom.c
     server_simcom.h
     msg_proc_app.c
