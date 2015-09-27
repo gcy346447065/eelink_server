@@ -38,14 +38,8 @@ static void app_sendRawData2mc(void* msg, size_t len, const char* imei)
 	}
 }
 
-static void app_sendRawData2App(const char* topic, void *data, size_t len, void* session)
+static void app_sendRawData2App(const char* topic, void *data, size_t len)
 {
-	if (!session)
-	{
-		LOG_FATAL("internal error: session null");
-		return;
-	}
-
 	LOG_HEX(data, len);
 
 	mqtt_publish(topic, data, len);
@@ -84,7 +78,7 @@ void app_sendRspMsg2App(short cmd, short seq, void* data, int len, void* session
 
 	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/simcom/cmd", obj->IMEI);
 
-	app_sendRawData2App(topic, msg, sizeof(APP_MSG) + len, session);
+	app_sendRawData2App(topic, msg, sizeof(APP_MSG) + len);
 
 }
 
@@ -108,7 +102,7 @@ void app_send433Msg2App(int intensity, void * session)
 	char topic[IMEI_LENGTH + 20] = {0};
 	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/simcom/433", obj->IMEI);
 
-	app_sendRawData2App(topic, msg, sizeof(F33_MSG), session);
+	app_sendRawData2App(topic, msg, sizeof(F33_MSG));
 	LOG_INFO("send 433 msg to APP");
 }
 
@@ -139,7 +133,7 @@ void app_sendGpsMsg2App(void* session)
 	char topic[IMEI_LENGTH + 20] = {0};
 	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/simcom/gps", obj->IMEI);
 
-	app_sendRawData2App(topic, msg, sizeof(GPS_MSG), session);
+	app_sendRawData2App(topic, msg, sizeof(GPS_MSG));
 	LOG_INFO("send gps msg to APP");
 }
 

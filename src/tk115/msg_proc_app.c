@@ -43,14 +43,8 @@ static void app_sendRawData2TK115(const void* msg, int len, const char* imei, in
 	}
 }
 
-static void app_sendRawData2App(const char* topic, char *data, int len, void* session)
+static void app_sendRawData2App(const char* topic, char *data, int len)
 {
-	if (!session)
-	{
-		LOG_FATAL("internal error: session null");
-		return;
-	}
-
 	LOG_HEX(data, len);
 
 	mqtt_publish(topic, data, len);
@@ -89,7 +83,7 @@ void app_sendRspMsg2App(short cmd, short seq, void* data, int len, void* session
 
 	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/e2link/cmd", obj->IMEI);
 
-	app_sendRawData2App(topic, (char *)msg, sizeof(APP_MSG) + len, session);
+	app_sendRawData2App(topic, (char *)msg, sizeof(APP_MSG) + len);
 }
 
 
@@ -121,7 +115,7 @@ void app_sendGpsMsg2App(void* session)
 	char topic[IMEI_LENGTH + 20] = {0};
 	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/e2link/gps", obj->IMEI);
 
-	app_sendRawData2App(topic, (char *)msg, sizeof(GPS_MSG), session);
+	app_sendRawData2App(topic, (char *)msg, sizeof(GPS_MSG));
 }
 
 int app_handleApp2devMsg(const char* topic, const char* data, const int len, void* userdata)
