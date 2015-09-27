@@ -14,9 +14,9 @@
 #include "log.h"
 #include "macro.h"
 
-static MYSQL *conn;
+static MYSQL *conn = NULL;
 
-int db_initial()
+int _db_initial()
 {
     conn = mysql_init(NULL);
     if(!mysql_real_connect(conn, DB_HOST, DB_USER, DB_PWD, DB_NAME, DB_PORT, NULL, 0))
@@ -28,7 +28,7 @@ int db_initial()
     return 0;
 }
 
-int db_destruct()
+int _db_destruct()
 {
     mysql_close(conn);
     LOG_INFO("destruct database: %s", DB_NAME);
@@ -37,7 +37,7 @@ int db_destruct()
 
 //check whether the given table exists
 //return 1 when exists, else 0
-int db_isTableCreated(const char* imeiName)
+int _db_isTableCreated(const char* imeiName)
 {
     MYSQL_RES *res;
 
@@ -59,7 +59,7 @@ int db_isTableCreated(const char* imeiName)
     return 1;
 }
 
-int db_createGPS(const char* tableName)
+int _db_createGPS(const char* tableName)
 {
     char query[MAX_QUERY];
     //create table gps_IMEI(timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT)
@@ -73,7 +73,7 @@ int db_createGPS(const char* tableName)
     return 0;
 }
 
-int db_createCGI(const char* tableName)
+int _db_createCGI(const char* tableName)
 {
     char query[MAX_QUERY];
     //create table cgi_IMEI(timestamp INT, mcc SMALLINT, mnc SMALLINT, lac SMALLINT, ci SMALLINT, rxl SMALLINT)
@@ -87,7 +87,7 @@ int db_createCGI(const char* tableName)
     return 0;
 }
 
-int db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, short course)
+int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, short course)
 {
     //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
     char query[MAX_QUERY];
@@ -101,7 +101,7 @@ int db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char s
     return 0;
 }
 
-int db_saveCGI(const char *imeiName, int timestamp, short mcc, short mnc, short lac, short ci, short rxl)
+int _db_saveCGI(const char *imeiName, int timestamp, short mcc, short mnc, short lac, short ci, short rxl)
 {
     //timestamp INT, mcc SMALLINT, mnc SMALLINT, lac SMALLINT, ci CHAR(3)
     char query[MAX_QUERY];
@@ -118,7 +118,7 @@ int db_saveCGI(const char *imeiName, int timestamp, short mcc, short mnc, short 
 /*Object db
 Names of the table and columns need modifing*/
 
-int db_doWithOBJ(void (*func1)(const char*, int), void (*func2)(const char *))
+int _db_doWithOBJ(void (*func1)(const char*, int), void (*func2)(const char *))
 {
     char query[] = "select imei, lastlogintime from object";
     if(mysql_query(conn, query))
@@ -138,7 +138,7 @@ int db_doWithOBJ(void (*func1)(const char*, int), void (*func2)(const char *))
     return 0;
 }
 
-int db_insertOBJ(const char *imeiName, int lastLoginTime)
+int _db_insertOBJ(const char *imeiName, int lastLoginTime)
 {
     char query[MAX_QUERY];
     snprintf(query, MAX_QUERY, "insert into object(imei, lastlogintime) values(\'%s\', %d)", imeiName, lastLoginTime);
@@ -150,7 +150,7 @@ int db_insertOBJ(const char *imeiName, int lastLoginTime)
     return 0;
 }
 
-int db_updateOBJ(const char *imeiName, int lastLoginTime)
+int _db_updateOBJ(const char *imeiName, int lastLoginTime)
 {
     char query[MAX_QUERY];
     snprintf(query, MAX_QUERY, "update object set lastlogintime = %d where imei = \'%s\'", lastLoginTime, imeiName);
@@ -162,3 +162,92 @@ int db_updateOBJ(const char *imeiName, int lastLoginTime)
     return 0;
 }
 
+
+int db_initial()
+{
+#ifdef WITH_DB
+    return _db_initial();
+#endif
+
+    return 0;
+}
+int db_destruct()
+{
+#ifdef WITH_DB
+    return _db_destruct();
+#endif
+
+    return 0;
+}
+
+int db_isTableCreated(const char* imeiName)
+{
+#ifdef WITH_DB
+    return _db_isTableCreated(imeiName);
+#endif
+
+    return 0;
+}
+
+int db_createGPS(const char* tableName)
+{
+#ifdef WITH_DB
+    return _db_createGPS(tableName);
+#endif
+
+    return 0;
+}
+
+int db_createCGI(const char* tableName)
+{
+#ifdef WITH_DB
+    return _db_createCGI(tableName);
+#endif
+
+    return 0;
+}
+
+int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char speed, short course)
+{
+#ifdef WITH_DB
+    return _db_saveGPS(imeiName, timestamp, lat, lon, speed, course);
+#endif
+
+    return 0;
+}
+
+int db_saveCGI(const char* imeiName, int timestamp, short mcc, short mnc, short lac, short ci, short rxl)
+{
+#ifdef WITH_DB
+    return _db_saveCGI(imeiName, timestamp, mcc, mnc, lac, ci, rxl);
+#endif
+
+    return 0;
+}
+
+int db_doWithOBJ(void (*func)(const char*, int), void (*func2)(const char *))
+{
+#ifdef WITH_DB
+    return _db_doWithOBJ(func, func2);
+#endif
+
+    return 0;
+}
+
+int db_insertOBJ(const char *imeiName, int lastlogintime)
+{
+#ifdef WITH_DB
+    return _db_insertOBJ(imeiName, lastlogintime);
+#endif
+
+    return 0;
+}
+
+int db_updateOBJ(const char *imeiName, int lastLoginTime)
+{
+#ifdef WITH_DB
+    return _db_updateOBJ(imeiName, lastLoginTime);
+#endif
+
+    return 0;
+}
