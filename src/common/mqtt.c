@@ -17,14 +17,17 @@
 static struct mosquitto* mosq = NULL;
 
 
-void app_message_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata, const struct mosquitto_message *message)
+void mqtt_message_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata, const struct mosquitto_message *message)
 {
     APP_MSG_HANDLER pfn = (APP_MSG_HANDLER)userdata;
 
-    if(message->payloadlen){
+    if(message->payloadlen)
+    {
         LOG_DEBUG("%s %p", message->topic, message->payload);
-    }else{
-        LOG_DEBUG("%s no payload(null)", message->topic);
+    }
+    else
+    {
+        LOG_ERROR("%s no payload(null)", message->topic);
     }
 
     LOG_INFO("recieve PUBLISH: %s", message->topic);
@@ -35,12 +38,12 @@ void app_message_callback(struct mosquitto *mosq __attribute__((unused)), void *
     }
     else
     {
-        LOG_ERROR("Receive unknown PUBLISH");
+        LOG_ERROR("Receive unknown PUBLISH: %s", message->topic);
     }
 
 }
 
-void app_connect_callback(struct mosquitto *mosq, void *userdata, int rc)
+void mqtt_connect_callback(struct mosquitto *mosq, void *userdata, int rc)
 {
     if(!rc)
     {
@@ -53,7 +56,7 @@ void app_connect_callback(struct mosquitto *mosq, void *userdata, int rc)
     }
 }
 
-void app_disconnect_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata, int rc)
+void mqtt_disconnect_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata, int rc)
 {
 
     if(rc)
@@ -69,7 +72,7 @@ void app_disconnect_callback(struct mosquitto *mosq __attribute__((unused)), voi
 }
 
 
-void app_subscribe_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int mid, int qos_count, const int *granted_qos)
+void mqtt_subscribe_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int mid, int qos_count, const int *granted_qos)
 {
     LOG_DEBUG("Subscribed (mid: %d): %d", mid, granted_qos[0]);
     for(int i=1; i<qos_count; i++){
@@ -77,7 +80,7 @@ void app_subscribe_callback(struct mosquitto *mosq __attribute__((unused)), void
     }
 }
 
-void app_log_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int level, const char *str)
+void mqtt_log_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int level, const char *str)
 {
     switch (level)
     {
@@ -106,9 +109,8 @@ void app_log_callback(struct mosquitto *mosq __attribute__((unused)), void *user
 
 }
 
-void app_publish_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int mid __attribute__((unused)))
+void mqtt_publish_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int mid __attribute__((unused)))
 {
-    LOG_DEBUG("Published mid: %d", mid);
     LOG_INFO("Publish mid: %d successfully", mid);
 }
 
@@ -166,12 +168,12 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 void mqtt_initial(APP_MSG_HANDLER app_msg_handle)
 {
 	mosq = mqtt_login("electrombile", "127.0.0.1", 1883,
-										app_log_callback,
-										app_connect_callback,
-										app_disconnect_callback,
-										app_message_callback,
-										app_subscribe_callback,
-										app_publish_callback,
+										mqtt_log_callback,
+										mqtt_connect_callback,
+										mqtt_disconnect_callback,
+										mqtt_message_callback,
+										mqtt_subscribe_callback,
+										mqtt_publish_callback,
 										app_msg_handle);
     //TODO: to fix the above user data
 	if (mosq)
