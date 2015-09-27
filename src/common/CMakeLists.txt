@@ -11,6 +11,9 @@ SET(SOURCE_FILE
     db.h
     conf.c
     conf.h
+    
+    session.h
+    session.c
 
     ../3rd/cJSON/cJSON.c
     ../3rd/cJSON/cJSON.h

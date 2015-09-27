@@ -91,7 +91,7 @@ int simcom_msg_send(void *msg, size_t len, SESSION *ctx)
         return -1;
     }
 
-    SIMCOM_MSG_SEND pfn = ctx->pSendMsg;
+    MSG_SEND pfn = ctx->pSendMsg;
     if (!pfn)
     {
         LOG_ERROR("device offline");

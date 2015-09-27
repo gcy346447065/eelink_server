@@ -11,9 +11,7 @@ SET(SOURCE_FILE
     msg_simcom.c
     msg_simcom.h
     env.c
-    env.h
-    session.c
-    session.h)
+    env.h)
 
 MESSAGE(STATUS "configure Server for SIMCOM")
 link_directories(/usr/lib64/mysql)

@@ -18,7 +18,6 @@
 #include "session.h"
 #include "server_simcom.h"
 #include "msg_proc_simcom.h"
-#include "cb_ctx_simcom.h"
 
 static void send_msg(struct bufferevent* bev, const void* buf, size_t n)
 {
@@ -113,7 +112,6 @@ static void accept_conn_cb(struct evconnlistener *listener,
 	}
 	ctx->base = base;
 	ctx->bev = bev;
-	ctx->env = env_get();
 	ctx->obj = NULL;
 	ctx->pSendMsg = send_msg;
 

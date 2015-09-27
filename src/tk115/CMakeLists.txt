@@ -2,8 +2,6 @@ SET(SOURCE_FILE
     main.c
     mqtt.c
     mqtt.h
-    session.c
-    session.h
     server_tk115.c
     server_tk115.h
     msg_sch_tk115.c
