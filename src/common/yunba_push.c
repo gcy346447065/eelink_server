@@ -150,7 +150,7 @@ void yunba_disconnect()
     MQTTClient_destroy(&client);
 }
 
-void yunba_publish(char* topicName, void* payload, int payloadLen)
+void yunba_publish(char* topicName, char* payload, int payloadLen)
 {
 //	int rc = MQTTClient_publish_json(client, topicName, data);
 	cJSON *apn_json, *aps;
