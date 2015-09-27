@@ -19,7 +19,7 @@ static struct mosquitto* mosq = NULL;
 
 void mqtt_message_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata, const struct mosquitto_message *message)
 {
-    APP_MSG_HANDLER pfn = (APP_MSG_HANDLER)userdata;
+    MQTT_ARG* mqtt_arg = (MQTT_ARG*)userdata;
 
     if(message->payloadlen)
     {
@@ -34,7 +34,7 @@ void mqtt_message_callback(struct mosquitto *mosq __attribute__((unused)), void 
 
     if(strncmp(message->topic,"app2dev/",strlen("app2dev/")) == 0)
     {
-        pfn(message->topic, message->payload, message->payloadlen, userdata);
+        mqtt_arg->app_msg_handler(message->topic, message->payload, message->payloadlen, userdata);
     }
     else
     {
@@ -165,7 +165,7 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 	return mosq;
 }
 
-void mqtt_initial(APP_MSG_HANDLER app_msg_handle)
+void mqtt_initial(MQTT_ARG* mqtt_arg)
 {
 	mosq = mqtt_login("electrombile", "127.0.0.1", 1883,
 										mqtt_log_callback,
@@ -174,7 +174,7 @@ void mqtt_initial(APP_MSG_HANDLER app_msg_handle)
 										mqtt_message_callback,
 										mqtt_subscribe_callback,
 										mqtt_publish_callback,
-										app_msg_handle);
+										mqtt_arg);
     //TODO: to fix the above user data
 	if (mosq)
 	{

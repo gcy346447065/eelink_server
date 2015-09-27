@@ -80,7 +80,13 @@ int main(int argc, char **argv)
     	return -1;
     }
 
-    mqtt_initial(app_handleApp2devMsg);
+    static MQTT_ARG mqtt_arg =
+    {
+            .app_msg_handler = app_handleApp2devMsg
+    };
+    mqtt_arg.base = base;
+
+    mqtt_initial(&mqtt_arg);
 
     rc = yunba_connect();
     if (rc)
