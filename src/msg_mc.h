@@ -125,7 +125,8 @@ typedef struct
 	CGI cell;
 	char location;
 	char type;
-	short status;
+	int deviceTime;
+	short status;		//this field is optional
 }__attribute__((__packed__)) MC_MSG_STATUS_REQ;
 
 enum STATUS_TYPE

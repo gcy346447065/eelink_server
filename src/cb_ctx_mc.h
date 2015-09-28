@@ -12,6 +12,8 @@
 #include <curl/curl.h>
 #include <event2/bufferevent.h>
 
+#include "env.h"
+
 /**
 * container_of - cast a member of a structure out to the containing structure
 * @ptr:     the pointer to the member.
@@ -27,10 +29,10 @@ typedef void (*msg_send)(struct bufferevent* bev, const void* buf, size_t n);
 
 typedef struct
 {
+	ENVIRONMENT* env;
 	struct event_base* base;
 	struct bufferevent* bev;
-	CURL *curlOfLeancloud;
-	CURL *curlOfYeelink;
+
 	void* obj;
 	msg_send pSendMsg;
 }CB_CTX;

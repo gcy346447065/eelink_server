@@ -118,8 +118,8 @@ void yeelink_createSensor(int device_id, void* arg)
 
 void yeelink_saveGPS(OBJ_MC* obj, void* arg)
 {
-	CB_CTX* ctx = arg;
-	CURL *curl = ctx->curlOfYeelink;
+	ENVIRONMENT* env = env_get();
+	CURL* curl = env->curl_yeelink;
 
 	char url[256] = {0};
 

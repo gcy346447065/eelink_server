@@ -25,6 +25,6 @@ typedef struct
 	short mnc;	//mobile network code
 	short lac;	//local area code
 	char ci[3]; //cell id, why the length is 3, not 2 ???
-}CGI;
+}__attribute__((__packed__)) CGI;
 
 #endif /* SRC_MACRO_MC_H_ */

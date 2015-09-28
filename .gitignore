@@ -16,8 +16,8 @@
 
 # Shared objects (inc. Windows DLLs)
 *.dll
-*.so
-*.so.*
+#*.so
+#*.so.*
 *.dylib
 
 # Executables
@@ -29,9 +29,31 @@
 *.hex
 bin/
 
+# Log
+log
+
+# data
+*.dat
+
 # Debug files
 *.dSYM/
 
 #eclipse project file
 .project
 .cproject
+.settings
+
+#netbeans project files
+nbproject/
+
+#source insight project files
+*.IAB
+*.IAD
+*.IMB
+*.IMD
+*.PFI
+*.PO
+*.PR
+*.PRI
+*.PS
+*.WK3
