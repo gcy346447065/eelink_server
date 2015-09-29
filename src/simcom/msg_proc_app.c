@@ -19,34 +19,42 @@
 #include "object.h"
 #include "mqtt.h"
 #include "protocol.h"
+#include "cJSON.h"
 
+int app_handleApp2devMsg(const char* topic, const char* data, const int len, void* userdata);
 
-static void app_sendRawData2mc(void* msg, size_t len, const char* imei)
+void app_sendGpsMsg2App(void *session);
+void app_send433Msg2App(int timestamp, int intensity, void * session);
+void app_sendCmdMsg2App(char *cmd, int result, char *state, void *session);
+
+static void app_sendRawData2mc(const char *imei, const void *msg, size_t len);
+static void app_sendRawData2App(const char *topic, const void *msg, size_t len);
+
+ //----------------------------send raw msg to app/mc------------------------------------------
+static void app_sendRawData2mc(const char *imei, const void* msg, size_t len)
 {
 	SESSION *session = session_get(imei);
 	if(!session)
 	{
 		LOG_ERROR("obj %s offline", imei);
-		free(msg);
         return;
 	}
 	int rc = simcom_msg_send(msg, len, session);
 	if(rc)
 	{
 		LOG_ERROR("send msg to simcom error");
-		free(msg);
 	}
 }
 
-static void app_sendRawData2App(const char* topic, void *data, size_t len)
+static void app_sendRawData2App(const char* topic, const void *msg, size_t len)
 {
 	LOG_HEX(data, len);
-
-	mqtt_publish(topic, data, len);
-	free(data);
+	mqtt_publish(topic, msg, len);
 }
 
-void app_sendRspMsg2App(short cmd, short seq, void* data, int len, void* session)
+
+//----------------------------send cmd/gps/433 to app-----------------------------------------
+void app_sendCmdMsg2App(char *cmd, int result, char *state, void* session)
 {
 	if (!session)
 	{
@@ -61,49 +69,21 @@ void app_sendRspMsg2App(short cmd, short seq, void* data, int len, void* session
 		return;
 	}
 
-	APP_MSG* msg = malloc(sizeof(APP_MSG) + len);
-	if (!msg)
-	{
-		LOG_FATAL("insufficient memory");
-		return;
-	}
+	char topic[IMEI_LENGTH + 13];
+	memset(topic, 0, sizeof(topic));
+	snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/cmd", obj->IMEI);
 
-	msg->header = htons(0xAA55);
-	msg->cmd = htons(cmd);
-	msg->length = htons(len + sizeof(msg->seq));
-	msg->seq = htons(seq);
-	memcpy(msg->data, data, len);
+	cJSON *root = cJSON_CreateObject();
+	cJSON_AddStringToObject(root, "cmd", cmd);
+	cJSON_AddNumberToObject(root, "result", result);
+	cJSON_AddStringToObject(root, "state", state);
 
-	char topic[IMEI_LENGTH + 20] = {0};
+	char *json = cJSON_PrintUnformatted(root);
 
-	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/simcom/cmd", obj->IMEI);
-
-	app_sendRawData2App(topic, msg, sizeof(APP_MSG) + len);
-
-}
-
-void app_send433Msg2App(int intensity, void * session)
-{
-	OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
-	if (!obj)
-	{
-		LOG_ERROR("obj null, no data to upload");
-		return;
-	}
-	F33_MSG *msg = (F33_MSG *)malloc(sizeof(F33_MSG));
-	if (!msg)
-	{
-		LOG_FATAL("insufficient memory");
-		return;
-	}
-	msg->header = htons(0xAA55);
-	msg->intensity = htonl(intensity);
-
-	char topic[IMEI_LENGTH + 20] = {0};
-	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/simcom/433", obj->IMEI);
-
-	app_sendRawData2App(topic, msg, sizeof(F33_MSG));
-	LOG_INFO("send 433 msg to APP");
+	app_sendRawData2App(topic, json, strlen(json));
+	LOG_INFO(send cmd msg to APP);
+	free(json);
+	cJSON_Delete(root);
 }
 
 void app_sendGpsMsg2App(void* session)
@@ -114,29 +94,49 @@ void app_sendGpsMsg2App(void* session)
 		LOG_ERROR("obj null, no data to upload");
 		return;
 	}
+	char topic[IMEI_LENGTH + 13];
+	memset(topic, 0, sizeof(topic));
+	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/gps", obj->IMEI);
 
-	GPS_MSG* msg = (GPS_MSG *)malloc(sizeof(GPS_MSG));
-	if (!msg)
-	{
-		LOG_FATAL("insufficient memory");
-		return;
-	}
+	cJSON * root = cJSON_CreateObject();
+	cJSON_AddNumberToObject(root, "timestamp", obj->timestamp);
+	cJSON_AddNumberToObject(root, "lat", obj->lat);
+	cJSON_AddNumberToObject(root, "lng", obj->lon);
 
-	msg->header = htons(0xAA55);
-	msg->timestamp = htonl(obj->timestamp);
-	msg->lat = obj->lat;
-	msg->lon = obj->lon;
-	msg->course = htons(obj->course);
-	msg->speed = obj->speed;
-	msg->isGPS = obj->isGPSlocated;
+	char *json = cJSON_PrintUnformatted(root);
 
-	char topic[IMEI_LENGTH + 20] = {0};
-	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/simcom/gps", obj->IMEI);
-
-	app_sendRawData2App(topic, msg, sizeof(GPS_MSG));
+	app_sendRawData2App(topic, json, strlen(json));
 	LOG_INFO("send gps msg to APP");
+	free(json);
+	cJSON_Delete(root);
 }
 
+void app_send433Msg2App(int timestamp, int intensity, void * session)
+{
+	OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
+	if (!obj)
+	{
+		LOG_ERROR("obj null, no data to upload");
+		return;
+	}
+	char topic[IMEI_LENGTH + 13];
+	memset(topic, 0, sizeof(topic));
+	snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/433", obj->IMEI);
+
+	cJSON *root = cJSON_CreateObject();
+	cJSON_AddNumberToObject(root, "timestamp", timestamp);
+	cJSON_AddNumberToObject(root, "intensity", intensity);
+
+	char *json = cJSON_PrintUnformatted(root);
+
+	app_sendRawData2App(topic, json, strlen(json));
+	LOG_INFO("send 433 msg to APP");
+	free(json);
+	cJSON_Delete(root);
+}
+
+
+//---------------------------------handle for msg from app------------------------------------
 static char defendApp2mc(int cmd)
 {
 	if(cmd == CMD_FENCE_SET)
