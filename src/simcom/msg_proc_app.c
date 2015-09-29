@@ -229,13 +229,14 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 	case CMD_FENCE_GET:
 	{
 		LOG_INFO("receive app CMD_FENCE_%d", cmd);
-		obj->defend = cmd;
+
 		MSG_DEFEND_REQ *req = (MSG_DEFEND_REQ *)alloc_simcom_msg(CMD_DEFEND, sizeof(MSG_DEFEND_REQ));
 		if(!req)
 		{
 			LOG_FATAL("insufficient memory");
 			return -1;
 		}
+		req->token = cmd;
 		req->operator = defendApp2mc(cmd);
 		app_sendRawData2mc(req, sizeof(MSG_DEFEND_REQ), strIMEI);
 		break;
@@ -243,13 +244,14 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 	case CMD_SEEK_ON:
 	case CMD_SEEK_OFF:
 		LOG_INFO("receive app CMD_SEEK_MODE cmd");
-		obj->seek = cmd;
+
 		MSG_SEEK_REQ *req = (MSG_SEEK_REQ *)alloc_simcom_msg(CMD_SEEK, sizeof(MSG_SEEK_REQ));
 		if(!req)
 		{
 			LOG_FATAL("insufficient memory");
 			return -1;
 		}
+		req->token = cmd;
 		req->operator = seekApp2mc(cmd);
 		app_sendRawData2mc(req, sizeof(MSG_SEEK_REQ), strIMEI);
 		break;

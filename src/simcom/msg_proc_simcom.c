@@ -378,7 +378,7 @@ int simcom_defend(const void *msg, SESSION *ctx)
     //send ack to APP
     static short seq = 0;
     MSG_DEFEND_RSP *rsp = (MSG_DEFEND_RSP *)msg;
-    unsigned char defend = ((OBJECT *)(ctx->obj))->defend;
+    int defend = rsp->token;
     if(defend == CMD_FENCE_SET)
     {
         if(rsp->result == 0)
@@ -418,7 +418,7 @@ int simcom_seek(const void *msg, SESSION *ctx)
     //send ack to APP
     static short seq = 0;
     MSG_SEEK_RSP *rsp = (MSG_SEEK_RSP *)msg;
-    unsigned char seek = ((OBJECT *)(ctx->obj))->seek;
+    int seek = rsp->token;
     if(seek == CMD_SEEK_ON)
     {
         if(rsp->result == 0)
