@@ -382,14 +382,14 @@ int simcom_defend(const void *msg, SESSION *ctx)
     {
         if(rsp->result == 0)
         {
-        	app_sendCmdMsg2App(CMD_FENCE_SET, 0, "ON", ctx);
+        	app_sendCmdMsg2App(CMD_FENCE_SET, 0, NULL, ctx);
         }
     }
     else if(defend == CMD_FENCE_DEL)
     {
         if(rsp->result == 0)
         {
-        	app_sendCmdMsg2App(CMD_FENCE_DEL, 0, "OFF", ctx);
+        	app_sendCmdMsg2App(CMD_FENCE_DEL, 0, NULL, ctx);
         }
     }
     else if(defend == CMD_FENCE_GET)

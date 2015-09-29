@@ -28,7 +28,7 @@ char* app_getCmdString(int cmd)
 	switch (cmd)
 	{
 	case CMD_FENCE_SET:
-		return "FENCE_SET";
+		return "FENCE_ON";
 	case CMD_FENCE_DEL:
 		return "FENCE_OFF";
 	case CMD_FENCE_GET:
@@ -88,7 +88,10 @@ void app_sendCmdMsg2App(int cmd, int result, char *state, void* session)
 	cJSON *root = cJSON_CreateObject();
 	cJSON_AddStringToObject(root, "cmd", app_getCmdString(cmd));
 	cJSON_AddNumberToObject(root, "result", result);
-	cJSON_AddStringToObject(root, "state", state);
+	if(state)
+	{
+		cJSON_AddStringToObject(root, "state", state);	
+	}
 
 	char *json = cJSON_PrintUnformatted(root);
 
