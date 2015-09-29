@@ -48,7 +48,7 @@ static void app_sendRawData2mc(const char *imei, const void* msg, size_t len)
 
 static void app_sendRawData2App(const char* topic, const void *msg, size_t len)
 {
-	LOG_HEX(data, len);
+//	LOG_HEX(data, len);
 	mqtt_publish(topic, msg, len);
 }
 
@@ -81,7 +81,7 @@ void app_sendCmdMsg2App(char *cmd, int result, char *state, void* session)
 	char *json = cJSON_PrintUnformatted(root);
 
 	app_sendRawData2App(topic, json, strlen(json));
-	LOG_INFO(send cmd msg to APP);
+	LOG_INFO("send cmd msg to APP" );
 	free(json);
 	cJSON_Delete(root);
 }
