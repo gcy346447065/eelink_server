@@ -376,21 +376,20 @@ int simcom_defend(const void *msg, SESSION *ctx)
 {
     //xiu gai xie yi
     //send ack to APP
-    static short seq = 0;
     MSG_DEFEND_RSP *rsp = (MSG_DEFEND_RSP *)msg;
     int defend = rsp->token;
     if(defend == CMD_FENCE_SET)
     {
         if(rsp->result == 0)
         {
-        	app_sendCmdMsg2App(CMD_FENCE_SET, 0, NULL, ctx);
+        	app_sendCmdMsg2App(CMD_FENCE_SET, 0, "ON", ctx);
         }
     }
     else if(defend == CMD_FENCE_DEL)
     {
         if(rsp->result == 0)
         {
-        	app_sendCmdMsg2App(CMD_FENCE_DEL, 0, NULL, ctx);
+        	app_sendCmdMsg2App(CMD_FENCE_DEL, 0, "OFF", ctx);
         }
     }
     else if(defend == CMD_FENCE_GET)
