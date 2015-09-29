@@ -168,12 +168,14 @@ typedef struct
 typedef struct
 {
     MSG_HEADER header;
+    int token;
     unsigned char operator;
 }__attribute__((__packed__)) MSG_DEFEND_REQ;
 
 typedef struct
 {
     MSG_HEADER header;
+    int token;
     unsigned char result;
 }__attribute__((__packed__)) MSG_DEFEND_RSP;
 
@@ -189,12 +191,14 @@ typedef struct
 typedef struct
 {
     MSG_HEADER header;
+    int token;
     unsigned char operator;
 }__attribute__((__packed__)) MSG_SEEK_REQ;
 
 typedef struct
 {
     MSG_HEADER header;
+    int token;
     unsigned char result;
 }__attribute__((__packed__)) MSG_SEEK_RSP;
 
