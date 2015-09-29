@@ -25,10 +25,29 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 
 void app_sendGpsMsg2App(void *session);
 void app_send433Msg2App(int timestamp, int intensity, void * session);
-void app_sendCmdMsg2App(char *cmd, int result, char *state, void *session);
 
 static void app_sendRawData2mc(const char *imei, const void *msg, size_t len);
 static void app_sendRawData2App(const char *topic, const void *msg, size_t len);
+
+
+char* app_getCmdString(int cmd)
+{
+	switch (cmd)
+	{
+	case CMD_FENCE_SET:
+		return "FENCE_SET";
+	case CMD_FENCE_DEL:
+		return "FENCE_OFF";
+	case CMD_FENCE_GET:
+		return "FENCE_GET";
+	case CMD_SEEK_ON:
+		return "SEEK_ON";
+	case CMD_SEEK_OFF:
+		return "SEEK_OFF";
+	default:
+		return "UNKNOWN";
+	}
+}
 
  //----------------------------send raw msg to app/mc------------------------------------------
 static void app_sendRawData2mc(const char *imei, const void* msg, size_t len)
@@ -54,7 +73,7 @@ static void app_sendRawData2App(const char* topic, const void *msg, size_t len)
 
 
 //----------------------------send cmd/gps/433 to app-----------------------------------------
-void app_sendCmdMsg2App(char *cmd, int result, char *state, void* session)
+void app_sendCmdMsg2App(int cmd, int result, char *state, void* session)
 {
 	if (!session)
 	{
@@ -74,7 +93,7 @@ void app_sendCmdMsg2App(char *cmd, int result, char *state, void* session)
 	snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/cmd", obj->IMEI);
 
 	cJSON *root = cJSON_CreateObject();
-	cJSON_AddStringToObject(root, "cmd", cmd);
+	cJSON_AddStringToObject(root, "cmd", app_getCmdString(cmd));
 	cJSON_AddNumberToObject(root, "result", result);
 	cJSON_AddStringToObject(root, "state", state);
 
@@ -167,14 +186,13 @@ static char seekApp2mc(int cmd)
 
 int app_handleApp2devMsg(const char* topic, const char* data, const int len, void* userdata)
 {
-	APP_MSG *pMsg = (APP_MSG *)data;
-	if (!pMsg)
+	if (!data)
 	{
-		LOG_FATAL("internal error: msg null");
+		LOG_FATAL("internal error: data null");
 		return -1;
 	}
 
-	LOG_HEX(data, len);
+	LOG_DEBUG("topic = %s, payload = %s", topic, data);
 
 	//check the IMEI
 	const char* pStart = &topic[strlen("app2dev/")];
@@ -200,24 +218,45 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 		LOG_ERROR("simcom %s offline", strIMEI);
 		return -1;
 	}
-	//check the msg header
-	if (ntohs(pMsg->header) != 0xAA55)
+
+	cJSON* appMsg = cJSON_Parse(data);
+	if (!appMsg)
 	{
-		LOG_ERROR("App2dev msg header error");
+		LOG_ERROR("app message format not json: %s", cJSON_GetErrorPtr());
 		return -1;
 	}
+	cJSON* cmdItem = cJSON_GetObjectItem(appMsg, "cmd");
+	int cmd;
 
-	//check the msg length
-	if ((ntohs(pMsg->length) + sizeof(short) * 3) != len)
+	if (!strcmp(cmdItem->valuestring, "FENCE_ON"))
 	{
-		LOG_ERROR("App2dev msg length error");
-		return -1;
+		cmd = CMD_FENCE_SET;
 	}
 
-	short cmd = ntohs(pMsg->cmd);
-	short seq = ntohs(pMsg->seq);
-//	int token = (cmd << 16) + seq;
+	if (!strcmp(cmdItem->valuestring, "FENCE_OFF"))
+	{
+		cmd = CMD_FENCE_DEL;
+	}
 
+	if (!strcmp(cmdItem->valuestring, "FENCE_GET"))
+	{
+		cmd = CMD_FENCE_GET;
+	}
+
+	if (!strcmp(cmdItem->valuestring, "SEEK_ON"))
+	{
+		cmd = CMD_SEEK_ON;
+	}
+
+	if (!strcmp(cmdItem->valuestring, "SEEK_OFF"))
+	{
+		cmd = CMD_SEEK_OFF;
+	}
+
+	if (!strcmp(cmdItem->valuestring, "GET_GPS"))
+	{
+		cmd = CMD_GPS_GET;
+	}
 	switch (cmd)
 	{
 	case CMD_WILD:
@@ -260,7 +299,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 		app_sendGpsMsg2App(ctx);
 		break;
 	default:
-		LOG_ERROR("Unknown cmd: %#x", ntohs(pMsg->cmd));
+		LOG_ERROR("Unknown cmd: %#x", cmdItem->valuestring);
 		break;
 	}
 	return 0;
