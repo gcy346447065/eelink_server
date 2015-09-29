@@ -21,13 +21,6 @@
 #include "protocol.h"
 #include "cJSON.h"
 
-int app_handleApp2devMsg(const char* topic, const char* data, const int len, void* userdata);
-
-void app_sendGpsMsg2App(void *session);
-void app_send433Msg2App(int timestamp, int intensity, void * session);
-
-static void app_sendRawData2mc(const char *imei, const void *msg, size_t len);
-static void app_sendRawData2App(const char *topic, const void *msg, size_t len);
 
 
 char* app_getCmdString(int cmd)
@@ -50,7 +43,7 @@ char* app_getCmdString(int cmd)
 }
 
  //----------------------------send raw msg to app/mc------------------------------------------
-static void app_sendRawData2mc(const char *imei, const void* msg, size_t len)
+static void app_sendRawData2mc(const void* msg, size_t len, const char* imei)
 {
 	SESSION *session = session_get(imei);
 	if(!session)
