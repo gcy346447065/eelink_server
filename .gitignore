@@ -28,6 +28,7 @@
 *.x86_64
 *.hex
 bin/
+build/
 
 # Log
 log
@@ -45,6 +46,9 @@ log
 
 #netbeans project files
 nbproject/
+
+#CLion project files
+.idea
 
 #source insight project files
 *.IAB
