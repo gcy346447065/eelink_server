@@ -46,6 +46,8 @@ static int simcom_433(const void *msg, SESSION *ctx);
 static int simcom_defend(const void *msg, SESSION *ctx);
 static int simcom_seek(const void *msg, SESSION *ctx);
 
+static int get_time();
+
 
 static MSG_PROC_MAP msgProcs[] =
 {
@@ -221,9 +223,7 @@ int simcom_gps(const void *msg, SESSION *ctx)
     }
     //no response message needed
 
-    time_t rawtime;
-    time(&rawtime);
-    obj->timestamp = rawtime;
+    obj->timestamp = get_time();
 
     if (obj->lat == req->gps.latitude
         && obj->lon == req->gps.longitude)
@@ -272,9 +272,7 @@ int simcom_cell(const void *msg, SESSION *ctx)
         return -1;
     }
 
-    time_t rawtime;
-    time(&rawtime);
-    obj->timestamp = rawtime;
+    obj->timestamp = get_time();
     obj->isGPSlocated = 0x00;
 
     int num = cgi->cellNo;
@@ -370,39 +368,39 @@ int simcom_433(const void *msg, SESSION *ctx)
         return -1;
     }
 
-    app_send433Msg2App(ntohl(req->intensity), ctx);
+    app_send433Msg2App(get_time(), ntohl(req->intensity), ctx);
     return 0;
 }
 
 int simcom_defend(const void *msg, SESSION *ctx)
 {
+    //xiu gai xie yi
     //send ack to APP
-    static short seq = 0;
     MSG_DEFEND_RSP *rsp = (MSG_DEFEND_RSP *)msg;
-    unsigned char defend = ((OBJECT *)(ctx->obj))->defend;
+    int defend = rsp->token;
     if(defend == CMD_FENCE_SET)
     {
         if(rsp->result == 0)
         {
-            app_sendRspMsg2App(CMD_FENCE_SET, seq++, NULL, 0, ctx);
+        	app_sendCmdMsg2App(CMD_FENCE_SET, 0, NULL, ctx);
         }
     }
     else if(defend == CMD_FENCE_DEL)
     {
         if(rsp->result == 0)
         {
-            app_sendRspMsg2App(CMD_FENCE_DEL, seq++, NULL, 0, ctx);
+        	app_sendCmdMsg2App(CMD_FENCE_DEL, 0, NULL, ctx);
         }
     }
     else if(defend == CMD_FENCE_GET)
     {
         if(rsp->result == DEFEND_ON)
         {
-            app_sendRspMsg2App(CMD_FENCE_SET, seq++, NULL, 0, ctx);
+        	app_sendCmdMsg2App(CMD_FENCE_GET, 0, "ON", ctx);
         }
         else
         {
-            app_sendRspMsg2App(CMD_FENCE_DEL, seq++, NULL, 0, ctx);
+        	app_sendCmdMsg2App(CMD_FENCE_GET, 0, "OFF", ctx);
         }
     }
     else
@@ -415,22 +413,23 @@ int simcom_defend(const void *msg, SESSION *ctx)
 
 int simcom_seek(const void *msg, SESSION *ctx)
 {
+    //xiu gai xie yi 
     //send ack to APP
     static short seq = 0;
     MSG_SEEK_RSP *rsp = (MSG_SEEK_RSP *)msg;
-    unsigned char seek = ((OBJECT *)(ctx->obj))->seek;
+    int seek = rsp->token;
     if(seek == CMD_SEEK_ON)
     {
         if(rsp->result == 0)
         {
-            app_sendRspMsg2App(CMD_SEEK_ON, seq++, NULL, 0, ctx);  
+        	app_sendCmdMsg2App(CMD_SEEK_ON, 0, NULL, ctx);
         }
     }
     else if(seek == CMD_SEEK_OFF)
     {
         if(rsp->result == 0)
         {
-            app_sendRspMsg2App(CMD_SEEK_OFF, seq++, NULL, 0, ctx);
+        	app_sendCmdMsg2App(CMD_SEEK_OFF, 0, NULL, ctx);
         }
     }
     else
@@ -454,4 +453,11 @@ int simcom_seek(const void *msg, SESSION *ctx)
     }
     */
     return 0;
+}
+
+int get_time()
+{
+    time_t rawtime;
+    time(&rawtime);
+    return rawtime;
 }
