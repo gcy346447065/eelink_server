@@ -141,7 +141,7 @@ struct evconnlistener* server_start(struct event_base *base, int port)
     /* This is an INET address */
     sin.sin_family = AF_INET;
     /* Listen on 0.0.0.0 */
-    sin.sin_addr.s_addr = htonl(0);
+    sin.sin_addr.s_addr = INADDR_ANY;
     /* Listen on the given port. */
     sin.sin_port = htons(port);
 
