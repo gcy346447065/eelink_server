@@ -382,25 +382,25 @@ int simcom_defend(const void *msg, SESSION *ctx)
     {
         if(rsp->result == 0)
         {
-        	app_sendCmdMsg2App(CMD_FENCE_SET, 0, NULL, ctx);
+        	app_sendCmdMsg2App(CMD_FENCE_SET, 0, ctx);
         }
     }
     else if(defend == CMD_FENCE_DEL)
     {
         if(rsp->result == 0)
         {
-        	app_sendCmdMsg2App(CMD_FENCE_DEL, 0, NULL, ctx);
+        	app_sendCmdMsg2App(CMD_FENCE_DEL, 0, ctx);
         }
     }
     else if(defend == CMD_FENCE_GET)
     {
         if(rsp->result == DEFEND_ON)
         {
-        	app_sendCmdMsg2App(CMD_FENCE_GET, 0, "ON", ctx);
+        	app_sendFenceGetCmdMsg2App(CMD_FENCE_GET, 0, 1, ctx);
         }
         else
         {
-        	app_sendCmdMsg2App(CMD_FENCE_GET, 0, "OFF", ctx);
+        	app_sendFenceGetCmdMsg2App(CMD_FENCE_GET, 0, 0, ctx);
         }
     }
     else
@@ -422,14 +422,14 @@ int simcom_seek(const void *msg, SESSION *ctx)
     {
         if(rsp->result == 0)
         {
-        	app_sendCmdMsg2App(CMD_SEEK_ON, 0, NULL, ctx);
+        	app_sendCmdMsg2App(CMD_SEEK_ON, 0, ctx);
         }
     }
     else if(seek == CMD_SEEK_OFF)
     {
         if(rsp->result == 0)
         {
-        	app_sendCmdMsg2App(CMD_SEEK_OFF, 0, NULL, ctx);
+        	app_sendCmdMsg2App(CMD_SEEK_OFF, 0, ctx);
         }
     }
     else

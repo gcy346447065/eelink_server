@@ -22,26 +22,6 @@
 #include "cJSON.h"
 
 
-
-char* app_getCmdString(int cmd)
-{
-	switch (cmd)
-	{
-	case CMD_FENCE_SET:
-		return "FENCE_ON";
-	case CMD_FENCE_DEL:
-		return "FENCE_OFF";
-	case CMD_FENCE_GET:
-		return "FENCE_GET";
-	case CMD_SEEK_ON:
-		return "SEEK_ON";
-	case CMD_SEEK_OFF:
-		return "SEEK_OFF";
-	default:
-		return "UNKNOWN";
-	}
-}
-
  //----------------------------send raw msg to app/mc------------------------------------------
 static void app_sendRawData2mc(const void* msg, size_t len, const char* imei)
 {
@@ -66,7 +46,7 @@ static void app_sendRawData2App(const char* topic, const void *msg, size_t len)
 
 
 //----------------------------send cmd/gps/433 to app-----------------------------------------
-void app_sendCmdMsg2App(int cmd, int result, char *state, void* session)
+void app_sendCmdMsg2App(int cmd, int result, void* session)
 {
 	if (!session)
 	{
@@ -86,12 +66,40 @@ void app_sendCmdMsg2App(int cmd, int result, char *state, void* session)
 	snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/cmd", obj->IMEI);
 
 	cJSON *root = cJSON_CreateObject();
-	cJSON_AddStringToObject(root, "cmd", app_getCmdString(cmd));
+	cJSON_AddNumberToObject(root, "cmd", cmd);
 	cJSON_AddNumberToObject(root, "result", result);
-	if(state)
+
+	char *json = cJSON_PrintUnformatted(root);
+
+	app_sendRawData2App(topic, json, strlen(json));
+	LOG_INFO("send cmd msg to APP" );
+	free(json);
+	cJSON_Delete(root);
+}
+
+void app_sendFenceGetCmdMsg2App(int cmd, int result, int state, void* session)
+{
+	if (!session)
 	{
-		cJSON_AddStringToObject(root, "state", state);	
+		LOG_FATAL("internal error: session null");
+		return;
 	}
+
+	OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
+	if (!obj)
+	{
+		LOG_FATAL("internal error: obj null");
+		return;
+	}
+
+	char topic[IMEI_LENGTH + 13];
+	memset(topic, 0, sizeof(topic));
+	snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/cmd", obj->IMEI);
+
+	cJSON *root = cJSON_CreateObject();
+	cJSON_AddNumberToObject(root, "cmd", cmd);
+	cJSON_AddNumberToObject(root, "result", result);
+	cJSON_AddNumberToObject(root, "state", state);
 
 	char *json = cJSON_PrintUnformatted(root);
 
@@ -222,37 +230,13 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 		return -1;
 	}
 	cJSON* cmdItem = cJSON_GetObjectItem(appMsg, "cmd");
-	int cmd;
-
-	if (!strcmp(cmdItem->valuestring, "FENCE_ON"))
+	if (!cmdItem)
 	{
-		cmd = CMD_FENCE_SET;
+		LOG_ERROR("command format error:no cmd item");
+		return -1;
 	}
 
-	if (!strcmp(cmdItem->valuestring, "FENCE_OFF"))
-	{
-		cmd = CMD_FENCE_DEL;
-	}
-
-	if (!strcmp(cmdItem->valuestring, "FENCE_GET"))
-	{
-		cmd = CMD_FENCE_GET;
-	}
-
-	if (!strcmp(cmdItem->valuestring, "SEEK_ON"))
-	{
-		cmd = CMD_SEEK_ON;
-	}
-
-	if (!strcmp(cmdItem->valuestring, "SEEK_OFF"))
-	{
-		cmd = CMD_SEEK_OFF;
-	}
-
-	if (!strcmp(cmdItem->valuestring, "GET_GPS"))
-	{
-		cmd = CMD_GPS_GET;
-	}
+	int cmd = cmdItem->valueint;
 	switch (cmd)
 	{
 	case CMD_WILD:
@@ -290,7 +274,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 		req->operator = seekApp2mc(cmd);
 		app_sendRawData2mc(req, sizeof(MSG_SEEK_REQ), strIMEI);
 		break;
-	case CMD_GPS_GET:
+	case CMD_LOCATION:
 		LOG_INFO("receive app CMD_GPS_GET");
 		app_sendGpsMsg2App(ctx);
 		break;

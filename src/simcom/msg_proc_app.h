@@ -12,8 +12,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 
 void app_sendGpsMsg2App(void *session);
 void app_send433Msg2App(int timestamp, int intensity, void * session);
-void app_sendCmdMsg2App(int cmd, int result, char *state, void *session);
-
-char* app_getCmdString(int cmd);
+void app_sendCmdMsg2App(int cmd, int result, void *session);
+void app_sendFenceGetCmdMsg2App(int cmd, int result, int state, void *session);
 
 #endif /* SRC_MSG_PROC_APP_H_ */
