@@ -12,7 +12,7 @@ install:
 - sudo apt-get install cmake
 - sudo apt-get install libevent-dev
 - sudo apt-get install libmosquitto0-dev
-- sudo apt-get install libcurl-dev
+- sudo apt-get install libcurl4-openssl-dev
 - sudo apt-get install libmariadbclient-dev
 
 - wget https://github.com/downloads/HardySimpson/zlog/zlog-latest-stable.tar.gz
