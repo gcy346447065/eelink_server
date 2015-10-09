@@ -15,9 +15,11 @@ install:
 - sudo apt-get install libcurl4-openssl-dev
 - sudo apt-get install libmysqlclient-dev
 
-- wget https://github.com/downloads/HardySimpson/zlog/zlog-latest-stable.tar.gz
-- tar -zxvf zlog-latest-stable.tar.gz
-- cd zlog-latest-stable/
+#- wget https://github.com/downloads/HardySimpson/zlog/zlog-latest-stable.tar.gz
+#- tar -zxvf zlog-latest-stable.tar.gz
+#- cd zlog-latest-stable/
+- git clone https://github.com/HardySimpson/zlog.git
+- cd zlog
 - ./configure
 - make
 - sudo make install
