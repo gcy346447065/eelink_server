@@ -24,9 +24,12 @@ install:
 - sudo make install
 - cd ..
 
-- wget http://github.com/yunba/yunba-c-sdk/archive/develop.zip
-- unzip yunba-c-sdk-develop.zip
-- cd yunba-c-sdk-develop/
+#- wget http://github.com/yunba/yunba-c-sdk/archive/develop.zip
+#- unzip yunba-c-sdk-develop.zip
+#- cd yunba-c-sdk-develop/
+- git clone https://github.com/yunba/yunba-c-sdk.git
+- cd yunba-c-sdk
+- git checkout develop
 - make
 - sudo make install
 - cd ..
