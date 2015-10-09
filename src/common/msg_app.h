@@ -10,41 +10,48 @@
 
 enum CMD
 {
-	CMD_WILD		= 0x00,
-	CMD_FENCE_SET	= 0x01,
-	CMD_FENCE_DEL	= 0x02,
-	CMD_FENCE_GET	= 0x03,
-	CMD_SEEK_ON		= 0x04,
-	CMD_SEEK_OFF	= 0x05,
-	CMD_LOCATION	= 0x06,
+    CMD_WILD        = 0x00,
+    CMD_FENCE_ON    = 0x01,
+    CMD_FENCE_OFF   = 0x02,
+    CMD_FENCE_GET   = 0x03,
+    CMD_SEEK_ON     = 0x04,
+    CMD_SEEK_OFF    = 0x05,
+    CMD_LOCATION    = 0x06,
+};
+
+enum RESULT
+{
+    ERR_SUCCESS     =   0,
+    ERR_INTERNAL    = 100,
+    ERR_WAITING     = 101,
+    ERR_OFFLINE     = 102,
 };
 
 //Message definition
 typedef struct
 {
-	short header;
-	short cmd;
-	unsigned short length;
-	unsigned short seq;
-	char data[];
+    short header;
+    short cmd;
+    unsigned short length;
+    unsigned short seq;
+    char data[];
 }__attribute__((__packed__)) APP_MSG;
-
 
 typedef struct
 {
-	short header;
-	int timestamp;
-	float lat;
-	float lon;
-	short course;
-	char speed;
-	char isGPS;
+    short header;
+    int timestamp;
+    float lat;
+    float lon;
+    short course;
+    char speed;
+    char isGPS;
 }__attribute__((__packed__)) GPS_MSG;
 
 typedef struct
 {
-	short header;
-	int intensity;
+    short header;
+    int intensity;
 }__attribute__((__packed__)) F33_MSG;//433
 
 #endif /* SRC_MSG_APP_H_ */

@@ -63,7 +63,7 @@ static MSG_PROC_MAP msgProcs[] =
 
 int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
 {
-    const MSG_HEADER *msg = (MSG_HEADER *)m;
+    const MSG_HEADER *msg = (const MSG_HEADER *)m;
 
     if(msgLen < MSG_HEADER_LEN)
     {
@@ -74,7 +74,7 @@ int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
     size_t leftLen = msgLen;
     while(leftLen >= ntohs(msg->length) + MSG_HEADER_LEN)
     {
-        unsigned char *status = (unsigned char *)(&(msg->signature));
+        const unsigned char *status = (const unsigned char *)(&(msg->signature));
         if((status[0] != 0xaa) || (status[1] != 0x55))
         {
             LOG_ERROR("receive message header signature error:%x", (unsigned)ntohs(msg->signature));
@@ -82,7 +82,7 @@ int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
         }
         handle_one_msg(msg, (SESSION *)arg);
         leftLen = leftLen - MSG_HEADER_LEN - ntohs(msg->length);
-        msg = (MSG_HEADER *)(m + msgLen - leftLen);
+        msg = (const MSG_HEADER *)(m + msgLen - leftLen);
     }
     return 0;
 }
@@ -118,7 +118,7 @@ int handle_one_msg(const void *m, SESSION *ctx)
     int i = get_msg_cmd(m);
     if(i == -1)
     {
-        LOG_ERROR("unknown message cmd(%d)", ((MSG_HEADER *)m)->cmd);
+        LOG_ERROR("unknown message cmd(%d)", ((const MSG_HEADER *)m)->cmd);
         return -1;
     }
 
@@ -127,7 +127,7 @@ int handle_one_msg(const void *m, SESSION *ctx)
 
 int get_msg_cmd(const void *m)
 {
-    const MSG_HEADER *msg = (MSG_HEADER *)m;
+    const MSG_HEADER *msg = (const MSG_HEADER *)m;
 
     for (size_t i = 0; i < sizeof(msgProcs) / sizeof(msgProcs[0]); i++)
     {
@@ -143,7 +143,7 @@ int get_msg_cmd(const void *m)
 
 int simcom_login(const void *msg, SESSION *ctx)
 {
-    const MSG_LOGIN_REQ* req = msg;
+    const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg;
 
     OBJECT * obj = ctx->obj;
 
@@ -199,7 +199,7 @@ int simcom_login(const void *msg, SESSION *ctx)
 
 int simcom_gps(const void *msg, SESSION *ctx)
 {
-    const MSG_GPS* req = msg;
+    const MSG_GPS *req = (const MSG_GPS *)msg;
 
     if (!req)
     {
@@ -250,7 +250,7 @@ int simcom_gps(const void *msg, SESSION *ctx)
 
 int simcom_cell(const void *msg, SESSION *ctx)
 {
-    const MSG_HEADER *req = (MSG_HEADER *)msg;
+    const MSG_HEADER *req = (const MSG_HEADER *)msg;
     if(!req)
     {
         LOG_ERROR("msg handle empty");
@@ -262,7 +262,7 @@ int simcom_cell(const void *msg, SESSION *ctx)
         return -1;
     }
 
-    const CGI *cgi = (CGI *)(req + 1);
+    const CGI *cgi = (const CGI *)(req + 1);
 
     LOG_INFO("CGI: mcc(%d), mnc(%d)", ntohs(cgi->mcc), ntohs(cgi->mnc));
     OBJECT *obj = ctx->obj;
@@ -281,7 +281,7 @@ int simcom_cell(const void *msg, SESSION *ctx)
         LOG_ERROR("Number:%d of cell is over", num);
         return -1;
     }
-    const CELL *cell = (CELL *)(cgi + 1);
+    const CELL *cell = (const CELL *)(cgi + 1);
 
     for(int i = 0; i < num; ++i)
     {
@@ -305,7 +305,7 @@ int simcom_ping(const void *msg, SESSION *ctx)
 
 int simcom_alarm(const void *msg, SESSION *ctx)
 {
-    const MSG_ALARM_REQ *req = (MSG_ALARM_REQ *)msg;
+    const MSG_ALARM_REQ *req = (const MSG_ALARM_REQ *)msg;
     if(!req)
     {
         LOG_ERROR("msg handle empty");
@@ -348,7 +348,7 @@ int simcom_alarm(const void *msg, SESSION *ctx)
 
 int simcom_433(const void *msg, SESSION *ctx)
 {
-    const MSG_433 *req = (MSG_433 *)msg;
+    const MSG_433 *req = (const MSG_433 *)msg;
     if(!req)
     {
         LOG_ERROR("msg handle empty");
@@ -374,33 +374,41 @@ int simcom_433(const void *msg, SESSION *ctx)
 
 int simcom_defend(const void *msg, SESSION *ctx)
 {
-    //xiu gai xie yi
     //send ack to APP
-    MSG_DEFEND_RSP *rsp = (MSG_DEFEND_RSP *)msg;
+    const MSG_DEFEND_RSP *rsp = (const MSG_DEFEND_RSP *)msg;
     int defend = rsp->token;
-    if(defend == CMD_FENCE_SET)
+
+    OBJECT* obj = ctx->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    const char *strIMEI = obj->IMEI;
+
+    if(defend == CMD_FENCE_ON)
     {
         if(rsp->result == 0)
         {
-        	app_sendCmdMsg2App(CMD_FENCE_SET, 0, ctx);
+        	app_sendCmdMsg2App(CMD_FENCE_ON, ERR_SUCCESS, strIMEI);
         }
     }
-    else if(defend == CMD_FENCE_DEL)
+    else if(defend == CMD_FENCE_OFF)
     {
         if(rsp->result == 0)
         {
-        	app_sendCmdMsg2App(CMD_FENCE_DEL, 0, ctx);
+        	app_sendCmdMsg2App(CMD_FENCE_OFF, ERR_SUCCESS, strIMEI);
         }
     }
     else if(defend == CMD_FENCE_GET)
     {
         if(rsp->result == DEFEND_ON)
         {
-        	app_sendFenceGetCmdMsg2App(CMD_FENCE_GET, 0, 1, ctx);
+        	app_sendFenceGetCmdMsg2App(CMD_FENCE_GET, ERR_SUCCESS, 1, ctx);
         }
         else
         {
-        	app_sendFenceGetCmdMsg2App(CMD_FENCE_GET, 0, 0, ctx);
+        	app_sendFenceGetCmdMsg2App(CMD_FENCE_GET, ERR_SUCCESS, 0, ctx);
         }
     }
     else
@@ -413,23 +421,30 @@ int simcom_defend(const void *msg, SESSION *ctx)
 
 int simcom_seek(const void *msg, SESSION *ctx)
 {
-    //xiu gai xie yi 
     //send ack to APP
-    static short seq = 0;
-    MSG_SEEK_RSP *rsp = (MSG_SEEK_RSP *)msg;
+    const MSG_SEEK_RSP *rsp = (const MSG_SEEK_RSP *)msg;
     int seek = rsp->token;
+
+    OBJECT* obj = ctx->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    const char *strIMEI = obj->IMEI;
+
     if(seek == CMD_SEEK_ON)
     {
         if(rsp->result == 0)
         {
-        	app_sendCmdMsg2App(CMD_SEEK_ON, 0, ctx);
+        	app_sendCmdMsg2App(CMD_SEEK_ON, ERR_SUCCESS, strIMEI);
         }
     }
     else if(seek == CMD_SEEK_OFF)
     {
         if(rsp->result == 0)
         {
-        	app_sendCmdMsg2App(CMD_SEEK_OFF, 0, ctx);
+        	app_sendCmdMsg2App(CMD_SEEK_OFF, ERR_SUCCESS, strIMEI);
         }
     }
     else
@@ -437,21 +452,6 @@ int simcom_seek(const void *msg, SESSION *ctx)
         LOG_ERROR("response seek cmd not exist");
         return -1;
     }
-    /*
-    if(rsp->result == SEEK_ON)
-    {
-        app_sendRspMsg2App(CMD_SEEK_ON, seq++, NULL, 0, ctx);
-    }
-    else if(rsp->result == SEEK_OFF)
-    {
-        app_sendRspMsg2App(CMD_SEEK_OFF, seq++, NULL, 0, ctx);
-    }
-    else
-    {
-        LOG_ERROR("response seek cmd not exist");
-        return -1;
-    }
-    */
     return 0;
 }
 

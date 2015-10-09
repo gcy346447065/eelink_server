@@ -26,6 +26,7 @@ enum
     CMD_433     = 0x07,
     CMD_DEFEND  = 0x08,
     CMD_SEEK    = 0x09,
+    CMD_LOCATE  = 0x0a,
 };
 
 enum
@@ -201,6 +202,8 @@ typedef struct
     int token;
     unsigned char result;
 }__attribute__((__packed__)) MSG_SEEK_RSP;
+
+typedef MSG_HEADER MSG_LOCATE;
 
 #pragma pack(pop)
 
