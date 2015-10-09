@@ -13,7 +13,7 @@ install:
 - sudo apt-get install libevent-dev
 - sudo apt-get install libmosquitto0-dev
 - sudo apt-get install libcurl4-openssl-dev
-- sudo apt-get install libmariadbclient-dev
+- sudo apt-get install libmysqlclient-dev
 
 - wget https://github.com/downloads/HardySimpson/zlog/zlog-latest-stable.tar.gz
 - tar -zxvf zlog-latest-stable.tar.gz
