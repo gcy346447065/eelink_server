@@ -30,6 +30,7 @@ install:
 - wget http://www.curl.haxx.se/download/curl-7.45.0.tar.gz
 - tar zxvf curl-7.45.0.tar.gz
 - cd curl-7.45.0 && make && sudo make install
+- cd ..
 
 
 - sudo apt-get install libmysqlclient-dev
