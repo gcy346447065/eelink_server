@@ -20,7 +20,6 @@ install:
 #- cd zlog-latest-stable/
 - git clone https://github.com/HardySimpson/zlog.git
 - cd zlog
-- ./configure
 - make
 - sudo make install
 - cd ..
