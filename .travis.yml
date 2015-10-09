@@ -25,7 +25,7 @@ install:
 #- tar -zxvf zlog-latest-stable.tar.gz
 #- cd zlog-latest-stable/
 - git clone https://github.com/HardySimpson/zlog.git
-- cd zlog && make && sudo make install
+- cd zlog && make && sudo make install && cd ..
 
 
 #- wget http://github.com/yunba/yunba-c-sdk/archive/develop.zip
@@ -33,14 +33,13 @@ install:
 #- cd yunba-c-sdk-develop/
 - git clone https://github.com/yunba/yunba-c-sdk.git
 - cd yunba-c-sdk && git checkout develop
-- make && sudo make install
-- cd ..
+- make && sudo make install && cd ..
 
 before_script:
 - ls -R $HOME
 
 script:
-- cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+- mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
 
 # whitelist
 branches:
