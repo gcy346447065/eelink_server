@@ -17,6 +17,9 @@ install:
 - cd libevent-2.0.22-stable && ./configure && make && sudo make install
 - cd ..
 
+- sudo apt-get install libc-ares-dev
+- sudo apt-get install libssl-dev
+- sudo apt-get install uuid-dev
 #- sudo apt-get install libmosquitto0-dev
 - wget http://mosquitto.org/files/source/mosquitto-1.4.4.tar.gz
 - tar zxvf mosquitto-1.4.4.tar.gz
