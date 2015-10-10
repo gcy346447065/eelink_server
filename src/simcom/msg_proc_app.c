@@ -163,11 +163,11 @@ void app_send433Msg2App(int timestamp, int intensity, void * session)
 //---------------------------------handle for msg from app------------------------------------
 static char defendApp2mc(int cmd)
 {
-    if(cmd == CMD_FENCE_ON)
+    if(cmd == APP_CMD_FENCE_ON)
     {
         return DEFEND_ON;
     }
-    else if(cmd == CMD_FENCE_OFF)
+    else if(cmd == APP_CMD_FENCE_OFF)
     {
         return DEFEND_OFF;
     }
@@ -179,7 +179,7 @@ static char defendApp2mc(int cmd)
 
 static char seekApp2mc(int cmd)
 {
-    if(cmd == CMD_SEEK_ON)
+    if(cmd == APP_CMD_SEEK_ON)
     {
         return SEEK_ON;
     }
@@ -243,15 +243,15 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 
     switch (cmd)
     {
-    case CMD_WILD:
+    case APP_CMD_WILD:
         LOG_INFO("receive app wildcard cmd");
         //app_sendRawData2mc(pMsg->data, ntohs(pMsg->length) - sizeof(pMsg->seq), ctx, token);
         break;
-    case CMD_FENCE_ON:
-    case CMD_FENCE_OFF:
-    case CMD_FENCE_GET:
+    case APP_CMD_FENCE_ON:
+    case APP_CMD_FENCE_OFF:
+    case APP_CMD_FENCE_GET:
     {
-        LOG_INFO("receive app CMD_FENCE_%d", cmd);
+        LOG_INFO("receive app APP_CMD_FENCE_%d", cmd);
 
         MSG_DEFEND_REQ *req = (MSG_DEFEND_REQ *)alloc_simcom_msg(CMD_DEFEND, sizeof(MSG_DEFEND_REQ));
         if(!req)
@@ -265,10 +265,10 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
         app_sendRawData2mc(req, sizeof(MSG_DEFEND_REQ), strIMEI);
         break;
     }
-    case CMD_SEEK_ON:
-    case CMD_SEEK_OFF:
+    case APP_CMD_SEEK_ON:
+    case APP_CMD_SEEK_OFF:
     {
-        LOG_INFO("receive app CMD_SEEK_MODE cmd");
+        LOG_INFO("receive app APP_CMD_SEEK_%d", cmd);
 
         MSG_SEEK_REQ *req = (MSG_SEEK_REQ *)alloc_simcom_msg(CMD_SEEK, sizeof(MSG_SEEK_REQ));
         if(!req)
@@ -282,17 +282,17 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
         app_sendRawData2mc(req, sizeof(MSG_SEEK_REQ), strIMEI);
         break;
     }
-    case CMD_LOCATION:
+    case APP_CMD_LOCATION:
     {
-        LOG_INFO("receive app CMD_LOCATION");
-        MSG_LOCATE *req = (MSG_LOCATE *)alloc_simcom_msg(CMD_LOCATE, sizeof(MSG_LOCATE));
+        LOG_INFO("receive app APP_CMD_LOCATION");
+        MSG_LOCATION *req = (MSG_LOCATION *)alloc_simcom_msg(CMD_LOCATION, sizeof(MSG_LOCATION));
         if(!req)
         {
             LOG_FATAL("insufficient memory");
             return -1;
         }
         app_sendCmdMsg2App(cmd, ERR_WAITING, strIMEI);
-        app_sendRawData2mc(req, sizeof(MSG_LOCATE), strIMEI);
+        app_sendRawData2mc(req, sizeof(MSG_LOCATION), strIMEI);
         break;
     }
     default:
