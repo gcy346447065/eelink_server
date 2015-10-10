@@ -1,0 +1,64 @@
+language: c
+compiler: gcc
+
+env:
+    - BUILD_TYPE=Release
+
+before_install:
+- if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.8; fi
+- if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+
+install:
+- sudo apt-get install cmake
+
+#- sudo apt-get install libevent-dev
+- wget https://sourceforge.net/projects/levent/files/libevent/libevent-2.0/libevent-2.0.22-stable.tar.gz
+- tar zxf libevent-2.0.22-stable.tar.gz
+- cd libevent-2.0.22-stable && ./configure && make && sudo make install
+- cd ..
+
+- sudo apt-get install libc-ares-dev
+- sudo apt-get install libssl-dev
+- sudo apt-get install uuid-dev
+#- sudo apt-get install libmosquitto0-dev
+- wget http://mosquitto.org/files/source/mosquitto-1.4.4.tar.gz
+- tar zxvf mosquitto-1.4.4.tar.gz
+- cd mosquitto-1.4.4 && make && sudo make install
+- cd ..
+
+#- sudo apt-get install libcurl4-openssl-dev
+- wget http://www.curl.haxx.se/download/curl-7.45.0.tar.gz
+- tar zxvf curl-7.45.0.tar.gz
+- cd curl-7.45.0 && make && sudo make install
+- cd ..
+
+
+- sudo apt-get install libmysqlclient-dev
+
+#- wget https://github.com/downloads/HardySimpson/zlog/zlog-latest-stable.tar.gz
+#- tar -zxvf zlog-latest-stable.tar.gz
+#- cd zlog-latest-stable/
+- git clone https://github.com/HardySimpson/zlog.git
+- cd zlog && make && sudo make install 
+- cd ..
+
+
+#- wget http://github.com/yunba/yunba-c-sdk/archive/develop.zip
+#- unzip yunba-c-sdk-develop.zip
+#- cd yunba-c-sdk-develop/
+- git clone https://github.com/yunba/yunba-c-sdk.git
+- cd yunba-c-sdk && git checkout develop
+- make && sudo make install && cd ..
+
+before_script:
+- ls -R $HOME
+
+script:
+- mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+- make
+
+# whitelist
+branches:
+  only:
+    - master
+    - dev
