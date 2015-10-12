@@ -17,15 +17,16 @@
 
 enum
 {
-    CMD_LOGIN   = 0x01,
-    CMD_GPS     = 0x02,
-    CMD_CELL    = 0x03,
-    CMD_PING    = 0x04,
-    CMD_ALARM   = 0x05,
-    CMD_SMS     = 0x06,
-    CMD_433     = 0x07,
-    CMD_DEFEND  = 0x08,
-    CMD_SEEK    = 0x09,
+    CMD_LOGIN       = 0x01,
+    CMD_GPS         = 0x02,
+    CMD_CELL        = 0x03,
+    CMD_PING        = 0x04,
+    CMD_ALARM       = 0x05,
+    CMD_SMS         = 0x06,
+    CMD_433         = 0x07,
+    CMD_DEFEND      = 0x08,
+    CMD_SEEK        = 0x09,
+    CMD_LOCATION    = 0x0a,
 };
 
 enum
@@ -201,6 +202,8 @@ typedef struct
     int token;
     unsigned char result;
 }__attribute__((__packed__)) MSG_SEEK_RSP;
+
+typedef MSG_HEADER MSG_LOCATION;
 
 #pragma pack(pop)
 
