@@ -16,7 +16,7 @@
 #define DB_PWD  "eelink"
 #define DB_PORT (3306)
 #define DB_NAME "gps"
-#define MAX_QUERY 170
+#define MAX_QUERY 400
 
 int db_initial();
 int db_destruct();
