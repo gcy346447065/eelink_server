@@ -114,11 +114,11 @@ int _db_saveCGI(const char *imeiName, int timestamp, int cellNo, const CGI_MC ce
         step = snprintf(current, MAX_QUERY, ",lac%d,ci%d,rxl%d)", i, i, i);
     }
     current += step;
-    step = snprintf(current, MAX_QUERY, " values(%d,%d,%d,%d,%d,%d)", timestamp, cell[0].mcc, cell[0].mnc, cell[0].lac, cell[0].ci, cell[0].rxl);
+    step = snprintf(current, MAX_QUERY, " values(%d,%d,%d,%d,%d,%d)", timestamp, cell[0].mcc, cell[0].mnc, (unsigned short)cell[0].lac, (unsigned short)cell[0].ci, cell[0].rxl);
     for(i = 1; i < cellNo; ++i)
     {
         current += step - 1;
-        step = snprintf(current, MAX_QUERY, ",%d,%d,%d)", cell[i].lac, cell[i].ci, cell[i].rxl);
+        step = snprintf(current, MAX_QUERY, ",%d,%d,%d)", (unsigned short)cell[i].lac, (unsigned short)cell[i].ci, cell[i].rxl);
     }
     if(mysql_query(conn, query))
     {
