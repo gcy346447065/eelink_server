@@ -75,7 +75,7 @@ int _db_createGPS(const char* tableName)
 
 int _db_createCGI(const char* tableName)
 {
-    char query[MAX_QUERY * 2];
+    char query[MAX_QUERY * 3];
     //create table cgi_IMEI(timestamp INT, mcc SMALLINT, mnc SMALLINT, lac SMALLINT, ci SMALLINT, rxl SMALLINT)
     snprintf(query, MAX_QUERY, "create table cgi_%s(timestamp INT,mcc SMALLINT,mnc SMALLINT,lac0 SMALLINT,ci0 SMALLINT,rxl0 SMALLINT,lac1 SMALLINT,ci1 SMALLINT,rxl1 SMALLINT,lac2 SMALLINT,ci2 SMALLINT,rxl2 SMALLINT,lac3 SMALLINT,ci3 SMALLINT,rxl3 SMALLINT,lac4 SMALLINT,ci4 SMALLINT,rxl4 SMALLINT,lac5 SMALLINT,ci5 SMALLINT,rxl5 SMALLINT,lac6 SMALLINT,ci6 SMALLINT,rxl6 SMALLINT)", tableName);
     if(mysql_query(conn, query))
@@ -104,7 +104,7 @@ int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char 
 int _db_saveCGI(const char *imeiName, int timestamp, int cellNo, const CGI_MC cell[])
 {
     //prevent string of sql(insert) overflow
-    char query[MAX_QUERY * 2 + 50];
+    char query[MAX_QUERY * 3];
     int i;
     char *current = query;
     int step = snprintf(current, MAX_QUERY, "insert into cgi_%s(timestamp,mcc,mnc,lac0,ci0,rxl0)", imeiName);
