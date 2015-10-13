@@ -281,20 +281,21 @@ int simcom_cell(const void *msg, SESSION *ctx)
         LOG_ERROR("Number:%d of cell is over", num);
         return -1;
     }
+
     const CELL *cell = (const CELL *)(cgi + 1);
 
     for(int i = 0; i < num; ++i)
     {
         (obj->cell[i]).mcc = ntohs(cgi->mcc);
         (obj->cell[i]).mnc = ntohs(cgi->mnc);
-        (obj->cell[i]).lac = ntohs((cell[i]).lac);
-        (obj->cell[i]).ci = ntohs((cell[i]).cellid);
-        (obj->cell[i]).rxl = ntohs((cell[i]).rxl);
-        db_saveCGI(obj->IMEI, obj->timestamp, (obj->cell[i]).mcc, (obj->cell[i]).mnc, (obj->cell[i]).lac, (obj->cell[i]).ci, (obj->cell[i]).rxl);
+        (obj->cell[i]).lac    = ntohs((cell[i]).lac);
+        (obj->cell[i]).ci     = ntohs((cell[i]).cellid);
+        (obj->cell[i]).rxl    = ntohs((cell[i]).rxl);
+        //db_saveCGI(obj->IMEI, obj->timestamp, (obj->cell[i]).mcc, (obj->cell[i]).mnc, (obj->cell[i]).lac, (obj->cell[i]).ci, (obj->cell[i]).rxl);
     }
 
     //TODO: how to tranform cgi to gps
-
+    db_saveCGI(obj->IMEI, obj->timestamp, num, obj->cell);
     return 0;
 }
 
