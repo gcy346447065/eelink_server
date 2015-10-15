@@ -176,6 +176,7 @@ int tk115_gps(const void *msg, SESSION *ctx)
 	(obj->cell[0]).lac = (req->cell).lac;
 	//transform ci from char[3] to short
 	(obj->cell[0]).ci = *(short *)(&((req->cell).ci[1]));
+	(obj->cell[0]).rxl = 0;
 
 	app_sendGpsMsg2App(ctx);
 
@@ -191,7 +192,7 @@ int tk115_gps(const void *msg, SESSION *ctx)
     else
     {
         //int db_saveCGI(const char *name, int timestamp, short mcc, short mnc, short lac, short ci, short rxl)
-        db_saveCGI(obj->IMEI, obj->timestamp, (obj->cell[0]).mcc, (obj->cell[0]).mnc, (obj->cell[0]).lac, (obj->cell[0]).ci, 0);
+        db_saveCGI(obj->IMEI, obj->timestamp, 1, obj->cell);
     }
 
 

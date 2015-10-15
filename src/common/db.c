@@ -76,8 +76,8 @@ int _db_createGPS(const char* tableName)
 int _db_createCGI(const char* tableName)
 {
     char query[MAX_QUERY];
-    //create table cgi_IMEI(timestamp INT, mcc SMALLINT, mnc SMALLINT, lac SMALLINT, ci SMALLINT, rxl SMALLINT)
-    snprintf(query, MAX_QUERY, "create table cgi_%s(timestamp INT,mcc SMALLINT,mnc SMALLINT,lac SMALLINT,ci SMALLINT,rxl SMALLINT)", tableName);
+    //create table cgi_IMEI(timestamp INT, mcc SMALLINT, mnc SMALLINT, lac0 SMALLINT, ci0 SMALLINT, rxl0 SMALLINT...)
+    snprintf(query, MAX_QUERY, "create table cgi_%s(timestamp INT,mcc SMALLINT,mnc SMALLINT,lac0 SMALLINT,ci0 SMALLINT,rxl0 SMALLINT,lac1 SMALLINT,ci1 SMALLINT,rxl1 SMALLINT,lac2 SMALLINT,ci2 SMALLINT,rxl2 SMALLINT,lac3 SMALLINT,ci3 SMALLINT,rxl3 SMALLINT,lac4 SMALLINT,ci4 SMALLINT,rxl4 SMALLINT,lac5 SMALLINT,ci5 SMALLINT,rxl5 SMALLINT,lac6 SMALLINT,ci6 SMALLINT,rxl6 SMALLINT)", tableName);
     if(mysql_query(conn, query))
     {
         LOG_ERROR("can't create table: cgi_%s", tableName);
@@ -101,23 +101,35 @@ int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char 
     return 0;
 }
 
-int _db_saveCGI(const char *imeiName, int timestamp, short mcc, short mnc, short lac, short ci, short rxl)
+int _db_saveCGI(const char *imeiName, int timestamp, int cellNo, const CGI_MC cell[])
 {
-    //timestamp INT, mcc SMALLINT, mnc SMALLINT, lac SMALLINT, ci CHAR(3)
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into cgi_%s(timestamp,mcc,mnc,lac,ci,rxl) values(%d,%d,%d,%d,%d,%d)", imeiName, timestamp, mcc, mnc, (unsigned short)lac, (unsigned short)ci, rxl);
+    int i;
+    char *current = query;
+    int step = snprintf(current, MAX_QUERY, "insert into cgi_%s(timestamp,mcc,mnc,lac0,ci0,rxl0)", imeiName);
+    for(i = 1; i < cellNo; ++i)
+    {
+        current += step - 1;
+        step = snprintf(current, MAX_QUERY, ",lac%d,ci%d,rxl%d)", i, i, i);
+    }
+    current += step;
+    step = snprintf(current, MAX_QUERY, " values(%d,%d,%d,%d,%d,%d)", timestamp, cell[0].mcc, cell[0].mnc, (unsigned short)cell[0].lac, (unsigned short)cell[0].ci, cell[0].rxl);
+    for(i = 1; i < cellNo; ++i)
+    {
+        current += step - 1;
+        step = snprintf(current, MAX_QUERY, ",%d,%d,%d)", (unsigned short)cell[i].lac, (unsigned short)cell[i].ci, cell[i].rxl);
+    }
     if(mysql_query(conn, query))
     {
         LOG_ERROR("can't insert into cgi_%s", imeiName);
         return -1;
     }
-    LOG_INFO("insert into cgi_%s: %d %d %d %d %d %d", imeiName, timestamp, mcc, mnc, (unsigned short)lac, (unsigned short)ci, rxl);
+    LOG_INFO(query);
     return 0;
 }
 
 /*Object db
 Names of the table and columns need modifing*/
-
 int _db_doWithOBJ(void (*func1)(const char*, int), void (*func2)(const char *))
 {
     char query[] = "select imei, lastlogintime from object";
@@ -216,10 +228,10 @@ int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char s
     return 0;
 }
 
-int db_saveCGI(const char* imeiName, int timestamp, short mcc, short mnc, short lac, short ci, short rxl)
+int db_saveCGI(const char* imeiName, int timestamp, int cellNo, const CGI_MC cell[])
 {
 #ifdef WITH_DB
-    return _db_saveCGI(imeiName, timestamp, mcc, mnc, lac, ci, rxl);
+    return _db_saveCGI(imeiName, timestamp, cellNo, cell);
 #endif
 
     return 0;
