@@ -27,7 +27,7 @@ static void make_url(CGI_MC cell[], int cellNo, char *url)
     int i;
     for(i = 0, current += step; i < cellNo; ++i,current += step)
     {
-        step = snprintf(current, MAX_LEN, "-%x-%x-%x", cell[i].lac, cell[i].ci, cell[i].rxl + ADD2RXL);
+        step = snprintf(current, MAX_LEN, "-%x-%x-%x", (unsigned short)cell[i].lac, (unsigned short)cell[i].ci, cell[i].rxl + ADD2RXL);
     }
     //TODO:&p&mt&ta&needaddress
     snprintf(current, MAX_LEN, "&ta=1&needaddress=0");
