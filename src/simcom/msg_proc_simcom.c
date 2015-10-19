@@ -300,7 +300,7 @@ int simcom_cell(const void *msg, SESSION *ctx)
     int rc = cgi2gps(obj->cell, num, &lat, &lon);
     if(rc != 0)
     {
-        LOG_ERROR("cgi 2 gps error");
+        //LOG_ERROR("cgi2gps error");
         return 1;
     }
     obj->isGPSlocated = 0x00;

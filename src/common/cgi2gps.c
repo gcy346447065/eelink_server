@@ -44,6 +44,13 @@ static size_t handleGetGps(void *buffer, size_t size, size_t nmemb, void *userp)
         LOG_ERROR("gps message format not json: %s", cJSON_GetErrorPtr());
         return 0;
     }
+
+    int res = (cJSON_GetObjectItem(gpsMsg, "status"))->valueint;
+    if(res)
+    {
+        LOG_ERROR("cgi2gps error cause: %s", (cJSON_GetObjectItem(gpsMsg, "cause"))->valuestring);
+        return 0;
+    }
     gps->lat = (cJSON_GetObjectItem(gpsMsg, "lat"))->valuedouble;
     gps->lon = (cJSON_GetObjectItem(gpsMsg, "lon"))->valuedouble;
     return size * nmemb;
@@ -65,6 +72,7 @@ int cgi2gps(CGI_MC cell[], int cellNo, float *lat, float *lon)
     curl_easy_cleanup(curl);
     if(res != CURLE_OK)
     {
+        LOG_ERROR("curl perform error: %d", res);
         return -1;
     }
     else

@@ -6,4 +6,4 @@
  */
 #include "macro.h"
 
- int cgi2gps(CGI_MC cell[], int cellNo, float *lat, float *lon);
+int cgi2gps(CGI_MC cell[], int cellNo, float *lat, float *lon);
