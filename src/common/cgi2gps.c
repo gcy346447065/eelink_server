@@ -42,11 +42,11 @@ static size_t handleGetGps(void *buffer, size_t size, size_t nmemb, void *userp)
     if(!gpsMsg)
     {
         LOG_ERROR("gps message format not json: %s", cJSON_GetErrorPtr());
-        return 1;
+        return 0;
     }
     gps->lat = (cJSON_GetObjectItem(gpsMsg, "lat"))->valuedouble;
     gps->lon = (cJSON_GetObjectItem(gpsMsg, "lon"))->valuedouble;
-    return 0;
+    return size * nmemb;
 }
 
 int cgi2gps(CGI_MC cell[], int cellNo, float *lat, float *lon)
@@ -57,6 +57,7 @@ int cgi2gps(CGI_MC cell[], int cellNo, float *lat, float *lon)
     CURL *curl = curl_easy_init();
     CURLcode res;
     curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, handleGetGps);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&gps);
     
