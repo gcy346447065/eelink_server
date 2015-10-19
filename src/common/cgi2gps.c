@@ -11,7 +11,7 @@
 #include "macro.h"
 #include "log.h"
 
-#define MAX_LEN 400
+#define MAX_LEN 1000
 #define ADD2RXL 110
 
 typedef struct
@@ -23,7 +23,7 @@ typedef struct
 static void make_url(CGI_MC cell[], int cellNo, char *url)
 {
     char *current = url;
-    int step = snprintf(current, MAX_LEN, "http://minigps.net/as?x=%x-%x", cell[0].mcc, cell[0].mnc);
+    int step = snprintf(current, MAX_LEN, "http://minigps.org/as?x=%x-%x", cell[0].mcc, cell[0].mnc);
     int i;
     for(i = 0, current += step; i < cellNo; ++i,current += step)
     {
