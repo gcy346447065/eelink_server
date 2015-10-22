@@ -30,7 +30,7 @@ static void make_url(CGI_MC cell[], int cellNo, char *url)
         step = snprintf(current, MAX_LEN, "-%x-%x-%x", (unsigned short)cell[i].lac, (unsigned short)cell[i].ci, cell[i].rxl + ADD2RXL);
     }
     //TODO:&p&mt&ta&needaddress
-    snprintf(current, MAX_LEN, "&ta=1&needaddress=0");
+    snprintf(current, MAX_LEN, "&ta=1&needaddress=0&p=1");
     return;
 }
 
