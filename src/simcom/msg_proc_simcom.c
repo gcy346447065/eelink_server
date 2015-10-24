@@ -338,6 +338,10 @@ int simcom_alarm(const void *msg, SESSION *ctx)
         LOG_WARN("MC must first login");
         return -1;
     }
+
+    //send to APP by MQTT
+    app_sendAlarmMsg2App(req->alarmType, NULL, ctx);
+
     //send to APP by yunba
     char topic[128];
     memset(topic, 0, sizeof(topic));

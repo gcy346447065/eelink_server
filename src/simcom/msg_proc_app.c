@@ -159,6 +159,32 @@ void app_send433Msg2App(int timestamp, int intensity, void * session)
     cJSON_Delete(root);
 }
 
+void app_sendAlarmMsg2App(unsigned char type, const char *msg, void *session)
+{
+    OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
+    if (!obj)
+    {
+        LOG_ERROR("obj null, no data to upload");
+        return;
+    }
+    char topic[IMEI_LENGTH + 15];
+    memset(topic, 0, sizeof(topic));
+    snprintf(topic, IMEI_LENGTH + 15, "dev2app/%s/alarm", obj->IMEI);
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, "type", type);
+    if(msg)
+    {
+        cJSON_AddStringToObject(root, "msg", msg);
+    }
+
+    char *json = cJSON_PrintUnformatted(root);
+
+    app_sendRawData2App(topic, json, strlen(json));
+    LOG_INFO("send alarm msg to APP");
+    free(json);
+    cJSON_Delete(root);
+}
 
 //---------------------------------handle for msg from app------------------------------------
 static char defendApp2mc(int cmd)
