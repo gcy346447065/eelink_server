@@ -8,7 +8,12 @@
 
 #include <event2/event.h>
 #include <event2/bufferevent.h>
-#include <sys/socket.h>
+#include <string.h>
+#include <malloc.h>
+
+#include "sync.h"
+#include "cJSON.h"
+#include "inter_msg.h"
 
 static struct bufferevent *bev = NULL;
 
@@ -44,7 +49,7 @@ static void write_cb(struct bufferevent* bev, void *ctx)
 }
 
 
-int main_loop(struct event_base *base)
+int sync_init(struct event_base *base)
 {
     struct sockaddr_in sin;
 
@@ -69,9 +74,26 @@ int main_loop(struct event_base *base)
     return 0;
 }
 
-void sendData(const void* data, size_t len)
+void sync_newIMEI(const char *imei)
 {
-	bufferevent_write(bev, data, len);
+
+    cJSON *root = cJSON_CreateObject();
+
+    cJSON_AddNumberToObject(root, TAG_CMD, CMD_SYNC_NEW_DID);
+    cJSON_AddStringToObject(root, TAG_IMEI, imei);
+
+    char *data = cJSON_PrintUnformatted(root);
+    if (!data) {
+        //TODO: log error
+        return;
+    }
+
+    bufferevent_write(bev, data, strlen(data));
+
+    free(data);
+    cJSON_Delete(root);
+
+    return;
 }
 
 

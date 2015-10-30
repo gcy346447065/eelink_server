@@ -29,6 +29,9 @@ SET(SOURCE_FILE
     env.h
     env.c
 
+    sync.h
+    sync.c
+
     ../3rd/cJSON/cJSON.c
     ../3rd/cJSON/cJSON.h
     )

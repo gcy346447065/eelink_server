@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <string.h>
 #include <time.h>
+#include <object.h>
 
 #include "msg_proc_tk115.h"
 #include "msg_tk115.h"
@@ -18,6 +19,7 @@
 #include "log.h"
 #include "mqtt.h"
 #include "db.h"
+#include "sync.h"
 
 int msg_send(void *msg, size_t len, SESSION *ctx)
 {
@@ -68,7 +70,7 @@ int tk115_login(const void *msg, SESSION *ctx)
 			obj->language = req->language;
 			obj->locale = req->locale;
 
-//			leancloud_saveDid(obj);
+            sync_newIMEI(obj->IMEI);
 
 			//add object to table and db
 			obj_add(obj);
@@ -95,11 +97,10 @@ int tk115_login(const void *msg, SESSION *ctx)
 		//TODO: LOG_ERROR
 	}
 
-	if (!db_isTableCreated(obj->IMEI))
-        {
-            db_createCGI(obj->IMEI);
-            db_createGPS(obj->IMEI);
-        }
+	if (!db_isTableCreated(obj->IMEI)) {
+        db_createCGI(obj->IMEI);
+        db_createGPS(obj->IMEI);
+    }
 
 	return 0;
 }

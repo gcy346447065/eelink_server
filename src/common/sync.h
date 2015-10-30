@@ -1,0 +1,17 @@
+/*
+ * cell.h
+ *
+ *  Created on: Oct 1, 2015
+ *      Author: jk
+ */
+
+#ifndef SRC_COMMON_SYNC_H_
+#define SRC_COMMON_SYNC_H_
+
+
+int sync_init(struct event_base *base);
+
+void sync_newIMEI(const char *imei);
+
+
+#endif /* SRC_COMMON_SYNC_H_ */
