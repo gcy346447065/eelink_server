@@ -192,7 +192,7 @@ int tk115_gps(const void *msg, SESSION *ctx)
     else
     {
         //int db_saveCGI(const char *name, int timestamp, short mcc, short mnc, short lac, short ci, short rxl)
-        db_saveCGI(obj->IMEI, obj->timestamp, 1, obj->cell);
+        db_saveCGI(obj->IMEI, obj->timestamp, obj->cell, 1);
     }
 
 

@@ -23,6 +23,7 @@
 #include "cJSON.h"
 #include "yunba_push.h"
 #include "msg_app.h"
+#include "cgi2gps.h"
 
 typedef int (*MSG_PROC)(const void *msg, SESSION *ctx);
 typedef struct
@@ -293,9 +294,21 @@ int simcom_cell(const void *msg, SESSION *ctx)
         (obj->cell[i]).rxl    = ntohs((cell[i]).rxl);
         //db_saveCGI(obj->IMEI, obj->timestamp, (obj->cell[i]).mcc, (obj->cell[i]).mnc, (obj->cell[i]).lac, (obj->cell[i]).ci, (obj->cell[i]).rxl);
     }
+    db_saveCGI(obj->IMEI, obj->timestamp, obj->cell, num);
 
-    //TODO: how to tranform cgi to gps
-    db_saveCGI(obj->IMEI, obj->timestamp, num, obj->cell);
+    float lat, lon;
+    int rc = cgi2gps(obj->cell, num, &lat, &lon);
+    if(rc != 0)
+    {
+        //LOG_ERROR("cgi2gps error");
+        return 1;
+    }
+    obj->isGPSlocated = 0x00;
+    obj->lat = lat;
+    obj->lon = lon;
+
+    app_sendGpsMsg2App(ctx);
+    db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, 0, 0);
     return 0;
 }
 

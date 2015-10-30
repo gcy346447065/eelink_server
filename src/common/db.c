@@ -101,7 +101,7 @@ int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char 
     return 0;
 }
 
-int _db_saveCGI(const char *imeiName, int timestamp, int cellNo, const CGI_MC cell[])
+int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[], int cellNo)
 {
     char query[MAX_QUERY];
     int i;
@@ -228,10 +228,10 @@ int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char s
     return 0;
 }
 
-int db_saveCGI(const char* imeiName, int timestamp, int cellNo, const CGI_MC cell[])
+int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cellNo)
 {
 #ifdef WITH_DB
-    return _db_saveCGI(imeiName, timestamp, cellNo, cell);
+    return _db_saveCGI(imeiName, timestamp, cell, cellNo);
 #endif
 
     return 0;

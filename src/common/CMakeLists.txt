@@ -18,6 +18,9 @@ SET(SOURCE_FILE
     mqtt.h
     mqtt.c
 
+    cgi2gps.h
+    cgi2gps.c
+
     ../3rd/cJSON/cJSON.c
     ../3rd/cJSON/cJSON.h
     )
