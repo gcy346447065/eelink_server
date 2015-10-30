@@ -14,6 +14,7 @@
 #include "mqtt.h"
 #include "msg_proc_app.h"
 #include "port.h"
+#include "sync.h"
 
 
 struct event_base *base = NULL;
@@ -115,6 +116,13 @@ int main(int argc, char **argv)
     {
     	LOG_FATAL("start mc server failed at port:%d", port);
     	return 2;
+    }
+
+    rc = sync_init(base);
+    if (rc)
+    {
+        LOG_ERROR("connect to sync server failed, try later");
+        //TODO: start a timer to re-connect to the sync server
     }
 
 

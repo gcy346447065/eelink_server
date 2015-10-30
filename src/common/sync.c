@@ -74,6 +74,12 @@ int sync_init(struct event_base *base)
     return 0;
 }
 
+int sync_exit()
+{
+    //TODO: close the socket when exit
+    return 0;
+}
+
 void sync_newIMEI(const char *imei)
 {
 

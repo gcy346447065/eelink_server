@@ -15,6 +15,8 @@
 #include "session.h"
 #include "msg_proc_app.h"
 #include "port.h"
+#include "sync.h"
+
 
 struct event_base *base = NULL;
 
@@ -126,6 +128,13 @@ int main(int argc, char **argv)
     {
         LOG_FATAL("start simcom server failed at port:%d", simcom_port);
         return 2;
+    }
+
+    rc = sync_init(base);
+    if (rc)
+    {
+        LOG_ERROR("connect to sync server failed, try later");
+        //TODO: start a timer to re-connect to the sync server
     }
 
     //start the event loop
