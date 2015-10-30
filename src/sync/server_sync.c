@@ -104,20 +104,9 @@ static void accept_conn_cb(struct evconnlistener *listener,
 		return;
 	}
 
-	SESSION* ctx = malloc(sizeof(SESSION));
-	if (!ctx)
-	{
-	    LOG_FATAL("memory alloc failed");
-	    return;
-	}
-	ctx->base = base;
-	ctx->bev = bev;
-	ctx->obj = NULL;
-	ctx->pSendMsg = send_msg;
-
 
 	//TODO: set the water-mark and timeout
-	bufferevent_setcb(bev, read_cb, write_cb, event_cb, ctx);
+	bufferevent_setcb(bev, read_cb, write_cb, event_cb, NULL);
 
 	bufferevent_enable(bev, EV_READ|EV_WRITE);
 
