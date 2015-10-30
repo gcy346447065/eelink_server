@@ -10,10 +10,10 @@
 
 #include "leancloud_req.h"
 #include "leancloud_rsp.h"
-#include "cb_ctx_mc.h"
-#include "object_mc.h"
 #include "cJSON.h"
+#include "curl.h"
 #include "log.h"
+#include "env.h"
 
 #define LEANCLOUD_URL_BASE "https://api.leancloud.cn/1.1"
 
@@ -68,20 +68,21 @@ static int leancloud_get(CURL *curl, const char* class)
 }
 
 
-void leancloud_saveGPS(OBJ_MC* obj)
+void leancloud_saveGPS()
 {
 	ENVIRONMENT* env = env_get();
 	CURL* curl = env->curl_leancloud;
 
 	cJSON *root = cJSON_CreateObject();
 
-	cJSON_AddStringToObject(root,"IMEI",    get_IMEI_STRING(obj->IMEI));
-	cJSON_AddStringToObject(root,"did", 	obj->DID);
-	cJSON_AddNumberToObject(root,"lat",	obj->lat / 30000.0);
-	cJSON_AddNumberToObject(root,"lon",	obj->lon / 30000.0);
-	cJSON_AddNumberToObject(root,"speed",	obj->speed);
-	cJSON_AddNumberToObject(root,"course",	obj->course);
-	cJSON_AddNumberToObject(root,"time",obj->timestamp);
+    //TODO:
+//	cJSON_AddStringToObject(root,"IMEI",    get_IMEI_STRING(obj->IMEI));
+//	cJSON_AddStringToObject(root,"did", 	obj->DID);
+//	cJSON_AddNumberToObject(root,"lat",	obj->lat / 30000.0);
+//	cJSON_AddNumberToObject(root,"lon",	obj->lon / 30000.0);
+//	cJSON_AddNumberToObject(root,"speed",	obj->speed);
+//	cJSON_AddNumberToObject(root,"course",	obj->course);
+//	cJSON_AddNumberToObject(root,"time",obj->timestamp);
 	char* data = cJSON_PrintUnformatted(root);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveGPS);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, env);
@@ -93,16 +94,16 @@ void leancloud_saveGPS(OBJ_MC* obj)
 //	leancloud_post(curl, data, strlen(data));
 }
 
-void leancloud_saveDid(OBJ_MC* obj)
+void leancloud_saveDid()
 {
 	ENVIRONMENT* env = env_get();
 	CURL* curl = env->curl_leancloud;
 
 	cJSON *root = cJSON_CreateObject();
 
-	cJSON_AddStringToObject(root,"did", 	obj->DID);
-	cJSON_AddStringToObject(root,"IMEI",	get_IMEI_STRING(obj->IMEI));
-	cJSON_AddStringToObject(root,"password",obj->pwd);
+//	cJSON_AddStringToObject(root,"did", 	obj->DID);
+//	cJSON_AddStringToObject(root,"IMEI",	get_IMEI_STRING(obj->IMEI));
+//	cJSON_AddStringToObject(root,"password",obj->pwd);
 	char* data = cJSON_PrintUnformatted(root);
 	leancloud_post(curl, "DID", data, strlen(data));
 	cJSON_Delete(root);
@@ -112,7 +113,6 @@ void leancloud_saveDid(OBJ_MC* obj)
 int leancloud_onGetOBJ(MemroyBuf *chunk)
 {
     int ret = 0;;
-    OBJ_MC* obj;
 
     cJSON* root = cJSON_Parse(chunk->memory);
     if (!root)
@@ -152,22 +152,22 @@ int leancloud_onGetOBJ(MemroyBuf *chunk)
 
 		LOG_DEBUG("initil IMEI(%s)", imei->valuestring);
 
-		obj = mc_obj_new();
-		if (NULL == obj)
-		{
-			LOG_FATAL("insufficient memory when new a obj");
-		    cJSON_Delete(root);
-		    return -1;
-		}
-		memcpy(obj->IMEI, get_IMEI(imei->valuestring), IMEI_LENGTH);
-		memcpy(obj->DID, did->valuestring, MAX_DID_LEN);
-		memcpy(obj->pwd, password->valuestring, MAX_PWD_LEN);
-
-		/* add to mc hash */
-		mc_obj_add(obj);
-
-		//subscribe
-		app_subscribe(env_get()->mosq, obj);
+//		obj = mc_obj_new();
+//		if (NULL == obj)
+//		{
+//			LOG_FATAL("insufficient memory when new a obj");
+//		    cJSON_Delete(root);
+//		    return -1;
+//		}
+//		memcpy(obj->IMEI, get_IMEI(imei->valuestring), IMEI_LENGTH);
+//		memcpy(obj->DID, did->valuestring, MAX_DID_LEN);
+//		memcpy(obj->pwd, password->valuestring, MAX_PWD_LEN);
+//
+//		/* add to mc hash */
+//		mc_obj_add(obj);
+//
+//		//subscribe
+//		app_subscribe(env_get()->mosq, obj);
 	}
 
 

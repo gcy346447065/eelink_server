@@ -1,14 +1,19 @@
 SET(SOURCE_FILE
     log.c
     log.h
+
     yunba_push.c
     yunba_push.h
+
     curl.c
     curl.h
+
     object.c
     object.h
+
     db.c
     db.h
+
     conf.c
     conf.h
     
@@ -20,6 +25,9 @@ SET(SOURCE_FILE
 
     cgi2gps.h
     cgi2gps.c
+
+    env.h
+    env.c
 
     ../3rd/cJSON/cJSON.c
     ../3rd/cJSON/cJSON.h

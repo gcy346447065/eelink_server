@@ -8,11 +8,10 @@
 #ifndef SRC_LEANCLOUD_REQ_H_
 #define SRC_LEANCLOUD_REQ_H_
 
-#include "object_mc.h"
 
-void leancloud_saveGPS(OBJ_MC* obj);
+void leancloud_saveGPS();
 
-void leancloud_saveDid(OBJ_MC* obj);
+void leancloud_saveDid();
 
 int leancloud_getOBJ();
 

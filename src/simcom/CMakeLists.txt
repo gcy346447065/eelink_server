@@ -7,9 +7,7 @@ SET(SOURCE_FILE
     msg_proc_simcom.c
     msg_proc_simcom.h
     msg_simcom.c
-    msg_simcom.h
-    env.c
-    env.h)
+    msg_simcom.h)
 
 MESSAGE(STATUS "configure Server for SIMCOM")
 link_directories(/usr/lib64/mysql)

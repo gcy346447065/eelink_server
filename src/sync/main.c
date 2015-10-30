@@ -7,14 +7,8 @@
 
 #include "log.h"
 #include "version.h"
-#include "server_simcom.h"
-#include "curl.h"
-#include "yunba_push.h"
-#include "object.h"
-#include "mqtt.h"
-#include "db.h"
+#include "server_sync.h"
 #include "session.h"
-#include "msg_proc_app.h"
 
 struct event_base *base = NULL;
 
@@ -36,7 +30,7 @@ static void sig_usr(int signo)
 
 int main(int argc, char **argv)
 {
-    int simcom_port= 9877;
+    int simcom_port= 9890;
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -51,7 +45,7 @@ int main(int argc, char **argv)
     	}
     }
 
-    printf("Electrombile Server %s, with event %s, mosquitto %d, curl %s\n",
+    printf("Sync Server %s, with event %s, mosquitto %d, curl %s\n",
     		VERSION_STR,
 			LIBEVENT_VERSION,
 			mosquitto_lib_version(NULL, NULL, NULL),
@@ -78,28 +72,6 @@ int main(int argc, char **argv)
     	LOG_ERROR("Can't catch SIGTERM");
     }
 
-    rc = mosquitto_lib_init();
-    if (rc != MOSQ_ERR_SUCCESS)
-    {
-    	LOG_ERROR("mosquitto lib initial failed: rc=%d", rc);
-    	return -1;
-    }
-
-    static MQTT_ARG mqtt_arg =
-    {
-            .app_msg_handler = app_handleApp2devMsg
-    };
-    mqtt_arg.base = base;
-
-    mqtt_initial(&mqtt_arg);
-
-    rc = yunba_connect();
-    if (rc)
-    {
-    	LOG_FATAL("connect to yunba failed");
-    	return -1;
-    }
-
     rc = curl_global_init(CURL_GLOBAL_DEFAULT);
     if (rc != CURLE_OK)
     {
@@ -107,17 +79,8 @@ int main(int argc, char **argv)
     }
 
 
-    rc = db_initial();
-    if(rc)
-    {
-        LOG_FATAL("connect to mysql failed");
-        return -1;
-    }
 
-    obj_table_initial(mqtt_subscribe);
-    session_table_initial();
-
-    struct evconnlistener* listener_simcom = server_simcom(base, simcom_port);
+    struct evconnlistener* listener_simcom = server_sync(base, simcom_port);
     if (listener_simcom)
     {
         LOG_INFO("start simcom server successfully at port:%d", simcom_port);
@@ -138,18 +101,7 @@ int main(int argc, char **argv)
     evconnlistener_free(listener_simcom);
 
     event_base_free(base);
-
-    session_table_destruct();
-    obj_table_destruct();
-
-    db_destruct();
     curl_global_cleanup();
-
-    yunba_disconnect();
-
-    mosquitto_lib_cleanup();
-
-
     zlog_fini();
 
 

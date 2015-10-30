@@ -12,7 +12,6 @@
 
 #include "env.h"
 #include "log.h"
-#include "msg_proc_app.h"
 #include "mqtt.h"
 
 ENVIRONMENT env = {

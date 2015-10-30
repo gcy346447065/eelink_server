@@ -5,12 +5,12 @@
  *      Author: jk
  */
 #include <stdlib.h>
+#include <string.h>
 
 #include "leancloud_rsp.h"
-#include "cb_ctx_mc.h"
-#include "object_mc.h"
 #include "cJSON.h"
 #include "log.h"
+#include "env.h"
 
 size_t leancloud_onSaveGPS(void *contents, size_t size, size_t nmemb, void *userp)
 {
