@@ -6,7 +6,7 @@
 #include "msg_proc.h"
 #include "cJSON.h"
 #include "log.h"
-#include "sync.h"
+#include "inter_msg.h"
 #include "leancloud_req.h"
 
 static void msg_saveDid(cJSON* json);
