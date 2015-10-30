@@ -8,13 +8,13 @@
 #include "log.h"
 #include "version.h"
 #include "server_simcom.h"
-#include "curl.h"
 #include "yunba_push.h"
 #include "object.h"
 #include "mqtt.h"
 #include "db.h"
 #include "session.h"
 #include "msg_proc_app.h"
+#include "port.h"
 
 struct event_base *base = NULL;
 
@@ -36,7 +36,7 @@ static void sig_usr(int signo)
 
 int main(int argc, char **argv)
 {
-    int simcom_port= 9877;
+    int simcom_port= PORT_SIMCOM;
 
     setvbuf(stdout, NULL, _IONBF, 0);
 

@@ -13,6 +13,7 @@
 #include "session.h"
 #include "mqtt.h"
 #include "msg_proc_app.h"
+#include "port.h"
 
 
 struct event_base *base = NULL;
@@ -35,7 +36,7 @@ static void sig_usr(int signo)
 
 int main(int argc, char **argv)
 {
-    int port = 9876;
+    int port = PORT_TK115;
 
     setvbuf(stdout, NULL, _IONBF, 0);
 

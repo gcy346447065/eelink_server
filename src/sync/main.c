@@ -8,6 +8,7 @@
 #include "version.h"
 #include "server_sync.h"
 #include "session.h"
+#include "port.h"
 
 struct event_base *base = NULL;
 
@@ -29,7 +30,7 @@ static void sig_usr(int signo)
 
 int main(int argc, char **argv)
 {
-    int port = 9890;
+    int port = PORT_SYNC;
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
