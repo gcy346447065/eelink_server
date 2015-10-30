@@ -1,5 +1,4 @@
 #include <event2/event.h>
-#include <mosquitto.h>
 #include <curl/curl.h>
 #include <signal.h>
 #include <openssl/ssl.h>
@@ -30,7 +29,7 @@ static void sig_usr(int signo)
 
 int main(int argc, char **argv)
 {
-    int simcom_port= 9890;
+    int port = 9890;
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -41,14 +40,13 @@ int main(int argc, char **argv)
     	int num = atoi(strPort);
     	if (num)
     	{
-    		simcom_port = num;
+    		port = num;
     	}
     }
 
-    printf("Sync Server %s, with event %s, mosquitto %d, curl %s\n",
+    printf("Sync Server %s, with event %s, curl %s\n",
     		VERSION_STR,
 			LIBEVENT_VERSION,
-			mosquitto_lib_version(NULL, NULL, NULL),
 			curl_version());
 
     base = event_base_new();
@@ -78,16 +76,14 @@ int main(int argc, char **argv)
     	LOG_FATAL("curl lib initial failed:%d", rc);
     }
 
-
-
-    struct evconnlistener* listener_simcom = server_sync(base, simcom_port);
-    if (listener_simcom)
+    struct evconnlistener*listener = server_sync(base, port);
+    if (listener)
     {
-        LOG_INFO("start simcom server successfully at port:%d", simcom_port);
+        LOG_INFO("start sync server successfully at port:%d", port);
     }
     else
     {
-        LOG_FATAL("start simcom server failed at port:%d", simcom_port);
+        LOG_FATAL("start sync server failed at port:%d", port);
         return 2;
     }
 
@@ -98,7 +94,7 @@ int main(int argc, char **argv)
 
 //    sk_free(SSL_COMP_get_compression_methods());
     LOG_INFO("stop mc server...");
-    evconnlistener_free(listener_simcom);
+    evconnlistener_free(listener);
 
     event_base_free(base);
     curl_global_cleanup();
