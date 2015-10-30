@@ -48,7 +48,7 @@ size_t leancloud_onRev(void *contents, size_t size, size_t nmemb, void *userp)
 		return 0;
 	}
 
-	LOG_DEBUG("receive %d bytes from leancloud", realsize);
+	LOG_DEBUG("receive %zu bytes from leancloud", realsize);
 
 	memcpy(&(mem->memory[mem->size]), contents, realsize);
 	mem->size += realsize;
