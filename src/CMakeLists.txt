@@ -1,9 +1,9 @@
-find_package(PkgConfig)
-pkg_check_modules (GLIB2  glib-2.0>=2.10)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules (GLIB2  REQUIRED glib-2.0>=2.10)
 
 IF (GLIB2_FOUND)
-  include_directories(${GLIB2_INCLUDE_DIRS})
-  link_libraries (${GLIB2_LIBRARIES})
+    include_directories(${GLIB2_INCLUDE_DIRS})
+    link_libraries (${GLIB2_LIBRARIES})
 ENDIF (GLIB2_FOUND)
 
 ADD_DEFINITIONS(-DWITH_LOG)
