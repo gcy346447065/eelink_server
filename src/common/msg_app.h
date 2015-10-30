@@ -27,6 +27,14 @@ enum RESULT
     ERR_OFFLINE     = 102,
 };
 
+enum ALARM
+{
+    ALM_FENCE_OUT       = 0,
+    ALM_FENCE_IN        = 1,
+    ALM_VIBRATE         = 2,
+    ALM_FENCE_IN_TK115  = 0x83,
+    ALM_FENCE_OUT_TK115 = 0x84,
+};
 
 //Message definition
 typedef struct
