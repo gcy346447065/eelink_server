@@ -54,14 +54,12 @@ int session_del(SESSION *session)
     OBJECT *t_obj = (OBJECT *)session->obj;
     if (!t_obj)
     {
-        LOG_WARN("object not login in before timeout");
+        LOG_WARN("object not login before timeout");
         return 0;
     }
-    SESSION *t_session = session_get(t_obj->IMEI);
-    if(NULL != t_session)
-    {
-        g_hash_table_remove(session_table, t_obj->IMEI);
-    }
+    
+    g_hash_table_remove(session_table, t_obj->IMEI);
+    LOG_INFO("delete session(%s)", t_obj->IMEI);
     return 0;
 }
 

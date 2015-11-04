@@ -152,6 +152,12 @@ int simcom_login(const void *msg, SESSION *ctx)
 
     if(!obj)
     {
+        SESSION *t_session = session_get(imei);
+        if(t_session)
+        {
+            session_del(t_session);
+        }
+
         LOG_DEBUG("mc IMEI(%s) login", imei);
 
         obj = obj_get(imei);
