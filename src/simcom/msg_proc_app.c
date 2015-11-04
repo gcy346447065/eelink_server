@@ -259,8 +259,8 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 
     int cmd = cmdItem->valueint;
 
-    SESSION *ctx = session_get(strIMEI);
-    if(!ctx)
+    //SESSION *ctx = session_get(strIMEI);
+    if(!(obj->bev))
     {
         LOG_ERROR("simcom %s offline", strIMEI);
         app_sendCmdMsg2App(cmd, ERR_OFFLINE, strIMEI);

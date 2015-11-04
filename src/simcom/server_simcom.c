@@ -60,10 +60,8 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
         LOG_INFO("simcom connection timeout!");
 
         session_del((SESSION *) arg);
-        //bufferevent_free(bev);
         evutil_socket_t socket = bufferevent_getfd(bev);
         EVUTIL_CLOSESOCKET(socket);
-        
         bufferevent_free(bev);
     }
     else if (events & (BEV_EVENT_EOF | BEV_EVENT_ERROR))
