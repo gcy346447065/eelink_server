@@ -210,7 +210,7 @@ int simcom_gps(const void *msg, SESSION *ctx)
 
     if (req->header.length < sizeof(MSG_GPS) - MSG_HEADER_LEN)
     {
-        LOG_ERROR("message length not enough");
+        LOG_ERROR("gps message length not enough");
         return -1;
     }
 
@@ -259,7 +259,7 @@ int simcom_cell(const void *msg, SESSION *ctx)
     }
     if(req->length < sizeof(CGI))
     {
-        LOG_ERROR("message length not enough");
+        LOG_ERROR("cell message length not enough");
         return -1;
     }
 
@@ -327,7 +327,7 @@ int simcom_alarm(const void *msg, SESSION *ctx)
     }
     if(req->header.length < sizeof(MSG_ALARM_REQ) - MSG_HEADER_LEN)
     {
-        LOG_ERROR("message length not enough");
+        LOG_ERROR("alarm message length not enough");
         return -1;
     }
 
@@ -374,7 +374,7 @@ int simcom_433(const void *msg, SESSION *ctx)
     }
     if(req->header.length < sizeof(MSG_433) - MSG_HEADER_LEN)
     {
-        LOG_ERROR("message length not enough");
+        LOG_ERROR("433 message length not enough");
         return -1;
     }
 
