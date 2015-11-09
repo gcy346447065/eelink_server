@@ -189,7 +189,9 @@ int simcom_login(const void *msg, SESSION *ctx)
         return -1;
     }
 
-    if(!db_isTableCreated(obj->IMEI))
+    int ret = 0;
+
+    if(!db_isTableCreated(obj->IMEI, &ret) && !ret)
     {
         db_createCGI(obj->IMEI);
         db_createGPS(obj->IMEI);
