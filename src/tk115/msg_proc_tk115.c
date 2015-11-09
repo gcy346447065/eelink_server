@@ -97,10 +97,11 @@ int tk115_login(const void *msg, SESSION *ctx)
 
 	int ret = 0;
 	if (!db_isTableCreated(obj->IMEI, &ret) && !ret)
-        {
-            db_createCGI(obj->IMEI);
-            db_createGPS(obj->IMEI);
-        }
+    {
+        LOG_INFO("create tables of %s", obj->IMEI);
+        db_createCGI(obj->IMEI);
+        db_createGPS(obj->IMEI);
+    }
 
 	return 0;
 }

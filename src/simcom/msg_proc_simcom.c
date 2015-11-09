@@ -193,6 +193,7 @@ int simcom_login(const void *msg, SESSION *ctx)
 
     if(!db_isTableCreated(obj->IMEI, &ret) && !ret)
     {
+        LOG_INFO("create tables of %s", obj->IMEI);
         db_createCGI(obj->IMEI);
         db_createGPS(obj->IMEI);
     }
