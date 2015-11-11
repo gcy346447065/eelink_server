@@ -20,9 +20,9 @@
 #include "mqtt.h"
 
 
-static void app_sendRawData2TK115(const void* msg, int len, const char* imei, int token)
+static void app_sendRawData2TK115(const void* msg, int len, const char *imei, int token)
 {
-	SESSION *session = session_get(imei);
+	SESSION *session = session_get(obj_get(imei)->bev);
 	if(!session)
 	{
 		LOG_ERROR("obj %s offline", imei);
@@ -134,12 +134,12 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 
 	strncpy(strIMEI, pStart, IMEI_LENGTH);
 
-//	OBJECT* obj = obj_get(strIMEI);
-//	if (!obj)
-//	{
-//		LOG_ERROR("obj %s not exist", strIMEI);
-//		return -1;
-//	}
+	// OBJECT* obj = obj_get(strIMEI);
+	// if (!obj)
+	// {
+	// 	LOG_ERROR("obj %s not exist", strIMEI);
+	// 	return -1;
+	// }
 
 	APP_MSG* pMsg = (APP_MSG *)data;
 	if (!pMsg)
