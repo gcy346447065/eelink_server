@@ -21,7 +21,7 @@
 int db_initial();
 int db_destruct();
 
-int db_isTableCreated(const char* imeiName);
+int db_isTableCreated(const char* imeiName, int *num);
 int db_createGPS(const char* tableName);
 int db_createCGI(const char* tableName);
 int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char speed, short course);

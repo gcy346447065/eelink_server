@@ -21,7 +21,7 @@ int _db_initial()
     conn = mysql_init(NULL);
     if(!mysql_real_connect(conn, DB_HOST, DB_USER, DB_PWD, DB_NAME, DB_PORT, NULL, 0))
     {
-        LOG_ERROR("can't connect database: %s", DB_NAME);
+        LOG_ERROR("can't connect database: %s(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
         return -1;
     }
     LOG_INFO("connect database: %s", DB_NAME);
@@ -37,7 +37,7 @@ int _db_destruct()
 
 //check whether the given table exists
 //return 1 when exists, else 0
-int _db_isTableCreated(const char* imeiName)
+int _db_isTableCreated(const char* imeiName, int *num)
 {
     MYSQL_RES *res;
 
@@ -45,18 +45,15 @@ int _db_isTableCreated(const char* imeiName)
     strncat(reg, imeiName, IMEI_LENGTH * 2);
     if((res = mysql_list_tables(conn, reg)) == NULL)
     {
-        LOG_ERROR("can't judge whether tables of IMEI:%s exist", imeiName);
+        LOG_ERROR("can't judge whether tables of IMEI:%s(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
+        return 1;
     }
 
-    int rows = mysql_num_rows(res);
+    *num = mysql_num_rows(res);
 
     mysql_free_result(res);
 
-    if(0 == rows)
-    {
-        return 0;
-    }
-    return 1;
+    return 0;
 }
 
 int _db_createGPS(const char* tableName)
@@ -66,7 +63,7 @@ int _db_createGPS(const char* tableName)
     snprintf(query, MAX_QUERY, "create table gps_%s(timestamp INT,lat DOUBLE(8,5),lon DOUBLE(8,5),speed TINYINT UNSIGNED,course SMALLINT,primary key(timestamp))", tableName);
     if(mysql_query(conn, query))
     {
-        LOG_ERROR("can't create table: gps_%s", tableName);
+        LOG_ERROR("can't create table: gps_%s(%u, %s)", tableName, mysql_errno(conn), mysql_error(conn));
         return -1;
     }
     LOG_INFO("create table: gps_%s", tableName);
@@ -80,7 +77,7 @@ int _db_createCGI(const char* tableName)
     snprintf(query, MAX_QUERY, "create table cgi_%s(timestamp INT,mcc SMALLINT,mnc SMALLINT,lac0 SMALLINT,ci0 SMALLINT,rxl0 SMALLINT,lac1 SMALLINT,ci1 SMALLINT,rxl1 SMALLINT,lac2 SMALLINT,ci2 SMALLINT,rxl2 SMALLINT,lac3 SMALLINT,ci3 SMALLINT,rxl3 SMALLINT,lac4 SMALLINT,ci4 SMALLINT,rxl4 SMALLINT,lac5 SMALLINT,ci5 SMALLINT,rxl5 SMALLINT,lac6 SMALLINT,ci6 SMALLINT,rxl6 SMALLINT)", tableName);
     if(mysql_query(conn, query))
     {
-        LOG_ERROR("can't create table: cgi_%s", tableName);
+        LOG_ERROR("can't create table: cgi_%s(%u, %s)", tableName, mysql_errno(conn), mysql_error(conn));
         return -1;
     }
     LOG_INFO("create table: cgi_%s", tableName);
@@ -94,7 +91,7 @@ int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char 
     snprintf(query, MAX_QUERY, "insert into gps_%s(timestamp,lat,lon,speed,course) values(%d,%f,%f,%u,%d)",imeiName, timestamp, lat, lon, speed, course);
     if(mysql_query(conn, query))
     {
-        LOG_ERROR("can't insert into gps_%s", imeiName);
+        LOG_ERROR("can't insert into gps_%s(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
         return -1;
     }
     LOG_INFO("insert into gps_%s: %d, %f, %f, %u, %d", imeiName, timestamp, lat, lon, speed, course);
@@ -121,7 +118,7 @@ int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[], int ce
     }
     if(mysql_query(conn, query))
     {
-        LOG_ERROR("can't insert into cgi_%s", imeiName);
+        LOG_ERROR("can't insert into cgi_%s(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
         return -1;
     }
     LOG_INFO(query);
@@ -135,7 +132,7 @@ int _db_doWithOBJ(void (*func1)(const char*, int), void (*func2)(const char *))
     char query[] = "select imei, lastlogintime from object";
     if(mysql_query(conn, query))
     {
-        LOG_FATAL("can't get objects from db");
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
         return -1;
     }
     MYSQL_RES *result;
@@ -156,7 +153,7 @@ int _db_insertOBJ(const char *imeiName, int lastLoginTime)
     snprintf(query, MAX_QUERY, "insert into object(imei, lastlogintime) values(\'%s\', %d)", imeiName, lastLoginTime);
     if(mysql_query(conn, query))
     {
-        LOG_ERROR("can't insert %s into object", imeiName);
+        LOG_ERROR("can't insert %s into object(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
         return -1;
     }
     return 0;
@@ -168,7 +165,7 @@ int _db_updateOBJ(const char *imeiName, int lastLoginTime)
     snprintf(query, MAX_QUERY, "update object set lastlogintime = %d where imei = \'%s\'", lastLoginTime, imeiName);
     if(mysql_query(conn, query))
     {
-        LOG_ERROR("can't update Obj where imei = %s", imeiName);
+        LOG_ERROR("can't update Obj where imei = %s(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
         return -1;
     }
     return 0;
@@ -192,10 +189,10 @@ int db_destruct()
     return 0;
 }
 
-int db_isTableCreated(const char* imeiName)
+int db_isTableCreated(const char* imeiName, int *num)
 {
 #ifdef WITH_DB
-    return _db_isTableCreated(imeiName);
+    return _db_isTableCreated(imeiName, num);
 #endif
 
     return 0;
