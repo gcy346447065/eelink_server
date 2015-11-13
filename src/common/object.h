@@ -57,8 +57,8 @@ typedef struct
 
     int device_id;
     int sensor_id;
-//    void *bev;
-    SESSION* session;
+
+    void* session;
 } OBJECT;
 
 void obj_table_initial(void (*func)(const char *));

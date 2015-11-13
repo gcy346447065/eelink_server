@@ -34,7 +34,7 @@ int session_add(SESSION *session)
 {
     OBJECT *t_obj = (OBJECT *)(session->obj);
 
-    g_hash_table_insert(session_table, (gconstpointer)(session->bev), session);
+    g_hash_table_insert(session_table, session->bev, session);
     LOG_INFO("session(%s) added", t_obj->IMEI);
     return 0;
 }
@@ -57,6 +57,7 @@ int session_del(SESSION *session)
     if(session == t_obj->session)
     {
         t_obj->session = NULL;
+        LOG_WARN("device (%s)'s session deleted", t_obj->IMEI);
     }
     g_hash_table_remove(session_table, (gconstpointer)(session->bev));
     LOG_INFO("session(%s) deleted", t_obj->IMEI);

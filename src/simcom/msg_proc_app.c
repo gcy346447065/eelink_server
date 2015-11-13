@@ -45,20 +45,6 @@ static void app_sendRawData2App(const char* topic, const void *msg, size_t len)
 //----------------------------send cmd/gps/433 to app-----------------------------------------
 void app_sendCmdMsg2App(int cmd, int result, const char *strIMEI)
 {
-    /*
-    if (!session)
-    {
-        LOG_FATAL("internal error: session null");
-        return;
-    }
-
-    OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
-    if (!obj)
-    {
-        LOG_FATAL("internal error: obj null");
-        return;
-    }
-*/
     char topic[IMEI_LENGTH + 13];
     memset(topic, 0, sizeof(topic));
     snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/cmd", strIMEI);
@@ -258,9 +244,9 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 
     if(!(obj->session))
     {
-        LOG_ERROR("simcom %s offline", strIMEI);
+        LOG_WARN("simcom %s offline", strIMEI);
         app_sendCmdMsg2App(cmd, ERR_OFFLINE, strIMEI);
-        return -1;
+        return 0;
     }
 
     switch (cmd)
@@ -279,6 +265,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
         if(!req)
         {
             LOG_FATAL("insufficient memory");
+            app_sendCmdMsg2App(cmd, ERR_INTERNAL, strIMEI);
             return -1;
         }
         req->token = cmd;
@@ -290,12 +277,13 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
     case APP_CMD_SEEK_ON:
     case APP_CMD_SEEK_OFF:
     {
-        LOG_INFO("receive app APP_CMD_SEEK_%d", cmd);
+        LOG_INFO("receive app APP_CMD_SEEK: %d", cmd);
 
         MSG_SEEK_REQ *req = (MSG_SEEK_REQ *)alloc_simcom_msg(CMD_SEEK, sizeof(MSG_SEEK_REQ));
         if(!req)
         {
             LOG_FATAL("insufficient memory");
+            app_sendCmdMsg2App(cmd, ERR_INTERNAL, strIMEI);
             return -1;
         }
         req->token = cmd;
@@ -307,10 +295,11 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
     case APP_CMD_LOCATION:
     {
         LOG_INFO("receive app APP_CMD_LOCATION");
-        MSG_LOCATION *req = (MSG_LOCATION *)alloc_simcom_msg(CMD_LOCATION, sizeof(MSG_LOCATION));
+        MSG_LOCATION *req = alloc_simcom_msg(CMD_LOCATION, sizeof(MSG_LOCATION));
         if(!req)
         {
             LOG_FATAL("insufficient memory");
+            app_sendCmdMsg2App(cmd, ERR_INTERNAL, strIMEI);
             return -1;
         }
         app_sendCmdMsg2App(cmd, ERR_WAITING, strIMEI);
