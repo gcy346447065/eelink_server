@@ -10,13 +10,6 @@
 
 static GHashTable *session_table = NULL;
 
-/*
-void session_freeKey(gpointer key)
-{
-    LOG_DEBUG("free key IMEI:%s of session_table", (char *)key);
-    g_free(key);
-}
-*/
 
 void session_freeValue(gpointer value)
 {
@@ -40,8 +33,8 @@ void session_table_destruct()
 int session_add(SESSION *session)
 {
     OBJECT *t_obj = (OBJECT *)(session->obj);
-    t_obj->bev = (void *)(session->bev);
-    g_hash_table_insert(session_table, (gconstpointer)(session->bev), session);
+
+    g_hash_table_insert(session_table, session->bev, session);
     LOG_INFO("session(%s) added", t_obj->IMEI);
     return 0;
 }
@@ -61,17 +54,13 @@ int session_del(SESSION *session)
         return 0;
     }
 
-    if((void *)(session->bev) == t_obj->bev)
+    if(session == t_obj->session)
     {
-        t_obj->bev = NULL;
+        t_obj->session = NULL;
+        LOG_WARN("device (%s)'s session deleted", t_obj->IMEI);
     }
     g_hash_table_remove(session_table, (gconstpointer)(session->bev));
     LOG_INFO("session(%s) deleted", t_obj->IMEI);
     return 0;
 }
 
-
-SESSION *session_get(gconstpointer p)
-{
-    return g_hash_table_lookup(session_table, p);
-}

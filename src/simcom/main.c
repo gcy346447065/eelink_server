@@ -8,13 +8,11 @@
 #include "log.h"
 #include "version.h"
 #include "server_simcom.h"
-#include "curl.h"
 #include "yunba_push.h"
 #include "object.h"
 #include "env.h"
 #include "mqtt.h"
 #include "db.h"
-#include "session.h"
 #include "msg_proc_app.h"
 
 struct event_base *base = NULL;

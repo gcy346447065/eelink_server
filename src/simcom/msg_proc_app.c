@@ -7,8 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <mosquitto.h>
-#include <netinet/in.h>
 
 #include "msg_app.h"
 #include "msg_simcom.h"
@@ -18,17 +16,16 @@
 #include "session.h"
 #include "object.h"
 #include "mqtt.h"
-#include "protocol.h"
 #include "cJSON.h"
 
 
  //----------------------------send raw msg to app/mc------------------------------------------
-static void app_sendRawData2mc(const void* msg, size_t len, const char* imei)
+static void app_sendRawData2mc(const void* msg, size_t len, OBJECT* obj)
 {
-    SESSION *session = session_get(imei);
+    SESSION *session = obj->session;
     if(!session)
     {
-        LOG_ERROR("obj %s offline", imei);
+        LOG_ERROR("obj %s offline", obj->IMEI);
         return;
     }
     int rc = simcom_msg_send(msg, len, session);
@@ -48,20 +45,6 @@ static void app_sendRawData2App(const char* topic, const void *msg, size_t len)
 //----------------------------send cmd/gps/433 to app-----------------------------------------
 void app_sendCmdMsg2App(int cmd, int result, const char *strIMEI)
 {
-    /*
-    if (!session)
-    {
-        LOG_FATAL("internal error: session null");
-        return;
-    }
-
-    OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
-    if (!obj)
-    {
-        LOG_FATAL("internal error: obj null");
-        return;
-    }
-*/
     char topic[IMEI_LENGTH + 13];
     memset(topic, 0, sizeof(topic));
     snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/cmd", strIMEI);
@@ -259,12 +242,11 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 
     int cmd = cmdItem->valueint;
 
-    //SESSION *ctx = session_get(strIMEI);
-    if(!(obj->bev))
+    if(!(obj->session))
     {
-        LOG_ERROR("simcom %s offline", strIMEI);
+        LOG_WARN("simcom %s offline", strIMEI);
         app_sendCmdMsg2App(cmd, ERR_OFFLINE, strIMEI);
-        return -1;
+        return 0;
     }
 
     switch (cmd)
@@ -283,42 +265,45 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
         if(!req)
         {
             LOG_FATAL("insufficient memory");
+            app_sendCmdMsg2App(cmd, ERR_INTERNAL, strIMEI);
             return -1;
         }
         req->token = cmd;
         req->operator = defendApp2mc(cmd);
         app_sendCmdMsg2App(cmd, ERR_WAITING, strIMEI);
-        app_sendRawData2mc(req, sizeof(MSG_DEFEND_REQ), strIMEI);
+        app_sendRawData2mc(req, sizeof(MSG_DEFEND_REQ), obj);
         break;
     }
     case APP_CMD_SEEK_ON:
     case APP_CMD_SEEK_OFF:
     {
-        LOG_INFO("receive app APP_CMD_SEEK_%d", cmd);
+        LOG_INFO("receive app APP_CMD_SEEK: %d", cmd);
 
         MSG_SEEK_REQ *req = (MSG_SEEK_REQ *)alloc_simcom_msg(CMD_SEEK, sizeof(MSG_SEEK_REQ));
         if(!req)
         {
             LOG_FATAL("insufficient memory");
+            app_sendCmdMsg2App(cmd, ERR_INTERNAL, strIMEI);
             return -1;
         }
         req->token = cmd;
         req->operator = seekApp2mc(cmd);
         app_sendCmdMsg2App(cmd, ERR_WAITING, strIMEI);
-        app_sendRawData2mc(req, sizeof(MSG_SEEK_REQ), strIMEI);
+        app_sendRawData2mc(req, sizeof(MSG_SEEK_REQ), obj);
         break;
     }
     case APP_CMD_LOCATION:
     {
         LOG_INFO("receive app APP_CMD_LOCATION");
-        MSG_LOCATION *req = (MSG_LOCATION *)alloc_simcom_msg(CMD_LOCATION, sizeof(MSG_LOCATION));
+        MSG_LOCATION *req = alloc_simcom_msg(CMD_LOCATION, sizeof(MSG_LOCATION));
         if(!req)
         {
             LOG_FATAL("insufficient memory");
+            app_sendCmdMsg2App(cmd, ERR_INTERNAL, strIMEI);
             return -1;
         }
         app_sendCmdMsg2App(cmd, ERR_WAITING, strIMEI);
-        app_sendRawData2mc(req, sizeof(MSG_LOCATION), strIMEI);
+        app_sendRawData2mc(req, sizeof(MSG_LOCATION), obj);
         break;
     }
     default:

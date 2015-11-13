@@ -5,7 +5,6 @@
  *      Author: msj
  */
 #include <curl/curl.h>
-#include <stdio.h>
 
 #include "cJSON.h"
 #include "macro.h"
@@ -18,7 +17,7 @@ typedef struct
 {
    float lat;
    float lon;
-}GPS;
+}GPS_T;
 
 static void make_url(CGI_MC cell[], int cellNo, char *url)
 {
@@ -36,7 +35,7 @@ static void make_url(CGI_MC cell[], int cellNo, char *url)
 
 static size_t handleGetGps(void *buffer, size_t size, size_t nmemb, void *userp)
 {
-    GPS *gps = (GPS *)userp;
+    GPS_T *gps = (GPS_T *)userp;
 
     cJSON *gpsMsg = cJSON_Parse((const char *)buffer);
     if(!gpsMsg)
@@ -58,7 +57,7 @@ static size_t handleGetGps(void *buffer, size_t size, size_t nmemb, void *userp)
 
 int cgi2gps(CGI_MC cell[], int cellNo, float *lat, float *lon)
 {
-    GPS gps;
+    GPS_T gps;
     char url[MAX_LEN];
     make_url(cell, cellNo, url);
     CURL *curl = curl_easy_init();

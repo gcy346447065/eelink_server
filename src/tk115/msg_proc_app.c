@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <netinet/in.h>
+#include <object.h>
 
 #include "msg_app.h"
 #include "msg_tk115.h"
@@ -22,7 +23,8 @@
 
 static void app_sendRawData2TK115(const void* msg, int len, const char *imei, int token)
 {
-	SESSION *session = session_get(obj_get(imei)->bev);
+	OBJECT* obj = obj_get(imei);
+	SESSION *session = obj->session;
 	if(!session)
 	{
 		LOG_ERROR("obj %s offline", imei);

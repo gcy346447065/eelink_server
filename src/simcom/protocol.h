@@ -9,11 +9,10 @@
 #define _PROTOCOL_H_
 
 #define START_FLAG (0xAA55)
-//#define IMEI_LENGTH 16
+#define IMEI_LENGTH 16
 #define MAX_CELL_NUM 7
 #define TEL_NO_LENGTH 11
 
-#include "macro.h"
 
 enum
 {
