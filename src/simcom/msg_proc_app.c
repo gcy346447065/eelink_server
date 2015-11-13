@@ -9,6 +9,7 @@
 #include <string.h>
 #include <mosquitto.h>
 #include <netinet/in.h>
+#include <object.h>
 
 #include "msg_app.h"
 #include "msg_simcom.h"
@@ -23,12 +24,12 @@
 
 
  //----------------------------send raw msg to app/mc------------------------------------------
-static void app_sendRawData2mc(const void* msg, size_t len, const char* imei)
+static void app_sendRawData2mc(const void* msg, size_t len, OBJECT* obj)
 {
-    SESSION *session = session_get(imei);
+    SESSION *session = obj->session;
     if(!session)
     {
-        LOG_ERROR("obj %s offline", imei);
+        LOG_ERROR("obj %s offline", obj->IMEI);
         return;
     }
     int rc = simcom_msg_send(msg, len, session);
@@ -259,8 +260,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
 
     int cmd = cmdItem->valueint;
 
-    //SESSION *ctx = session_get(strIMEI);
-    if(!(obj->bev))
+    if(!(obj->session))
     {
         LOG_ERROR("simcom %s offline", strIMEI);
         app_sendCmdMsg2App(cmd, ERR_OFFLINE, strIMEI);
@@ -288,7 +288,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
         req->token = cmd;
         req->operator = defendApp2mc(cmd);
         app_sendCmdMsg2App(cmd, ERR_WAITING, strIMEI);
-        app_sendRawData2mc(req, sizeof(MSG_DEFEND_REQ), strIMEI);
+        app_sendRawData2mc(req, sizeof(MSG_DEFEND_REQ), obj);
         break;
     }
     case APP_CMD_SEEK_ON:
@@ -305,7 +305,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
         req->token = cmd;
         req->operator = seekApp2mc(cmd);
         app_sendCmdMsg2App(cmd, ERR_WAITING, strIMEI);
-        app_sendRawData2mc(req, sizeof(MSG_SEEK_REQ), strIMEI);
+        app_sendRawData2mc(req, sizeof(MSG_SEEK_REQ), obj);
         break;
     }
     case APP_CMD_LOCATION:
@@ -318,7 +318,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
             return -1;
         }
         app_sendCmdMsg2App(cmd, ERR_WAITING, strIMEI);
-        app_sendRawData2mc(req, sizeof(MSG_LOCATION), strIMEI);
+        app_sendRawData2mc(req, sizeof(MSG_LOCATION), obj);
         break;
     }
     default:

@@ -9,6 +9,7 @@
 #define SRC_OBJECT_
 
 #include "macro.h"
+#include "session.h"
 
 
 typedef struct
@@ -56,7 +57,8 @@ typedef struct
 
     int device_id;
     int sensor_id;
-    void *bev;
+//    void *bev;
+    SESSION* session;
 } OBJECT;
 
 void obj_table_initial(void (*func)(const char *));

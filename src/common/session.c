@@ -40,7 +40,7 @@ void session_table_destruct()
 int session_add(SESSION *session)
 {
     OBJECT *t_obj = (OBJECT *)(session->obj);
-    t_obj->bev = (void *)(session->bev);
+
     g_hash_table_insert(session_table, (gconstpointer)(session->bev), session);
     LOG_INFO("session(%s) added", t_obj->IMEI);
     return 0;
@@ -61,9 +61,9 @@ int session_del(SESSION *session)
         return 0;
     }
 
-    if((void *)(session->bev) == t_obj->bev)
+    if(session == t_obj->session)
     {
-        t_obj->bev = NULL;
+        t_obj->session = NULL;
     }
     g_hash_table_remove(session_table, (gconstpointer)(session->bev));
     LOG_INFO("session(%s) deleted", t_obj->IMEI);

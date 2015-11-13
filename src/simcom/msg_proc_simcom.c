@@ -177,6 +177,7 @@ int simcom_login(const void *msg, SESSION *session)
 
         session->obj = obj;
         session_add(session);
+        obj->session = session;
     }
     else
     {
