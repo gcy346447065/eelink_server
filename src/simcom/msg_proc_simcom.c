@@ -15,7 +15,6 @@
 #include "msg_proc_simcom.h"
 #include "protocol.h"
 #include "log.h"
-#include "session.h"
 #include "object.h"
 #include "msg_simcom.h"
 #include "db.h"

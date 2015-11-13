@@ -8,6 +8,8 @@
 #ifndef CONF_H_
 #define CONF_H_
 
+#include <glib.h>
+
 //Func conf_initial and Func conf_save_and_close must be called in pairs.
 //Nestification is wrong.
 gint conf_initial(const gchar *conf_file);

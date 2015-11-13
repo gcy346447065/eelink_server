@@ -7,9 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <mosquitto.h>
-#include <netinet/in.h>
-#include <object.h>
 
 #include "msg_app.h"
 #include "msg_simcom.h"
@@ -19,7 +16,6 @@
 #include "session.h"
 #include "object.h"
 #include "mqtt.h"
-#include "protocol.h"
 #include "cJSON.h"
 
 
