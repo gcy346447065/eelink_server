@@ -10,13 +10,6 @@
 
 static GHashTable *session_table = NULL;
 
-/*
-void session_freeKey(gpointer key)
-{
-    LOG_DEBUG("free key IMEI:%s of session_table", (char *)key);
-    g_free(key);
-}
-*/
 
 void session_freeValue(gpointer value)
 {
@@ -70,8 +63,3 @@ int session_del(SESSION *session)
     return 0;
 }
 
-
-SESSION *session_get(gconstpointer p)
-{
-    return g_hash_table_lookup(session_table, p);
-}

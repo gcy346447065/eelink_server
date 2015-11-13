@@ -25,6 +25,5 @@ void session_table_destruct();
 
 int session_add(SESSION *);
 int session_del(SESSION *);
-SESSION *session_get(gconstpointer p);
 
 #endif //ELECTROMBILE_SESSION_H
