@@ -91,6 +91,7 @@ void sync_newIMEI(const char *imei)
     char *data = cJSON_PrintUnformatted(root);
     if (!data) {
         //TODO: log error
+        cJSON_Delete(root);
         return;
     }
 
@@ -102,5 +103,28 @@ void sync_newIMEI(const char *imei)
     return;
 }
 
+void sync_gps(const char* imei, float lat, float lng)
+{
+    cJSON* root = cJSON_CreateObject();
 
+    cJSON_AddNumberToObject(root, TAG_CMD, CMD_SYNC_NEW_GPS);
+    cJSON_AddStringToObject(root, TAG_IMEI, imei);
+    cJSON_AddNumberToObject(root, TAG_LAT, lat);
+    cJSON_AddNumberToObject(root, TAG_LNG, lng);
+
+    char *data = cJSON_PrintUnformatted(root);
+    if (!data)
+    {
+        //TODO: log error
+        cJSON_Delete(root);
+        return;
+    }
+
+    bufferevent_write(bev, data, strlen(data));
+
+    free(data);
+    cJSON_Delete(root);
+
+    return;
+}
 

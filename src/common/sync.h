@@ -13,5 +13,6 @@ int sync_init(struct event_base *base);
 
 void sync_newIMEI(const char *imei);
 
+void sync_gps(const char* imei, float lat, float lng);
 
 #endif /* SRC_COMMON_SYNC_H_ */

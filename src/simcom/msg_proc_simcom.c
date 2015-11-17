@@ -251,6 +251,8 @@ int simcom_gps(const void *msg, SESSION *ctx)
 
     db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, 0, 0);
 
+    sync_gps(obj->IMEI, obj->lat, obj->lon);
+
     return 0;
 }
 
