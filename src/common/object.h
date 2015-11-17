@@ -9,53 +9,56 @@
 #define SRC_OBJECT_
 
 #include "macro.h"
+#include "session.h"
 
 
 typedef struct
 {
-//	char DID[MAX_DID_LEN];
-//	char clientID[CLIENT_ID_LEN];
-	short cmd;
-	unsigned short seq;
+//    char DID[MAX_DID_LEN];
+//    char clientID[CLIENT_ID_LEN];
+    short cmd;
+    unsigned short seq;
 }APP_SESSION;
 
 
 typedef struct
 {
-	/*
-	 * IMEI = TAC(6) + FAC(2) + SNR(6) + SP(1)
-	 * TAC: Type Approval Code �ͺź�׼����
-	 * FAC: Final Assembly Code ���װ���
-	 * SNR: Serial Number
-	 * SP: У����
-	 *
-	 * We use the SNR for MAC
-	 */
+    /*
+     * IMEI = TAC(6) + FAC(2) + SNR(6) + SP(1)
+     * TAC: Type Approval Code �ͺź�׼����
+     * FAC: Final Assembly Code ���װ���
+     * SNR: Serial Number
+     * SP: У����
+     *
+     * We use the SNR for MAC
+     */
 
-	char IMEI[IMEI_LENGTH + 1];
-	char language;
-	char locale;
+    char IMEI[IMEI_LENGTH + 1];
+    char language;
+    char locale;
 
-	int timestamp;
-	float lat;
-	float lon;
-	char speed;
-	short course;
-	CGI_MC cell[CELL_NUM];
-	char isGPSlocated;
-	short status;
-	short voltage;
-	short analog1;
-	short analog2;
+    int timestamp;
+    float lat;
+    float lon;
+    char speed;
+    short course;
+    CGI_MC cell[CELL_NUM];
+    char isGPSlocated;
+    short status;
+    short voltage;
+    short analog1;
+    short analog2;
 
-	char DID[MAX_DID_LEN];
-	char pwd[MAX_PWD_LEN];
+    char DID[MAX_DID_LEN];
+    char pwd[MAX_PWD_LEN];
 
-	char m2m_host[100];
+    char m2m_host[100];
     int m2m_Port;
 
     int device_id;
     int sensor_id;
+
+    void* session;
 } OBJECT;
 
 void obj_table_initial(void (*func)(const char *));

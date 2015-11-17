@@ -6,13 +6,9 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 
-#include <mosquitto.h>
 
 #include "env.h"
-#include "log.h"
-#include "mqtt.h"
 
 ENVIRONMENT env = {
     .curl_leancloud = NULL,

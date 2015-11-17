@@ -12,7 +12,6 @@
 #include "object.h"
 #include "mqtt.h"
 #include "db.h"
-#include "session.h"
 #include "msg_proc_app.h"
 #include "port.h"
 #include "sync.h"

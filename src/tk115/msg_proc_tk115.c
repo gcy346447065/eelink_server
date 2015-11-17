@@ -7,7 +7,6 @@
 #include <assert.h>
 #include <string.h>
 #include <time.h>
-#include <object.h>
 
 #include "msg_proc_tk115.h"
 #include "msg_tk115.h"
@@ -97,7 +96,10 @@ int tk115_login(const void *msg, SESSION *ctx)
 		//TODO: LOG_ERROR
 	}
 
-	if (!db_isTableCreated(obj->IMEI)) {
+	int ret = 0;
+	if (!db_isTableCreated(obj->IMEI, &ret) && !ret)
+    {
+        LOG_INFO("create tables of %s", obj->IMEI);
         db_createCGI(obj->IMEI);
         db_createGPS(obj->IMEI);
     }
