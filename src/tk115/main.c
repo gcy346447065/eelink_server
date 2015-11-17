@@ -60,7 +60,7 @@ int main(int argc, char **argv)
     if (!base)
         return 1; /*XXXerr*/
 
-    int rc = log_init();
+    int rc = log_init("../conf/tk115_log.conf");
     if (rc)
     {
     	return rc;

@@ -60,6 +60,6 @@ extern zlog_category_t* cat;
 
 #endif
 
-int log_init();
+int log_init(const char *conf);
 
 #endif /* SRC_LOG_H_ */

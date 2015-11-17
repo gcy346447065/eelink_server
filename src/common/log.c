@@ -29,11 +29,11 @@ static const char* all_modules[] =
 zlog_category_t *cat;
 #endif
 
-int log_init()
+int log_init(const char *conf)
 {
     int rc;
 
-    rc = zlog_init("../conf/log.conf");
+    rc = zlog_init(conf);
     if (rc) {
     	printf("%s:%d log init failed\n", __FILE__, __LINE__);
     	return -1;
