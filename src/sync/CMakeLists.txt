@@ -14,6 +14,7 @@ SET(SOURCE_FILE
     msg_proc.c)
 
 MESSAGE(STATUS "configure Server for sync")
+link_directories(/usr/lib64/mysql)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 add_executable(sync_server ${SOURCE_FILE})
 TARGET_LINK_LIBRARIES(sync_server electromble)
