@@ -9,6 +9,7 @@
 #include "server_sync.h"
 #include "session.h"
 #include "port.h"
+#include "env.h"
 
 struct event_base *base = NULL;
 
@@ -88,10 +89,14 @@ int main(int argc, char **argv)
         return 2;
     }
 
+    env_initial();
+
     //start the event loop
     LOG_INFO("start the event loop");
     event_base_dispatch(base);
 
+
+    env_cleanup();
 
 //    sk_free(SSL_COMP_get_compression_methods());
     LOG_INFO("stop mc server...");
