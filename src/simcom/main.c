@@ -10,10 +10,12 @@
 #include "server_simcom.h"
 #include "yunba_push.h"
 #include "object.h"
-#include "env.h"
 #include "mqtt.h"
 #include "db.h"
 #include "msg_proc_app.h"
+#include "port.h"
+#include "sync.h"
+
 
 struct event_base *base = NULL;
 
@@ -35,7 +37,7 @@ static void sig_usr(int signo)
 
 int main(int argc, char **argv)
 {
-    int simcom_port= 9877;
+    int simcom_port= PORT_SIMCOM;
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -60,7 +62,7 @@ int main(int argc, char **argv)
     if (!base)
         return 1; /*XXXerr*/
 
-    int rc = log_init();
+    int rc = log_init("../conf/simcom_log.conf");
 
     if (rc)
     {
@@ -105,7 +107,6 @@ int main(int argc, char **argv)
     	LOG_FATAL("curl lib initial failed:%d", rc);
     }
 
-    env_initial();
 
     rc = db_initial();
     if(rc)
@@ -128,6 +129,13 @@ int main(int argc, char **argv)
         return 2;
     }
 
+    rc = sync_init(base);
+    if (rc)
+    {
+        LOG_ERROR("connect to sync server failed, try later");
+        //TODO: start a timer to re-connect to the sync server
+    }
+
     //start the event loop
     LOG_INFO("start the event loop");
     event_base_dispatch(base);
@@ -142,7 +150,6 @@ int main(int argc, char **argv)
     session_table_destruct();
     obj_table_destruct();
 
-    env_cleanup();
     db_destruct();
     curl_global_cleanup();
 

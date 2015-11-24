@@ -17,7 +17,7 @@
 static struct mosquitto* mosq = NULL;
 
 
-void mqtt_message_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata, const struct mosquitto_message *message)
+void mqtt_message_callback(struct mosquitto *m __attribute__((unused)), void *userdata, const struct mosquitto_message *message)
 {
     MQTT_ARG* mqtt_arg = (MQTT_ARG*)userdata;
 
@@ -72,7 +72,7 @@ void mqtt_disconnect_callback(struct mosquitto *mosq __attribute__((unused)), vo
 }
 
 
-void mqtt_subscribe_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int mid, int qos_count, const int *granted_qos)
+void mqtt_subscribe_callback(struct mosquitto *m __attribute__((unused)), void *userdata __attribute__((unused)), int mid, int qos_count, const int *granted_qos)
 {
     LOG_DEBUG("Subscribed (mid: %d): %d", mid, granted_qos[0]);
     for(int i=1; i<qos_count; i++){
@@ -80,7 +80,7 @@ void mqtt_subscribe_callback(struct mosquitto *mosq __attribute__((unused)), voi
     }
 }
 
-void mqtt_log_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int level, const char *str)
+void mqtt_log_callback(struct mosquitto *m __attribute__((unused)), void *userdata __attribute__((unused)), int level, const char *str)
 {
     switch (level)
     {
@@ -109,7 +109,7 @@ void mqtt_log_callback(struct mosquitto *mosq __attribute__((unused)), void *use
 
 }
 
-void mqtt_publish_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int mid __attribute__((unused)))
+void mqtt_publish_callback(struct mosquitto *m __attribute__((unused)), void *userdata __attribute__((unused)), int mid __attribute__((unused)))
 {
     LOG_INFO("Publish mid: %d successfully", mid);
 }
@@ -128,26 +128,26 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 
 	LOG_INFO("login MQTT: id = %s,host=%s, port=%d", id, host, port);
 
-	struct mosquitto *mosq = mosquitto_new(id, clean_session, ctx);
-	if(!mosq)
+	struct mosquitto *m = mosquitto_new(id, clean_session, ctx);
+	if(!m)
 	{
 		LOG_ERROR("Error: Out of memory, mosquitto_new failed");
 		return NULL;
 	}
-	mosquitto_log_callback_set(mosq, on_log);
-	mosquitto_connect_callback_set(mosq, on_connect);
-	mosquitto_disconnect_callback_set(mosq, on_disconnect);
-	mosquitto_message_callback_set(mosq, on_message);
-	mosquitto_subscribe_callback_set(mosq, on_subscribe);
-	mosquitto_publish_callback_set(mosq, on_publish);
-	mosquitto_reconnect_delay_set(mosq, 10, 120, false);
+	mosquitto_log_callback_set(m, on_log);
+	mosquitto_connect_callback_set(m, on_connect);
+	mosquitto_disconnect_callback_set(m, on_disconnect);
+	mosquitto_message_callback_set(m, on_message);
+	mosquitto_subscribe_callback_set(m, on_subscribe);
+	mosquitto_publish_callback_set(m, on_publish);
+	mosquitto_reconnect_delay_set(m, 10, 120, false);
 
 //	OBJECT* obj = ctx;
 
 //	LOG_DEBUG("set MQTT username:%s, password:%s", get_IMEI_STRING(obj->DID), obj->pwd);
-//	mosquitto_username_pw_set(mosq, get_IMEI_STRING(obj->DID), obj->pwd);
+//	mosquitto_username_pw_set(m, get_IMEI_STRING(obj->DID), obj->pwd);
 
-	int rc = mosquitto_connect(mosq, host, port, keepalive);
+	int rc = mosquitto_connect(m, host, port, keepalive);
 	if(rc != MOSQ_ERR_SUCCESS)
 	{
 		//TODO: to check whether mosquitto_connack_string here is OKs
@@ -159,10 +159,10 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 		LOG_INFO("MC:%s connect to %s:%d successfully", id, host, port);
 	}
 
-    mosquitto_loop_start(mosq);
+    mosquitto_loop_start(m);
 
-//	mosquitto_destroy(mosq);
-	return mosq;
+//	mosquitto_destroy(m);
+	return m;
 }
 
 void mqtt_initial(MQTT_ARG* mqtt_arg)

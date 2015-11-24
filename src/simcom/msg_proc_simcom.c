@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <malloc.h>
 #include <time.h>
+#include <object.h>
 
 #include "msg_proc_app.h"
 #include "msg_proc_simcom.h"
@@ -23,6 +24,7 @@
 #include "yunba_push.h"
 #include "msg_app.h"
 #include "cgi2gps.h"
+#include "sync.h"
 
 typedef int (*MSG_PROC)(const void *msg, SESSION *ctx);
 typedef struct
@@ -170,6 +172,8 @@ int simcom_login(const void *msg, SESSION *session)
             memcpy(obj->IMEI, imei, IMEI_LENGTH + 1);
             memcpy(obj->DID, imei, strlen(req->IMEI) + 1);
 
+            sync_newIMEI(obj->IMEI);
+
             obj_add(obj);
             mqtt_subscribe(obj->IMEI);
         }
@@ -203,6 +207,7 @@ int simcom_login(const void *msg, SESSION *session)
         db_createCGI(obj->IMEI);
         db_createGPS(obj->IMEI);
     }
+
 
     return 0;
 }
@@ -254,6 +259,8 @@ int simcom_gps(const void *msg, SESSION *session)
     //yeelink_saveGPS(obj, ctx);
 
     db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, 0, 0);
+
+    sync_gps(obj->IMEI, obj->lat, obj->lon);
 
     return 0;
 }

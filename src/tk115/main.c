@@ -13,6 +13,8 @@
 #include "session.h"
 #include "mqtt.h"
 #include "msg_proc_app.h"
+#include "port.h"
+#include "sync.h"
 
 
 struct event_base *base = NULL;
@@ -35,7 +37,7 @@ static void sig_usr(int signo)
 
 int main(int argc, char **argv)
 {
-    int port = 9876;
+    int port = PORT_TK115;
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -58,7 +60,7 @@ int main(int argc, char **argv)
     if (!base)
         return 1; /*XXXerr*/
 
-    int rc = log_init();
+    int rc = log_init("../conf/tk115_log.conf");
     if (rc)
     {
     	return rc;
@@ -114,6 +116,13 @@ int main(int argc, char **argv)
     {
     	LOG_FATAL("start mc server failed at port:%d", port);
     	return 2;
+    }
+
+    rc = sync_init(base);
+    if (rc)
+    {
+        LOG_ERROR("connect to sync server failed, try later");
+        //TODO: start a timer to re-connect to the sync server
     }
 
 

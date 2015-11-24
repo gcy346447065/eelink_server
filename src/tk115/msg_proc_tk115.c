@@ -18,6 +18,7 @@
 #include "log.h"
 #include "mqtt.h"
 #include "db.h"
+#include "sync.h"
 
 int msg_send(void *msg, size_t len, SESSION *ctx)
 {
@@ -68,7 +69,7 @@ int tk115_login(const void *msg, SESSION *ctx)
 			obj->language = req->language;
 			obj->locale = req->locale;
 
-//			leancloud_saveDid(obj);
+            sync_newIMEI(obj->IMEI);
 
 			//add object to table and db
 			obj_add(obj);
