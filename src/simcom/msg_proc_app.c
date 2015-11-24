@@ -17,10 +17,11 @@
 #include "object.h"
 #include "mqtt.h"
 #include "cJSON.h"
+#include "protocol.h"
 
 
- //----------------------------send raw msg to app/mc------------------------------------------
-static void app_sendRawData2mc(const void* msg, size_t len, OBJECT* obj)
+//----------------------------send raw msg to app/mc------------------------------------------
+static void app_sendMsg2Device(const void *msg, size_t len, OBJECT *obj)
 {
     SESSION *session = obj->session;
     if(!session)
@@ -35,7 +36,7 @@ static void app_sendRawData2mc(const void* msg, size_t len, OBJECT* obj)
     }
 }
 
-static void app_sendRawData2App(const char* topic, const void *msg, size_t len)
+static void app_sendMsg2App(const char *topic, const void *msg, size_t len)
 {
 //  LOG_HEX(data, len);
     mqtt_publish(topic, msg, len);
@@ -43,7 +44,7 @@ static void app_sendRawData2App(const char* topic, const void *msg, size_t len)
 
 
 //----------------------------send cmd/gps/433 to app-----------------------------------------
-void app_sendCmdMsg2App(int cmd, int result, const char *strIMEI)
+void app_sendCmdRsp2App(int cmd, int result, const char *strIMEI)
 {
     char topic[IMEI_LENGTH + 13];
     memset(topic, 0, sizeof(topic));
@@ -55,13 +56,13 @@ void app_sendCmdMsg2App(int cmd, int result, const char *strIMEI)
 
     char *json = cJSON_PrintUnformatted(root);
 
-    app_sendRawData2App(topic, json, strlen(json));
+    app_sendMsg2App(topic, json, strlen(json));
     LOG_INFO("send cmd msg to APP" );
     free(json);
     cJSON_Delete(root);
 }
 
-void app_sendFenceGetCmdMsg2App(int cmd, int result, int state, void* session)
+void app_sendFenceGetRspMsg2App(int cmd, int result, int state, void *session)
 {
     if (!session)
     {
@@ -87,7 +88,7 @@ void app_sendFenceGetCmdMsg2App(int cmd, int result, int state, void* session)
 
     char *json = cJSON_PrintUnformatted(root);
 
-    app_sendRawData2App(topic, json, strlen(json));
+    app_sendMsg2App(topic, json, strlen(json));
     LOG_INFO("send cmd msg to APP" );
     free(json);
     cJSON_Delete(root);
@@ -112,7 +113,7 @@ void app_sendGpsMsg2App(void* session)
 
     char *json = cJSON_PrintUnformatted(root);
 
-    app_sendRawData2App(topic, json, strlen(json));
+    app_sendMsg2App(topic, json, strlen(json));
     LOG_INFO("send gps msg to APP");
     free(json);
     cJSON_Delete(root);
@@ -136,12 +137,35 @@ void app_send433Msg2App(int timestamp, int intensity, void * session)
 
     char *json = cJSON_PrintUnformatted(root);
 
-    app_sendRawData2App(topic, json, strlen(json));
+    app_sendMsg2App(topic, json, strlen(json));
     LOG_INFO("send 433 msg to APP");
     free(json);
     cJSON_Delete(root);
 }
 
+void app_sendAutolockMsg2App(int timestamp, int lock, void * session)
+{
+    OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
+    if (!obj)
+    {
+        LOG_ERROR("obj null, no data to upload");
+        return;
+    }
+    char topic[IMEI_LENGTH + 13];
+    memset(topic, 0, sizeof(topic));
+    snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/autolock", obj->IMEI);
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, "timestamp", timestamp);
+    cJSON_AddNumberToObject(root, "lock", lock);
+
+    char *json = cJSON_PrintUnformatted(root);
+
+    app_sendMsg2App(topic, json, strlen(json));
+    LOG_INFO("send autolock msg to APP: %d", lock);
+    free(json);
+    cJSON_Delete(root);
+}
 void app_sendAlarmMsg2App(unsigned char type, const char *msg, void *session)
 {
     OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
@@ -163,7 +187,7 @@ void app_sendAlarmMsg2App(unsigned char type, const char *msg, void *session)
 
     char *json = cJSON_PrintUnformatted(root);
 
-    app_sendRawData2App(topic, json, strlen(json));
+    app_sendMsg2App(topic, json, strlen(json));
     LOG_INFO("send alarm msg to APP");
     free(json);
     cJSON_Delete(root);
@@ -245,7 +269,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
     if(!(obj->session))
     {
         LOG_WARN("simcom %s offline", strIMEI);
-        app_sendCmdMsg2App(cmd, ERR_OFFLINE, strIMEI);
+        app_sendCmdRsp2App(cmd, ERR_OFFLINE, strIMEI);
         return 0;
     }
 
@@ -253,7 +277,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
     {
     case APP_CMD_WILD:
         LOG_INFO("receive app wildcard cmd");
-        //app_sendRawData2mc(pMsg->data, ntohs(pMsg->length) - sizeof(pMsg->seq), ctx, token);
+        //app_sendMsg2Device(pMsg->data, ntohs(pMsg->length) - sizeof(pMsg->seq), ctx, token);
         break;
     case APP_CMD_FENCE_ON:
     case APP_CMD_FENCE_OFF:
@@ -265,13 +289,13 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
         if(!req)
         {
             LOG_FATAL("insufficient memory");
-            app_sendCmdMsg2App(cmd, ERR_INTERNAL, strIMEI);
+            app_sendCmdRsp2App(cmd, ERR_INTERNAL, strIMEI);
             return -1;
         }
         req->token = cmd;
         req->operator = defendApp2mc(cmd);
-        app_sendCmdMsg2App(cmd, ERR_WAITING, strIMEI);
-        app_sendRawData2mc(req, sizeof(MSG_DEFEND_REQ), obj);
+        app_sendCmdRsp2App(cmd, ERR_WAITING, strIMEI);
+        app_sendMsg2Device(req, sizeof(MSG_DEFEND_REQ), obj);
         break;
     }
     case APP_CMD_SEEK_ON:
@@ -283,13 +307,13 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
         if(!req)
         {
             LOG_FATAL("insufficient memory");
-            app_sendCmdMsg2App(cmd, ERR_INTERNAL, strIMEI);
+            app_sendCmdRsp2App(cmd, ERR_INTERNAL, strIMEI);
             return -1;
         }
         req->token = cmd;
         req->operator = seekApp2mc(cmd);
-        app_sendCmdMsg2App(cmd, ERR_WAITING, strIMEI);
-        app_sendRawData2mc(req, sizeof(MSG_SEEK_REQ), obj);
+        app_sendCmdRsp2App(cmd, ERR_WAITING, strIMEI);
+        app_sendMsg2Device(req, sizeof(MSG_SEEK_REQ), obj);
         break;
     }
     case APP_CMD_LOCATION:
@@ -299,14 +323,80 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len, voi
         if(!req)
         {
             LOG_FATAL("insufficient memory");
-            app_sendCmdMsg2App(cmd, ERR_INTERNAL, strIMEI);
+            app_sendCmdRsp2App(cmd, ERR_INTERNAL, strIMEI);
             return -1;
         }
-        app_sendCmdMsg2App(cmd, ERR_WAITING, strIMEI);
-        app_sendRawData2mc(req, sizeof(MSG_LOCATION), obj);
+        app_sendCmdRsp2App(cmd, ERR_WAITING, strIMEI);
+        app_sendMsg2Device(req, sizeof(MSG_LOCATION), obj);
         break;
     }
-    default:
+
+        case APP_CMD_AUTOLOCK_ON:
+        {
+            LOG_INFO("receive app APP_CMD_AUTOLOCK_ON");
+            MSG_AUTODEFEND_SWITCH_SET_REQ *req = alloc_simcom_msg(CMD_AUTODEFEND_SWITCH_SET, sizeof(MSG_AUTODEFEND_SWITCH_SET_REQ));
+            if(!req)
+            {
+                LOG_FATAL("insufficient memory");
+                app_sendCmdRsp2App(cmd, ERR_INTERNAL, strIMEI);
+                return -1;
+            }
+
+            req->token = APP_CMD_AUTOLOCK_ON;
+            req->onOff = AUTO_DEFEND_ON;
+
+            app_sendCmdRsp2App(cmd, ERR_WAITING, strIMEI);
+            app_sendMsg2Device(req, sizeof(MSG_AUTODEFEND_SWITCH_SET_REQ), obj);
+            break;
+        }
+
+        case APP_CMD_AUTOLOCK_OFF:
+        {
+            LOG_INFO("receive app APP_CMD_AUTOLOCK_OFF");
+            MSG_AUTODEFEND_SWITCH_SET_REQ *req = alloc_simcom_msg(CMD_AUTODEFEND_SWITCH_SET, sizeof(MSG_AUTODEFEND_SWITCH_SET_REQ));
+            if(!req)
+            {
+                LOG_FATAL("insufficient memory");
+                app_sendCmdRsp2App(cmd, ERR_INTERNAL, strIMEI);
+                return -1;
+            }
+            req->token = APP_CMD_AUTOLOCK_OFF;
+            req->onOff = AUTO_DEFEND_OFF;
+
+            app_sendCmdRsp2App(cmd, ERR_WAITING, strIMEI);
+            app_sendMsg2Device(req, sizeof(MSG_AUTODEFEND_SWITCH_SET_REQ), obj);
+            break;
+        }
+
+        case APP_CMD_AUTOPERIOD_SET:
+        {
+            LOG_INFO("receive app APP_CMD_AUTOPERIOD_SET");
+            MSG_AUTODEFEND_PERIOD_SET_REQ *req = alloc_simcom_msg(CMD_AUTODEFEND_PERIOD_SET, sizeof(MSG_AUTODEFEND_PERIOD_SET_REQ));
+            if(!req)
+            {
+                LOG_FATAL("insufficient memory");
+                app_sendCmdRsp2App(cmd, ERR_INTERNAL, strIMEI);
+                return -1;
+            }
+
+            cmdItem = cJSON_GetObjectItem(appMsg, "period");
+            if (!cmdItem)
+            {
+                LOG_ERROR("period format error:no period item");
+                return -1;
+            }
+
+            int period = cmdItem->valueint;
+
+            req->token = APP_CMD_AUTOPERIOD_SET;
+            req->period = period;
+
+            app_sendCmdRsp2App(cmd, ERR_WAITING, strIMEI);
+            app_sendMsg2Device(req, sizeof(MSG_AUTODEFEND_PERIOD_SET_REQ), obj);
+            break;
+        }
+
+        default:
         LOG_ERROR("Unknown cmd: %#x", cmdItem->valuestring);
         break;
     }

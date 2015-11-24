@@ -11,6 +11,7 @@
 #include <malloc.h>
 #include <time.h>
 #include <object.h>
+#include <session.h>
 
 #include "msg_proc_app.h"
 #include "msg_proc_simcom.h"
@@ -47,7 +48,11 @@ static int simcom_alarm(const void *msg, SESSION *session);
 static int simcom_433(const void *msg, SESSION *session);
 static int simcom_defend(const void *msg, SESSION *session);
 static int simcom_seek(const void *msg, SESSION *session);
-
+static int simcom_autoDefendSetRsp(const void *msg, SESSION *session);
+static int simcom_autoDefendGetRsp(const void *msg, SESSION *session);
+static int simcom_autoPeriodSetRsp(const void *msg, SESSION *session);
+static int simcom_autoPeriodGetRsp(const void *msg, SESSION *session);
+static int simcom_autoDefendNotify(const void *msg, SESSION *session);
 static int get_time();
 
 
@@ -61,6 +66,11 @@ static MSG_PROC_MAP msgProcs[] =
         {CMD_433,       simcom_433},
         {CMD_DEFEND,    simcom_defend},
         {CMD_SEEK,      simcom_seek},
+        {CMD_AUTODEFEND_SWITCH_SET, simcom_autoDefendSetRsp},
+        {CMD_AUTODEFEND_SWITCH_GET, simcom_autoDefendGetRsp},
+        {CMD_AUTODEFEND_PERIOD_SET, simcom_autoPeriodSetRsp},
+        {CMD_AUTODEFEND_PERIOD_GET, simcom_autoPeriodGetRsp},
+        {CMD_AUTODEFEND_NOTIFY, simcom_autoDefendNotify}
 };
 
 int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
@@ -424,25 +434,25 @@ int simcom_defend(const void *msg, SESSION *session)
     {
         if(rsp->result == 0)
         {
-            app_sendCmdMsg2App(APP_CMD_FENCE_ON, ERR_SUCCESS, strIMEI);
+            app_sendCmdRsp2App(APP_CMD_FENCE_ON, ERR_SUCCESS, strIMEI);
         }
     }
     else if(defend == APP_CMD_FENCE_OFF)
     {
         if(rsp->result == 0)
         {
-            app_sendCmdMsg2App(APP_CMD_FENCE_OFF, ERR_SUCCESS, strIMEI);
+            app_sendCmdRsp2App(APP_CMD_FENCE_OFF, ERR_SUCCESS, strIMEI);
         }
     }
     else if(defend == APP_CMD_FENCE_GET)
     {
         if(rsp->result == DEFEND_ON)
         {
-            app_sendFenceGetCmdMsg2App(APP_CMD_FENCE_GET, ERR_SUCCESS, 1, session);
+            app_sendFenceGetRspMsg2App(APP_CMD_FENCE_GET, ERR_SUCCESS, 1, session);
         }
         else
         {
-            app_sendFenceGetCmdMsg2App(APP_CMD_FENCE_GET, ERR_SUCCESS, 0, session);
+            app_sendFenceGetRspMsg2App(APP_CMD_FENCE_GET, ERR_SUCCESS, 0, session);
         }
     }
     else
@@ -471,14 +481,14 @@ int simcom_seek(const void *msg, SESSION *session)
     {
         if(rsp->result == 0)
         {
-            app_sendCmdMsg2App(APP_CMD_SEEK_ON, ERR_SUCCESS, strIMEI);
+            app_sendCmdRsp2App(APP_CMD_SEEK_ON, ERR_SUCCESS, strIMEI);
         }
     }
     else if(seek == APP_CMD_SEEK_OFF)
     {
         if(rsp->result == 0)
         {
-            app_sendCmdMsg2App(APP_CMD_SEEK_OFF, ERR_SUCCESS, strIMEI);
+            app_sendCmdRsp2App(APP_CMD_SEEK_OFF, ERR_SUCCESS, strIMEI);
         }
     }
     else
@@ -488,6 +498,45 @@ int simcom_seek(const void *msg, SESSION *session)
     }
     return 0;
 }
+
+static int simcom_autoDefendSetRsp(const void *msg, SESSION *session)
+{
+    const MSG_AUTODEFEND_SWITCH_SET_RSP *rsp = (MSG_AUTODEFEND_SWITCH_SET_RSP*)msg;
+    OBJECT* obj = session->obj;
+
+    app_sendCmdRsp2App(APP_CMD_AUTOLOCK_ON, rsp->result, obj->IMEI);
+    return 0;
+}
+
+static int simcom_autoDefendGetRsp(const void *msg, SESSION *session)
+{
+    //TODO: to be complted
+
+}
+
+static int simcom_autoPeriodSetRsp(const void *msg, SESSION *session)
+{
+    const MSG_AUTODEFEND_PERIOD_SET_RSP *rsp = (MSG_AUTODEFEND_PERIOD_SET_RSP*)msg;
+    OBJECT *obj = session->obj;
+
+    app_sendCmdRsp2App(APP_CMD_AUTOPERIOD_SET, rsp->result, obj->IMEI);
+    return 0;
+}
+
+static int simcom_autoPeriodGetRsp(const void *msg, SESSION *session)
+{
+
+    //TODO: to be complted
+
+    return 0;
+}
+static int simcom_autoDefendNotify(const void *m, SESSION *session)
+{
+    const MSG_AUTOLOCK *msg = m;
+    app_sendAutolockMsg2App(get_time(), msg->lock, session);
+    return 0;
+}
+
 
 int get_time()
 {
