@@ -40,6 +40,7 @@ int simcom_msg_send(void *msg, size_t len, SESSION *session);
 static int handle_one_msg(const void *msg, SESSION *ctx);
 static int get_msg_cmd(const void *msg);
 
+static int simcom_wild(const void *msg, SESSION *session);
 static int simcom_login(const void *msg, SESSION *session);
 static int simcom_gps(const void *msg, SESSION *session);
 static int simcom_cell(const void *msg, SESSION *session);
@@ -58,6 +59,7 @@ static int get_time();
 
 static MSG_PROC_MAP msgProcs[] =
 {
+		{CMD_WILD, 		simcom_wild},
         {CMD_LOGIN,     simcom_login},
         {CMD_GPS,       simcom_gps},
         {CMD_CELL,      simcom_cell},
@@ -153,6 +155,16 @@ int get_msg_cmd(const void *m)
 
 //-----------------------------Handles for Msg--------------------------------
 
+int simcom_wild(const void *m, SESSION *session)
+{
+	const MSG_HEADER *msg = m;
+        const char *log = m + 1;
+        LOG_DEBUG("DBG:%s", log);
+
+	app_sendDebugMsg2App(log, msg->length, session);
+
+	return 0;
+}
 int simcom_login(const void *msg, SESSION *session)
 {
     const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg;
@@ -512,6 +524,7 @@ static int simcom_autoDefendGetRsp(const void *msg, SESSION *session)
 {
     //TODO: to be complted
 
+    return 0;
 }
 
 static int simcom_autoPeriodSetRsp(const void *msg, SESSION *session)
