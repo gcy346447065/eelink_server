@@ -9,8 +9,9 @@
 #include <stdio.h>
 #include <mosquitto.h>
 #include <string.h>
-#include <unistd.h>
 #include <malloc.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include "log.h"
 #include "macro.h"
@@ -166,6 +167,10 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 
 void mqtt_initial(MQTT_ARG* mqtt_arg)
 {
+    char *mqtt_id = 0;
+    char *host = "127.0.0.1";
+    char port = 1883;
+
     char hostname[256] = {0};
     int len = 0;
 
@@ -173,26 +178,33 @@ void mqtt_initial(MQTT_ARG* mqtt_arg)
     hostname[255] = 0;
 
     len = strlen(hostname) + 10;
-    char *mqtt_id = malloc(len);
+    mqtt_id = malloc(len);
+    if (!mqtt_id)
+    {
+        LOG_FATAL("can not alloc memory");
+        exit(0);
+    }
 
     snprintf(mqtt_id, len, "%s-%d", hostname, getpid());
-	mosq = mqtt_login(mqtt_id, "127.0.0.1", 1883,
-										mqtt_log_callback,
-										mqtt_connect_callback,
-										mqtt_disconnect_callback,
-										mqtt_message_callback,
-										mqtt_subscribe_callback,
-										mqtt_publish_callback,
-										mqtt_arg);
-    //TODO: to fix the above user data
-	if (mosq)
-	{
-		LOG_INFO("connect to MQTT successfully");
-	}
-	else
-	{
-		LOG_ERROR("failed to connect to MQTT");
-	}
+
+    mosq = mqtt_login(mqtt_id, host, port,
+                      mqtt_log_callback,
+                      mqtt_connect_callback,
+                      mqtt_disconnect_callback,
+                      mqtt_message_callback,
+                      mqtt_subscribe_callback,
+                      mqtt_publish_callback,
+                      mqtt_arg);
+
+    free(mqtt_id);
+    if (mosq)
+    {
+        LOG_INFO("connect to MQTT successfully");
+    }
+    else
+    {
+        LOG_ERROR("failed to connect to MQTT");
+    }
 
 }
 
