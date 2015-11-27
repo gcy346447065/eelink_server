@@ -21,7 +21,6 @@
 
 static void send_msg(struct bufferevent* bev, const void* buf, size_t n)
 {
-    LOG_INFO("Send msg to simcom %p(len=%zu)", buf, n);
     bufferevent_write(bev, buf, n);
 }
 
@@ -122,7 +121,7 @@ static void accept_conn_cb(struct evconnlistener *listener,
     bufferevent_enable(bev, EV_READ|EV_WRITE);
 
     //set the timeout for the connection, when timeout close the connectiont
-    struct timeval tm = {300, 0};
+    struct timeval tm = {600, 0};
 
     bufferevent_set_timeouts(bev, &tm, &tm);
 }
