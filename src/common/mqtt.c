@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <mosquitto.h>
 #include <string.h>
+#include <unistd.h>
+#include <malloc.h>
 
 #include "log.h"
 #include "macro.h"
@@ -142,8 +144,6 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 	mosquitto_publish_callback_set(m, on_publish);
 	mosquitto_reconnect_delay_set(m, 10, 120, false);
 
-//	OBJECT* obj = ctx;
-
 //	LOG_DEBUG("set MQTT username:%s, password:%s", get_IMEI_STRING(obj->DID), obj->pwd);
 //	mosquitto_username_pw_set(m, get_IMEI_STRING(obj->DID), obj->pwd);
 
@@ -151,7 +151,7 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 	if(rc != MOSQ_ERR_SUCCESS)
 	{
 		//TODO: to check whether mosquitto_connack_string here is OKs
-		LOG_ERROR("MC:%s connect to %s:%d failed:%s", id, host, port, mosquitto_strerror(rc));
+		LOG_ERROR("%s connect to %s:%d failed:%s", id, host, port, mosquitto_strerror(rc));
 		return NULL;
 	}
 	else
@@ -161,13 +161,22 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 
     mosquitto_loop_start(m);
 
-//	mosquitto_destroy(m);
 	return m;
 }
 
 void mqtt_initial(MQTT_ARG* mqtt_arg)
 {
-	mosq = mqtt_login("electrombile", "127.0.0.1", 1883,
+    char hostname[256] = {0};
+    int len = 0;
+
+    gethostname(hostname, 256);
+    hostname[255] = 0;
+
+    len = strlen(hostname) + 10;
+    char *mqtt_id = malloc(len);
+
+    snprintf(mqtt_id, len, "%s-%d", hostname, getpid());
+	mosq = mqtt_login(mqtt_id, "127.0.0.1", 1883,
 										mqtt_log_callback,
 										mqtt_connect_callback,
 										mqtt_disconnect_callback,
