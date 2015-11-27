@@ -21,7 +21,7 @@ const char *getIMEI(const char *imei);
 
 char get_msg_cmd(void *msg);
 
-void * alloc_simcomWildMsg(const char* data, int length);
+void * alloc_simcomWildMsg(const char* data, size_t length);
 
 void* alloc_simcomDefendReq(int token, unsigned char operator);
 

@@ -79,7 +79,7 @@ const char *getIMEI(const char *imei)
     return ret;
 }
 
-void * alloc_simcomWildMsg(const char* data, int length)
+void * alloc_simcomWildMsg(const char* data, size_t length)
 {
     MSG_HEADER *msg = alloc_simcom_msg(CMD_WILD, length);
 
