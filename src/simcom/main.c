@@ -153,6 +153,7 @@ int main(int argc, char **argv)
     db_destruct();
     curl_global_cleanup();
 
+    mqtt_cleanup();
     yunba_disconnect();
 
     mosquitto_lib_cleanup();
