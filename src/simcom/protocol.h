@@ -16,7 +16,7 @@
 
 enum
 {
-    CMD_WILD		= 0x00,
+    CMD_WILD        = 0x00,
     CMD_LOGIN       = 0x01,
     CMD_GPS         = 0x02,
     CMD_CELL        = 0x03,

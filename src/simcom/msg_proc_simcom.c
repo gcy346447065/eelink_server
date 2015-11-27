@@ -10,10 +10,8 @@
 #include <netinet/in.h>
 #include <malloc.h>
 #include <time.h>
-#include <object.h>
-#include <session.h>
+#include <math.h>
 
-#include "msg_proc_app.h"
 #include "msg_proc_simcom.h"
 #include "protocol.h"
 #include "log.h"
@@ -34,74 +32,7 @@ typedef struct
     MSG_PROC pfn;
 } MSG_PROC_MAP;
 
-int handle_simcom_msg(const char *m, size_t msgLen, void *arg);
-int simcom_msg_send(void *msg, size_t len, SESSION *session);
-
-static int handle_one_msg(const void *msg, SESSION *ctx);
-static int get_msg_cmd(const void *msg);
-
-static int simcom_wild(const void *msg, SESSION *session);
-static int simcom_login(const void *msg, SESSION *session);
-static int simcom_gps(const void *msg, SESSION *session);
-static int simcom_cell(const void *msg, SESSION *session);
-static int simcom_ping(const void *msg, SESSION *session);
-static int simcom_alarm(const void *msg, SESSION *session);
-static int simcom_433(const void *msg, SESSION *session);
-static int simcom_defend(const void *msg, SESSION *session);
-static int simcom_seek(const void *msg, SESSION *session);
-static int simcom_autoDefendSetRsp(const void *msg, SESSION *session);
-static int simcom_autoDefendGetRsp(const void *msg, SESSION *session);
-static int simcom_autoPeriodSetRsp(const void *msg, SESSION *session);
-static int simcom_autoPeriodGetRsp(const void *msg, SESSION *session);
-static int simcom_autoDefendNotify(const void *msg, SESSION *session);
-static int get_time();
-
-
-static MSG_PROC_MAP msgProcs[] =
-{
-		{CMD_WILD, 		simcom_wild},
-        {CMD_LOGIN,     simcom_login},
-        {CMD_GPS,       simcom_gps},
-        {CMD_CELL,      simcom_cell},
-        {CMD_PING,      simcom_ping},
-        {CMD_ALARM,     simcom_alarm},
-        {CMD_433,       simcom_433},
-        {CMD_DEFEND,    simcom_defend},
-        {CMD_SEEK,      simcom_seek},
-        {CMD_AUTODEFEND_SWITCH_SET, simcom_autoDefendSetRsp},
-        {CMD_AUTODEFEND_SWITCH_GET, simcom_autoDefendGetRsp},
-        {CMD_AUTODEFEND_PERIOD_SET, simcom_autoPeriodSetRsp},
-        {CMD_AUTODEFEND_PERIOD_GET, simcom_autoPeriodGetRsp},
-        {CMD_AUTODEFEND_NOTIFY, simcom_autoDefendNotify}
-};
-
-int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
-{
-    const MSG_HEADER *msg = (const MSG_HEADER *)m;
-
-    if(msgLen < MSG_HEADER_LEN)
-    {
-        LOG_ERROR("message length not enough: %zu(at least(%zu)", msgLen, sizeof(MSG_HEADER));
-
-        return -1;
-    }
-    size_t leftLen = msgLen;
-    while(leftLen >= ntohs(msg->length) + MSG_HEADER_LEN)
-    {
-        const unsigned char *status = (const unsigned char *)(&(msg->signature));
-        if((status[0] != 0xaa) || (status[1] != 0x55))
-        {
-            LOG_ERROR("receive message header signature error:%x", (unsigned)ntohs(msg->signature));
-            return -1;
-        }
-        handle_one_msg(msg, (SESSION *)arg);
-        leftLen = leftLen - MSG_HEADER_LEN - ntohs(msg->length);
-        msg = (const MSG_HEADER *)(m + msgLen - leftLen);
-    }
-    return 0;
-}
-
-int simcom_msg_send(void *msg, size_t len, SESSION *session)
+static int simcom_sendMsg(void *msg, size_t len, SESSION *session)
 {
     if (!session)
     {
@@ -120,51 +51,29 @@ int simcom_msg_send(void *msg, size_t len, SESSION *session)
     LOG_DEBUG("send msg(cmd=%d), length(%ld)", get_msg_cmd(msg), len);
     LOG_HEX(msg, len);
 
-    free(msg);
+    free_simcom_msg(msg);
 
     return 0;
 }
 
-//--------------------------------Utility Function-------------------------
-
-int handle_one_msg(const void *m, SESSION *ctx)
+static int get_time()
 {
-    int i = get_msg_cmd(m);
-    if(i == -1)
-    {
-        LOG_ERROR("unknown message cmd(%d)", ((const MSG_HEADER *)m)->cmd);
-        return -1;
-    }
-
-    return (msgProcs[i].pfn)(m, ctx);
+    time_t rawtime;
+    time(&rawtime);
+    return rawtime;
 }
-
-int get_msg_cmd(const void *m)
-{
-    const MSG_HEADER *msg = (const MSG_HEADER *)m;
-
-    for (size_t i = 0; i < sizeof(msgProcs) / sizeof(msgProcs[0]); i++)
-    {
-        if (msgProcs[i].cmd == msg->cmd)
-        {
-            return i;
-        }
-    }
-    return -1;
-}
-
-//-----------------------------Handles for Msg--------------------------------
 
 int simcom_wild(const void *m, SESSION *session)
 {
 	const MSG_HEADER *msg = m;
-        const char *log = m + 1;
-        LOG_DEBUG("DBG:%s", log);
+    const char *log = m + 1;
+    LOG_DEBUG("DBG:%s", log);
 
 	app_sendDebugMsg2App(log, msg->length, session);
 
 	return 0;
 }
+
 int simcom_login(const void *msg, SESSION *session)
 {
     const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg;
@@ -212,7 +121,7 @@ int simcom_login(const void *msg, SESSION *session)
     MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg(msg);
     if (rsp)
     {
-        simcom_msg_send(rsp, sizeof(MSG_LOGIN_RSP), session);
+        simcom_sendMsg(rsp, sizeof(MSG_LOGIN_RSP), session);
     }
     else
     {
@@ -262,8 +171,8 @@ int simcom_gps(const void *msg, SESSION *session)
 
     obj->timestamp = get_time();
 
-    if (obj->lat == req->gps.latitude
-        && obj->lon == req->gps.longitude)
+    if (fabs(obj->lat - req->gps.latitude) < FLT_EPSILON
+        && fabs(obj->lon - req->gps.longitude) < FLT_EPSILON)
     {
         LOG_INFO("No need to save data to leancloud");
     }
@@ -550,10 +459,67 @@ static int simcom_autoDefendNotify(const void *m, SESSION *session)
     return 0;
 }
 
+static MSG_PROC_MAP msgProcs[] =
+        {
+                {CMD_WILD,                  simcom_wild},
+                {CMD_LOGIN,                 simcom_login},
+                {CMD_GPS,                   simcom_gps},
+                {CMD_CELL,                  simcom_cell},
+                {CMD_PING,                  simcom_ping},
+                {CMD_ALARM,                 simcom_alarm},
+                {CMD_433,                   simcom_433},
+                {CMD_DEFEND,                simcom_defend},
+                {CMD_SEEK,                  simcom_seek},
+                {CMD_AUTODEFEND_SWITCH_SET, simcom_autoDefendSetRsp},
+                {CMD_AUTODEFEND_SWITCH_GET, simcom_autoDefendGetRsp},
+                {CMD_AUTODEFEND_PERIOD_SET, simcom_autoPeriodSetRsp},
+                {CMD_AUTODEFEND_PERIOD_GET, simcom_autoPeriodGetRsp},
+                {CMD_AUTODEFEND_NOTIFY,     simcom_autoDefendNotify}
+        };
 
-int get_time()
+
+int handle_one_msg(const void *m, SESSION *ctx)
 {
-    time_t rawtime;
-    time(&rawtime);
-    return rawtime;
+    const MSG_HEADER* msg = (MSG_HEADER*)m;
+
+    for (size_t i = 0; i < sizeof(msgProcs) / sizeof(msgProcs[0]); i++)
+    {
+        if (msgProcs[i].cmd == msg->cmd)
+        {
+            MSG_PROC pfn = msgProcs[i].pfn;
+            if (pfn)
+            {
+                return pfn(msg, ctx);
+            }
+        }
+    }
+
+    return -1;
+}
+
+
+int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
+{
+    const MSG_HEADER *msg = (const MSG_HEADER *)m;
+
+    if(msgLen < MSG_HEADER_LEN)
+    {
+        LOG_ERROR("message length not enough: %zu(at least(%zu)", msgLen, sizeof(MSG_HEADER));
+
+        return -1;
+    }
+    size_t leftLen = msgLen;
+    while(leftLen >= ntohs(msg->length) + MSG_HEADER_LEN)
+    {
+        const unsigned char *status = (const unsigned char *)(&(msg->signature));
+        if((status[0] != 0xaa) || (status[1] != 0x55))
+        {
+            LOG_ERROR("receive message header signature error:%x", (unsigned)ntohs(msg->signature));
+            return -1;
+        }
+        handle_one_msg(msg, (SESSION *)arg);
+        leftLen = leftLen - MSG_HEADER_LEN - ntohs(msg->length);
+        msg = (const MSG_HEADER *)(m + msgLen - leftLen);
+    }
+    return 0;
 }

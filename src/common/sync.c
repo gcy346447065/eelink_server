@@ -58,7 +58,7 @@ int sync_init(struct event_base *base)
     memset(&sin, 0, sizeof(sin));
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(0x7f000001); /* 127.0.0.1 */
-    sin.sin_port = htons(PORT_SYNC); /* Port 8080 */
+    sin.sin_port = htons(PORT_SYNC);
 
     bev = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
 

@@ -32,6 +32,9 @@ SET(SOURCE_FILE
     sync.h
     sync.c
 
+    msg_app.h
+    msg_app.c
+
     ../3rd/cJSON/cJSON.c
     ../3rd/cJSON/cJSON.h
     )
