@@ -34,7 +34,7 @@ void mqtt_message_callback(struct mosquitto *m __attribute__((unused)), void *us
 
     if(strncmp(message->topic,"app2dev/",strlen("app2dev/")) == 0)
     {
-        mqtt_arg->app_msg_handler(message->topic, message->payload, message->payloadlen, userdata);
+        mqtt_arg->app_msg_handler(message->topic, message->payload, message->payloadlen);
     }
     else
     {

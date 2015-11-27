@@ -120,7 +120,7 @@ void app_sendGpsMsg2App(void* session)
 	app_sendRawData2App(topic, (char *)msg, sizeof(GPS_MSG));
 }
 
-int app_handleApp2devMsg(const char* topic, const char* data, const int len, void* userdata)
+int app_handleApp2devMsg(const char* topic, const char* data, const int len)
 {
 	LOG_HEX(data, len);
 

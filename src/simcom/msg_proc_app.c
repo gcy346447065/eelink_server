@@ -242,7 +242,7 @@ static void getImeiFromTopic(const char* topic, char* IMEI)
     return;
 }
 
-int app_handleApp2devMsg(const char* topic, const char* data, const int len __attribute__((unused)), void* userdata __attribute__((unused)))
+int app_handleApp2devMsg(const char* topic, const char* data, const int len __attribute__((unused)))
 {
     if (!data)
     {

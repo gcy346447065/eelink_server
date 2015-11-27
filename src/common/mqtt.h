@@ -8,7 +8,7 @@
 #ifndef SRC_MQTT_H_
 #define SRC_MQTT_H_
 
-typedef int (*APP_MSG_HANDLER)(const char* topic, const char* data, const int len, void* userdata);
+typedef int (*APP_MSG_HANDLER)(const char* topic, const char* data, const int len);
 
 typedef struct
 {
