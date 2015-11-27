@@ -172,3 +172,19 @@ void app_sendAlarmMsg2App(unsigned char type, const char *msg, void *session)
     free(json);
     cJSON_Delete(root);
 }
+
+void app_sendDebugMsg2App(const char *msg, size_t length, void *session)
+{
+    OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
+    if (!obj)
+    {
+        LOG_ERROR("object null,internal error");
+        return;
+    }
+    char topic[IMEI_LENGTH + 15];
+    memset(topic, 0, sizeof(topic));
+    snprintf(topic, IMEI_LENGTH + 15, "dev2app/%s/debug", obj->IMEI);
+
+    app_sendMsg2App(topic, msg, length);
+    LOG_INFO("send debug msg to APP");
+}

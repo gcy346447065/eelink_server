@@ -10,5 +10,4 @@
 
 int app_handleApp2devMsg(const char* topic, const char* data, const int len, void* userdata);
 
-
 #endif /* SRC_MSG_PROC_APP_H_ */

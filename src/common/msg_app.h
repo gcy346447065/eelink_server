@@ -75,5 +75,6 @@ void app_sendGpsMsg2App(void* session);
 void app_send433Msg2App(int timestamp, int intensity, void * session);
 void app_sendAutolockMsg2App(int timestamp, int lock, void * session);
 void app_sendAlarmMsg2App(unsigned char type, const char *msg, void *session);
+void app_sendDebugMsg2App(const char *msg, size_t length, void *session);
 
 #endif /* SRC_MSG_APP_H_ */

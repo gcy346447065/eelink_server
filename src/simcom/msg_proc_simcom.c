@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <malloc.h>
 #include <time.h>
+#include <math.h>
 
 #include "msg_proc_simcom.h"
 #include "protocol.h"
@@ -60,6 +61,17 @@ static int get_time()
     time_t rawtime;
     time(&rawtime);
     return rawtime;
+}
+
+int simcom_wild(const void *m, SESSION *session)
+{
+	const MSG_HEADER *msg = m;
+    const char *log = m + 1;
+    LOG_DEBUG("DBG:%s", log);
+
+	app_sendDebugMsg2App(log, msg->length, session);
+
+	return 0;
 }
 
 int simcom_login(const void *msg, SESSION *session)
@@ -159,8 +171,8 @@ int simcom_gps(const void *msg, SESSION *session)
 
     obj->timestamp = get_time();
 
-    if (obj->lat == req->gps.latitude
-        && obj->lon == req->gps.longitude)
+    if (fabs(obj->lat - req->gps.latitude) < FLT_EPSILON
+        && fabs(obj->lon - req->gps.longitude) < FLT_EPSILON)
     {
         LOG_INFO("No need to save data to leancloud");
     }
@@ -421,6 +433,7 @@ static int simcom_autoDefendGetRsp(const void *msg, SESSION *session)
 {
     //TODO: to be complted
 
+    return 0;
 }
 
 static int simcom_autoPeriodSetRsp(const void *msg, SESSION *session)
@@ -448,19 +461,20 @@ static int simcom_autoDefendNotify(const void *m, SESSION *session)
 
 static MSG_PROC_MAP msgProcs[] =
         {
-                {CMD_LOGIN,     simcom_login},
-                {CMD_GPS,       simcom_gps},
-                {CMD_CELL,      simcom_cell},
-                {CMD_PING,      simcom_ping},
-                {CMD_ALARM,     simcom_alarm},
-                {CMD_433,       simcom_433},
-                {CMD_DEFEND,    simcom_defend},
-                {CMD_SEEK,      simcom_seek},
+                {CMD_WILD,                  simcom_wild},
+                {CMD_LOGIN,                 simcom_login},
+                {CMD_GPS,                   simcom_gps},
+                {CMD_CELL,                  simcom_cell},
+                {CMD_PING,                  simcom_ping},
+                {CMD_ALARM,                 simcom_alarm},
+                {CMD_433,                   simcom_433},
+                {CMD_DEFEND,                simcom_defend},
+                {CMD_SEEK,                  simcom_seek},
                 {CMD_AUTODEFEND_SWITCH_SET, simcom_autoDefendSetRsp},
                 {CMD_AUTODEFEND_SWITCH_GET, simcom_autoDefendGetRsp},
                 {CMD_AUTODEFEND_PERIOD_SET, simcom_autoPeriodSetRsp},
                 {CMD_AUTODEFEND_PERIOD_GET, simcom_autoPeriodGetRsp},
-                {CMD_AUTODEFEND_NOTIFY, simcom_autoDefendNotify}
+                {CMD_AUTODEFEND_NOTIFY,     simcom_autoDefendNotify}
         };
 
 

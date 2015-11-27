@@ -222,6 +222,7 @@ static void app_sendAutoPeriodSetMsg2Device(cJSON* appMsg, OBJECT* obj)
 
     app_sendCmdRsp2App(cmd, ERR_WAITING, obj->IMEI);
     app_sendMsg2Device(req, sizeof(MSG_AUTODEFEND_PERIOD_SET_REQ), obj);
+
 }
 
 static void getImeiFromTopic(const char* topic, char* IMEI)
