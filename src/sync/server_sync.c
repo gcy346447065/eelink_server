@@ -59,7 +59,6 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
 	{
 		LOG_INFO("client connection timeout!");
 
-		session_del((SESSION *) arg);
 		bufferevent_free(bev);
 		evutil_socket_t socket = bufferevent_getfd(bev);
 		EVUTIL_CLOSESOCKET(socket);
@@ -76,7 +75,6 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
 			LOG_ERROR("BEV_EVENT_ERROR:%s", evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
 		}
 		LOG_INFO("Closing the client connection");
-		session_del((SESSION *) arg);
 
 		evutil_socket_t socket = bufferevent_getfd(bev);
 		EVUTIL_CLOSESOCKET(socket);
