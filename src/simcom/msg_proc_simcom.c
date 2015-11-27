@@ -11,7 +11,7 @@
 #include <malloc.h>
 #include <time.h>
 #include <object.h>
-#include <session.h>
+#include <math.h>
 
 #include "msg_proc_app.h"
 #include "msg_proc_simcom.h"
@@ -262,8 +262,8 @@ int simcom_gps(const void *msg, SESSION *session)
 
     obj->timestamp = get_time();
 
-    if (obj->lat == req->gps.latitude
-        && obj->lon == req->gps.longitude)
+    if (fabs(obj->lat - req->gps.latitude) < FLT_EPSILON
+        && fabs(obj->lon - req->gps.longitude) < FLT_EPSILON)
     {
         LOG_INFO("No need to save data to leancloud");
     }
