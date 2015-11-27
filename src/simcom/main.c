@@ -17,22 +17,12 @@
 #include "sync.h"
 
 
-struct event_base *base = NULL;
-
-
-static void sig_usr(int signo)
+static void signal_cb(evutil_socket_t fd, short what, void *arg)
 {
-	if (signo == SIGINT)
-	{
-		printf("oops! catch CTRL+C!!!\n");
-		event_base_loopbreak(base);
-	}
+    struct event_base *base = arg;
+    printf("oops! being stoped\n");
 
-	if (signo == SIGTERM)
-	{
-		printf("oops! being killed!!!\n");
-		event_base_loopbreak(base);
-	}
+    event_base_loopbreak(base);
 }
 
 int main(int argc, char **argv)
@@ -58,7 +48,7 @@ int main(int argc, char **argv)
 			mosquitto_lib_version(NULL, NULL, NULL),
 			curl_version());
 
-    base = event_base_new();
+    struct event_base *base = event_base_new();
     if (!base)
         return 1; /*XXXerr*/
 
@@ -70,13 +60,16 @@ int main(int argc, char **argv)
     	return rc;
     }
 
-    if (signal(SIGINT, sig_usr) == SIG_ERR)
+    struct event *evTerm = evsignal_new(base, SIGTERM, signal_cb, base);
+    if (!evTerm || evsignal_add(evTerm, NULL) < 0)
     {
-        LOG_ERROR("Can't catch SIGINT");
+        LOG_ERROR("can't create SIGTERM event");
     }
-    if (signal(SIGTERM, sig_usr) == SIG_ERR)
+
+    struct event *evInt = evsignal_new(base, SIGINT, signal_cb, base);
+    if (!evInt || evsignal_add(evInt, NULL) < 0)
     {
-    	LOG_ERROR("Can't catch SIGTERM");
+        LOG_ERROR("can't create SIGTERM event");
     }
 
     rc = mosquitto_lib_init();
@@ -144,6 +137,9 @@ int main(int argc, char **argv)
 //    sk_free(SSL_COMP_get_compression_methods());
     LOG_INFO("stop mc server...");
     evconnlistener_free(listener_simcom);
+
+    evsignal_del(evTerm);
+    evsignal_del(evInt);
 
     event_base_free(base);
 
