@@ -15,8 +15,12 @@
 MSG_HEADER* alloc_simcom_msg(char cmd, size_t length);
 MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER* pMsg);
 
-void free_simcom_msg(MSG_HEADER* msg);
+void free_simcom_msg(void* msg);
 
 const char *getIMEI(const char *imei);
+
+char get_msg_cmd(void *msg);
+
+void* alloc_simcomDefendReq(int token, unsigned char operator);
 
 #endif /* SRC_MSG_SIMCOM_H_ */

@@ -10,10 +10,7 @@
 #include <netinet/in.h>
 #include <malloc.h>
 #include <time.h>
-#include <object.h>
-#include <session.h>
 
-#include "msg_proc_app.h"
 #include "msg_proc_simcom.h"
 #include "protocol.h"
 #include "log.h"
@@ -34,7 +31,7 @@ typedef struct
     MSG_PROC pfn;
 } MSG_PROC_MAP;
 
-int simcom_msg_send(void *msg, size_t len, SESSION *session)
+static int simcom_sendMsg(void *msg, size_t len, SESSION *session)
 {
     if (!session)
     {
@@ -53,12 +50,17 @@ int simcom_msg_send(void *msg, size_t len, SESSION *session)
     LOG_DEBUG("send msg(cmd=%d), length(%ld)", get_msg_cmd(msg), len);
     LOG_HEX(msg, len);
 
-    free(msg);
+    free_simcom_msg(msg);
 
     return 0;
 }
 
-
+static int get_time()
+{
+    time_t rawtime;
+    time(&rawtime);
+    return rawtime;
+}
 
 int simcom_login(const void *msg, SESSION *session)
 {
@@ -107,7 +109,7 @@ int simcom_login(const void *msg, SESSION *session)
     MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg(msg);
     if (rsp)
     {
-        simcom_msg_send(rsp, sizeof(MSG_LOGIN_RSP), session);
+        simcom_sendMsg(rsp, sizeof(MSG_LOGIN_RSP), session);
     }
     else
     {
@@ -444,16 +446,6 @@ static int simcom_autoDefendNotify(const void *m, SESSION *session)
     return 0;
 }
 
-
-int get_time()
-{
-    time_t rawtime;
-    time(&rawtime);
-    return rawtime;
-}
-
-
-
 static MSG_PROC_MAP msgProcs[] =
         {
                 {CMD_LOGIN,     simcom_login},
@@ -471,30 +463,24 @@ static MSG_PROC_MAP msgProcs[] =
                 {CMD_AUTODEFEND_NOTIFY, simcom_autoDefendNotify}
         };
 
-int get_msg_cmd(const void *m)
+
+int handle_one_msg(const void *m, SESSION *ctx)
 {
-    const MSG_HEADER *msg = (const MSG_HEADER *)m;
+    const MSG_HEADER* msg = (MSG_HEADER*)m;
 
     for (size_t i = 0; i < sizeof(msgProcs) / sizeof(msgProcs[0]); i++)
     {
         if (msgProcs[i].cmd == msg->cmd)
         {
-            return i;
+            MSG_PROC pfn = msgProcs[i].pfn;
+            if (pfn)
+            {
+                return pfn(msg, ctx);
+            }
         }
     }
+
     return -1;
-}
-
-int handle_one_msg(const void *m, SESSION *ctx)
-{
-    int i = get_msg_cmd(m);
-    if(i == -1)
-    {
-        LOG_ERROR("unknown message cmd(%d)", ((const MSG_HEADER *)m)->cmd);
-        return -1;
-    }
-
-    return (msgProcs[i].pfn)(m, ctx);
 }
 
 

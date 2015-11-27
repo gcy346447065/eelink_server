@@ -68,5 +68,12 @@ typedef struct
     int intensity;
 }__attribute__((__packed__)) F33_MSG;//433
 
+void app_sendCmdRsp2App(int cmd, int result, const char *strIMEI);
+
+void app_sendFenceGetRspMsg2App(int cmd, int result, int state, void *session);
+void app_sendGpsMsg2App(void* session);
+void app_send433Msg2App(int timestamp, int intensity, void * session);
+void app_sendAutolockMsg2App(int timestamp, int lock, void * session);
+void app_sendAlarmMsg2App(unsigned char type, const char *msg, void *session);
 
 #endif /* SRC_MSG_APP_H_ */

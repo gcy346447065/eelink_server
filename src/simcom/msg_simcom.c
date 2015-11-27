@@ -9,6 +9,8 @@
 #include <netinet/in.h>
 #include <string.h>
 #include "msg_simcom.h"
+#include "log.h"
+#include "protocol.h"
 
 static unsigned short seq = 0;
 
@@ -59,9 +61,14 @@ MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER* pMsg)
 }
 
 
-void free_simcom_msg(MSG_HEADER* msg)
+void free_simcom_msg(void* msg)
 {
     free(msg);
+}
+
+char get_msg_cmd(void *msg)
+{
+    return ((MSG_HEADER*)msg)->cmd;
 }
 
 const char *getIMEI(const char *imei)
@@ -70,4 +77,17 @@ const char *getIMEI(const char *imei)
     memcpy(ret, imei, IMEI_LENGTH);
     ret[IMEI_LENGTH] = '\0';
     return ret;
+}
+
+
+void* alloc_simcomDefendReq(int token, unsigned char operator)
+{
+    MSG_DEFEND_REQ *req = (MSG_DEFEND_REQ *)alloc_simcom_msg(CMD_DEFEND, sizeof(MSG_DEFEND_REQ));
+    if(!req)
+    {
+        req->token = token;
+        req->operator = operator;
+    }
+
+    return req;
 }
