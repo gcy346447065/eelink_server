@@ -79,6 +79,18 @@ const char *getIMEI(const char *imei)
     return ret;
 }
 
+void * alloc_simcomWildMsg(const char* data, int length)
+{
+    MSG_HEADER *msg = alloc_simcom_msg(CMD_WILD, length);
+
+    if (msg)
+    {
+        void *msgBody = msg + 1;
+        memcpy(msgBody, data, length);
+    }
+
+    return msg;
+}
 
 void* alloc_simcomDefendReq(int token, unsigned char operator)
 {
