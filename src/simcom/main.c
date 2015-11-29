@@ -136,6 +136,9 @@ int main(int argc, char **argv)
 
 //    sk_free(SSL_COMP_get_compression_methods());
     LOG_INFO("stop mc server...");
+
+    sync_exit();
+
     evconnlistener_free(listener_simcom);
 
     evsignal_del(evTerm);
