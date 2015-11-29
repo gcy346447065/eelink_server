@@ -67,14 +67,14 @@ static void eventcb(struct bufferevent *bev, short events, void *arg)
             LOG_INFO("disconneted to sync server");
         }
 
-        struct timeval one_minitue = { 60, 0 };
+        struct timeval five_minitue = { 300, 0 };
         if (evTimerReconnect)
         {
-            timer_react(evTimerReconnect, &one_minitue);
+            timer_react(evTimerReconnect, &five_minitue);
         }
         else
         {
-            evTimerReconnect = timer_newOnce(base, &one_minitue, sync_reconnect_fn, base);
+            evTimerReconnect = timer_newOnce(base, &five_minitue, sync_reconnect_fn, base);
         }
 
         bufferevent_free(bev);
@@ -122,16 +122,16 @@ int sync_init(struct event_base *base)
         bev = NULL;
 
         //TODO: start a timer to re-connect to the sync server
-        struct timeval one_minitue = { 60, 0 };
+        struct timeval five_minitue = { 300, 0 };
         if (evTimerReconnect)
         {
-            timer_react(evTimerReconnect, &one_minitue);
+            timer_react(evTimerReconnect, &five_minitue);
         }
         else
         {
             //The event_self_cbarg() function was introduced in Libevent 2.1.1-alpha.
             //evTimerReconnect = timer_newOnce(base, &one_minitue, sync_reconnect_fn, event_self_cbarg());
-            evTimerReconnect = timer_newOnce(base, &one_minitue, sync_reconnect_fn, base);
+            evTimerReconnect = timer_newOnce(base, &five_minitue, sync_reconnect_fn, base);
         }
         return -1;
     }
