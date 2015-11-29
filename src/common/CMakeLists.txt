@@ -35,6 +35,9 @@ SET(SOURCE_FILE
     msg_app.h
     msg_app.c
 
+    timer.h
+    timer.c
+
     ../3rd/cJSON/cJSON.c
     ../3rd/cJSON/cJSON.h
     )
