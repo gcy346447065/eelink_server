@@ -20,7 +20,8 @@
 static void signal_cb(evutil_socket_t fd, short what, void *arg)
 {
     struct event_base *base = arg;
-    printf("oops! being stoped\n");
+
+    LOG_WARN("server being stopped");
 
     event_base_loopbreak(base);
 }
