@@ -151,7 +151,7 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 	int rc = mosquitto_connect(m, host, port, keepalive);
 	if(rc != MOSQ_ERR_SUCCESS)
 	{
-		//TODO: to check whether mosquitto_connack_string here is OKs
+		//TODO: start a timer to re-connect to the MQTT server
 		LOG_ERROR("%s connect to %s:%d failed:%s", id, host, port, mosquitto_strerror(rc));
 		return NULL;
 	}
@@ -169,7 +169,7 @@ void mqtt_initial(MQTT_ARG* mqtt_arg)
 {
     char *mqtt_id = 0;
     char *host = "127.0.0.1";
-    char port = 1883;
+    int port = 1883;
 
     char hostname[256] = {0};
     int len = 0;
