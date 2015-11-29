@@ -5,21 +5,48 @@
  *      Author: jk
  */
 #include <stdio.h>
-#include <event2/event.h>
+#include <stdlib.h>
 
+#include "timer.h"
 #include "log.h"
 
-void timer_mqtt_fn(evutil_socket_t fd, short a, void * arg)
+struct event* timer_newLoop(struct event_base *base, const struct timeval *timeout, event_callback_fn cb, void *arg)
 {
-    LOG_INFO("reconnect MQTT");
+    struct event *ev = event_new(base, -1, EV_PERSIST, cb, arg);
+    if (!ev)
+    {
+        LOG_FATAL("in-sufficent memroy");
+        exit(0);
+    }
+    else
+    {
+        LOG_INFO("new loop timer of period %ds", timeout->tv_sec);
+    }
+    evtimer_add(ev, timeout);
+
+    return ev;
 }
 
-
-void timer_reconnectMQTT(struct event_base *base)
+struct event* timer_newOnce(struct event_base *base, const struct timeval *timeout, event_callback_fn cb, void *arg)
 {
-    struct timeval ten_sec = { 10, 0 };
+    struct event *ev = evtimer_new(base, cb, arg);
+    if (!ev)
+    {
+        LOG_FATAL("in-sufficent memroy");
+        exit(0);
+    }
+    else
+    {
+        LOG_INFO("new one-shot timer of period %ds", timeout->tv_sec);
+    }
+    evtimer_add(ev, timeout);
 
-    struct event *ev = evtimer_new(base, timer_mqtt_fn, NULL);
+    return ev;
+}
 
-    evtimer_add(ev, &ten_sec);
+void timer_react(struct event *ev, struct timeval *timeout)
+{
+    LOG_INFO("react a timer of period %ds", timeout->tv_sec);
+
+    evtimer_add(ev, timeout);
 }
