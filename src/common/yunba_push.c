@@ -64,7 +64,7 @@ static void connectionLost(void *context __attribute__((unused)), char *cause)
 	LOG_WARN("yunba connect lost:%s", cause);
 	if (MQTTClient_connect(client, &conn_opts) != MQTTCLIENT_SUCCESS)
 	{
-		LOG_ERROR("Failed to connect");
+		LOG_ERROR("failed to re-connect");
 		//FIXME: how to do when connect failed when lost connection
 //		exit(-1);
 	}
@@ -158,7 +158,7 @@ void yunba_publish(char* topicName, char* payload, int payloadLen)
 	cJSON_AddStringToObject(Opt,"time_to_live",  "120");
 	cJSON_AddStringToObject(Opt,"time_delay",  "1100");
 #if 1
-	cJSON_AddStringToObject(Opt,"apn_json", "{\"aps\":{\"alert\":\"FENCE alarm\", \"sound\":\"alarm.mp3\"}}"); 
+	cJSON_AddStringToObject(Opt,"apn_json", "{\"aps\":{\"alert\":\"Alarm: moved\", \"sound\":\"alarm.mp3\"}}");
 #else
 	//云巴的坑，不支持以下的写法
 	cJSON_AddItemToObject(Opt,"apn_json",  apn_json=cJSON_CreateObject());
