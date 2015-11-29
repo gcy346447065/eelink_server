@@ -12,12 +12,15 @@
 #include <malloc.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <event2/util.h>
 
 #include "log.h"
 #include "macro.h"
 #include "mqtt.h"
+#include "timer.h"
 
-static struct mosquitto* mosq = NULL;
+static struct mosquitto *mosq = NULL;
+static struct event *evTimerReconnect = NULL;
 
 
 void mqtt_message_callback(struct mosquitto *m __attribute__((unused)), void *userdata, const struct mosquitto_message *message)
@@ -66,6 +69,7 @@ void mqtt_disconnect_callback(struct mosquitto *mosq __attribute__((unused)), vo
     {
         LOG_ERROR("disconnect rc = %d(%s)\n",  rc, mosquitto_strerror(rc));
 
+        //it will auto reconnect
         //mosquitto_reconnect(mosq);
     }
     else
@@ -117,6 +121,12 @@ void mqtt_publish_callback(struct mosquitto *m __attribute__((unused)), void *us
     LOG_INFO("Publish mid: %d successfully", mid);
 }
 
+void mqtt_reconnect_cb(evutil_socket_t fd, short a, void * arg)
+{
+    LOG_INFO("re-connect to MQTT server");
+    mqtt_initial(arg);
+}
+
 static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 		void (*on_log)(struct mosquitto *, void *, int, const char *),
 		void (*on_connect)(struct mosquitto *, void *, int),
@@ -128,10 +138,11 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 {
 	int keepalive = 200;
 	bool clean_session = false;
+    MQTT_ARG *arg = ctx;
 
 	LOG_INFO("login MQTT: id = %s,host=%s, port=%d", id, host, port);
 
-	struct mosquitto *m = mosquitto_new(id, clean_session, ctx);
+	struct mosquitto *m = mosquitto_new(id, clean_session, arg);
 	if(!m)
 	{
 		LOG_ERROR("Error: Out of memory, mosquitto_new failed");
@@ -153,6 +164,15 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 	{
 		//TODO: start a timer to re-connect to the MQTT server
 		LOG_ERROR("%s connect to %s:%d failed:%s", id, host, port, mosquitto_strerror(rc));
+
+        mosquitto_destroy(m);
+
+        struct timeval one_minitue = { 60, 0 };
+
+        if (!evTimerReconnect)
+        {
+            evTimerReconnect = timer_newLoop(arg->base, &one_minitue, mqtt_reconnect_cb, arg);
+        }
 		return NULL;
 	}
 	else
@@ -200,6 +220,12 @@ void mqtt_initial(MQTT_ARG* mqtt_arg)
     if (mosq)
     {
         LOG_INFO("connect to MQTT successfully");
+        if (evTimerReconnect)
+        {
+            evtimer_del(evTimerReconnect);
+            event_free(evTimerReconnect);
+            evTimerReconnect = NULL;
+        }
     }
     else
     {
@@ -219,6 +245,13 @@ void mqtt_cleanup()
 		}
 		mosquitto_destroy(mosq);
 	}
+
+    if (evTimerReconnect)
+    {
+        evtimer_del(evTimerReconnect);
+        event_free(evTimerReconnect);
+    }
+
 }
 
 void mqtt_publish(const char *topic, const void *payload, int payloadlen)
