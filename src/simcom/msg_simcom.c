@@ -95,7 +95,7 @@ void * alloc_simcomWildMsg(const char* data, size_t length)
 void* alloc_simcomDefendReq(int token, unsigned char operator)
 {
     MSG_DEFEND_REQ *req = (MSG_DEFEND_REQ *)alloc_simcom_msg(CMD_DEFEND, sizeof(MSG_DEFEND_REQ));
-    if(!req)
+    if(req)
     {
         req->token = token;
         req->operator = operator;
