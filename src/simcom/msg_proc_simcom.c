@@ -450,6 +450,7 @@ static int simcom_autoPeriodGetRsp(const void *msg, SESSION *session)
 	const MSG_AUTODEFEND_PEROID_GET_RSP* rsp = (MSG_AUTODEFEND_PEROID_GET_RSP*)msg;
 	OBJECT *obj = session->obj;
 
+    app_sendAutoDefendPeriodMsg2App(get_time(), rsp->period, session);
     return 0;
 }
 static int simcom_autoDefendNotify(const void *m, SESSION *session)
