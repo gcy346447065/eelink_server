@@ -56,7 +56,7 @@ static int simcom_sendMsg(void *msg, size_t len, SESSION *session)
     return 0;
 }
 
-static int get_time()
+static time_t get_time()
 {
     time_t rawtime;
     time(&rawtime);
