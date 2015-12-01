@@ -225,6 +225,27 @@ static void app_sendAutoPeriodSetMsg2Device(cJSON* appMsg, OBJECT* obj)
 
 }
 
+static void app_sendAutoPeriodGetMsg2Device(cJSON* appMsg, OBJECT* obj)
+{
+    int cmd = getMsgCmd(appMsg);
+
+
+    //TODO: the following should be encapsulate like alloc_simcomDefendReq
+    MSG_AUTODEFEND_PERIOD_GET_REQ *req = alloc_simcom_msg(CMD_AUTODEFEND_PERIOD_GET,
+                                                          sizeof(MSG_AUTODEFEND_PERIOD_GET_REQ));
+    if (!req)
+    {
+        LOG_FATAL("insufficient memory");
+        app_sendCmdRsp2App(cmd, ERR_INTERNAL, obj->IMEI);
+        return;
+    }
+
+    req->token = APP_CMD_AUTOPERIOD_SET;
+
+    app_sendCmdRsp2App(cmd, ERR_WAITING, obj->IMEI);
+    app_sendMsg2Device(req, sizeof(MSG_AUTODEFEND_PERIOD_GET_REQ), obj);
+
+}
 static void getImeiFromTopic(const char* topic, char* IMEI)
 {
 
@@ -326,6 +347,11 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len __at
         case APP_CMD_AUTOPERIOD_SET:
             LOG_INFO("receive app APP_CMD_AUTOPERIOD_SET");
             app_sendAutoPeriodSetMsg2Device(appMsg, obj);
+            break;
+
+        case APP_CMD_AUTOPERIOD_GET:
+        	LOG_INFO("receive app APP_CMD_AUTOPERIOD_GET");
+            app_sendAutoPeriodGetMsg2Device(appMsg, obj);
             break;
 
         default:
