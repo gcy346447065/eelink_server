@@ -57,7 +57,6 @@ void mqtt_connect_callback(struct mosquitto *mosq, void *userdata, int rc)
     }
     else
     {
-        //TODO: check whether mosquitto_connack_string here is OK
         LOG_ERROR("Connect failed: result = %s", mosquitto_connack_string(rc));
     }
 }
@@ -162,7 +161,6 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 	int rc = mosquitto_connect(m, host, port, keepalive);
 	if(rc != MOSQ_ERR_SUCCESS)
 	{
-		//TODO: start a timer to re-connect to the MQTT server
 		LOG_ERROR("%s connect to %s:%d failed:%s", id, host, port, mosquitto_strerror(rc));
 
         mosquitto_destroy(m);
