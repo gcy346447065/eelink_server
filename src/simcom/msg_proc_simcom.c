@@ -243,6 +243,7 @@ int simcom_cell(const void *msg, SESSION *session)
     }
     db_saveCGI(obj->IMEI, obj->timestamp, obj->cell, num);
 
+#if 0
     float lat, lon;
     int rc = cgi2gps(obj->cell, num, &lat, &lon);
     if(rc != 0)
@@ -256,6 +257,8 @@ int simcom_cell(const void *msg, SESSION *session)
 
     app_sendGpsMsg2App(session);
     db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, 0, 0);
+#endif
+
     return 0;
 }
 
