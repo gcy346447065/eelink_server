@@ -14,6 +14,7 @@
 #include "session.h"
 #include "object.h"
 #include "cJSON.h"
+typedef int (*APP_MSG_PROC)(cJSON*, OBJECT*);
 
 static void app_sendMsg2Device(void *msg, size_t len, OBJECT *obj)
 {
@@ -80,12 +81,12 @@ static int getMsgCmd(cJSON* appMsg)
     return cmdItem->valueint;
 }
 
-static void app_sendWildMsg2Device(cJSON* appMsg, OBJECT* obj)
+static int app_sendWildMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
     cJSON *dataItem = cJSON_GetObjectItem(appMsg, "data");
     if (!dataItem) {
         LOG_ERROR("wild cmd with no data");
-        return;
+        return -1;
     }
 
     char* data = dataItem->string;
@@ -95,13 +96,15 @@ static void app_sendWildMsg2Device(cJSON* appMsg, OBJECT* obj)
     {
         LOG_FATAL("insufficient memory");
         app_sendCmdRsp2App(APP_CMD_WILD, ERR_INTERNAL, obj->IMEI);
-        return;
+        return -1;
     }
 
     app_sendMsg2Device(msg, MSG_HEADER_LEN + strlen(data), obj);
+
+    return 0;
 }
 
-static void app_sendFenceMsg2Device(cJSON* appMsg, OBJECT* obj)
+static int app_sendFenceMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
     int cmd = getMsgCmd(appMsg);
 
@@ -110,14 +113,16 @@ static void app_sendFenceMsg2Device(cJSON* appMsg, OBJECT* obj)
     {
         LOG_FATAL("insufficient memory");
         app_sendCmdRsp2App(cmd, ERR_INTERNAL, obj->IMEI);
-        return;
+        return -1;
     }
 
     app_sendCmdRsp2App(cmd, ERR_WAITING, obj->IMEI);
     app_sendMsg2Device(req, sizeof(MSG_DEFEND_REQ), obj);
+
+    return 0;
 }
 
-static void app_sendSeekMsg2Device(cJSON* appMsg, OBJECT* obj)
+static int app_sendSeekMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
     int cmd = getMsgCmd(appMsg);
 
@@ -127,16 +132,16 @@ static void app_sendSeekMsg2Device(cJSON* appMsg, OBJECT* obj)
     {
         LOG_FATAL("insufficient memory");
         app_sendCmdRsp2App(cmd, ERR_INTERNAL, obj->IMEI);
-        return;
+        return -1;
     }
     req->token = cmd;
     req->operator = seekApp2mc(cmd);
     app_sendCmdRsp2App(cmd, ERR_WAITING, obj->IMEI);
     app_sendMsg2Device(req, sizeof(MSG_SEEK_REQ), obj);
-    return;
+    return 0;
 }
 
-static void app_sendLocationMsg2Device(cJSON* appMsg, OBJECT* obj)
+static int app_sendLocationMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
     int cmd = getMsgCmd(appMsg);
 
@@ -146,15 +151,15 @@ static void app_sendLocationMsg2Device(cJSON* appMsg, OBJECT* obj)
     {
         LOG_FATAL("insufficient memory");
         app_sendCmdRsp2App(cmd, ERR_INTERNAL, obj->IMEI);
-        return;
+        return -1;
     }
     app_sendCmdRsp2App(cmd, ERR_WAITING, obj->IMEI);
     app_sendMsg2Device(req, sizeof(MSG_LOCATION), obj);
 
-    return;
+    return 0;
 }
 
-static void app_sendAutoLockOnMsg2Device(cJSON* appMsg, OBJECT* obj)
+static int app_sendAutoLockOnMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
     int cmd = getMsgCmd(appMsg);
 
@@ -165,7 +170,7 @@ static void app_sendAutoLockOnMsg2Device(cJSON* appMsg, OBJECT* obj)
     {
         LOG_FATAL("insufficient memory");
         app_sendCmdRsp2App(cmd, ERR_INTERNAL, obj->IMEI);
-        return;
+        return -1;
     }
 
     req->token = APP_CMD_AUTOLOCK_ON;
@@ -173,9 +178,11 @@ static void app_sendAutoLockOnMsg2Device(cJSON* appMsg, OBJECT* obj)
 
     app_sendCmdRsp2App(cmd, ERR_WAITING, obj->IMEI);
     app_sendMsg2Device(req, sizeof(MSG_AUTODEFEND_SWITCH_SET_REQ), obj);
+
+    return 0;
 }
 
-static void app_sendAutoLockOffMsg2Device(cJSON* appMsg, OBJECT* obj)
+static int app_sendAutoLockOffMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
     int cmd = getMsgCmd(appMsg);
 
@@ -186,16 +193,18 @@ static void app_sendAutoLockOffMsg2Device(cJSON* appMsg, OBJECT* obj)
     {
         LOG_FATAL("insufficient memory");
         app_sendCmdRsp2App(cmd, ERR_INTERNAL, obj->IMEI);
-        return;
+        return -1;
     }
     req->token = APP_CMD_AUTOLOCK_OFF;
     req->onOff = AUTO_DEFEND_OFF;
 
     app_sendCmdRsp2App(cmd, ERR_WAITING, obj->IMEI);
     app_sendMsg2Device(req, sizeof(MSG_AUTODEFEND_SWITCH_SET_REQ), obj);
+
+    return 0;
 }
 
-static void app_sendAutoPeriodSetMsg2Device(cJSON* appMsg, OBJECT* obj)
+static int app_sendAutoPeriodSetMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
     int cmd = getMsgCmd(appMsg);
 
@@ -206,13 +215,13 @@ static void app_sendAutoPeriodSetMsg2Device(cJSON* appMsg, OBJECT* obj)
     if (!req) {
         LOG_FATAL("insufficient memory");
         app_sendCmdRsp2App(cmd, ERR_INTERNAL, obj->IMEI);
-        return;
+        return -1;
     }
 
     cJSON *periodItem = cJSON_GetObjectItem(appMsg, "period");
     if (!periodItem) {
         LOG_ERROR("period format error:no period item");
-        return;
+        return -1;
     }
 
     int period = periodItem->valueint;
@@ -223,9 +232,11 @@ static void app_sendAutoPeriodSetMsg2Device(cJSON* appMsg, OBJECT* obj)
     app_sendCmdRsp2App(cmd, ERR_WAITING, obj->IMEI);
     app_sendMsg2Device(req, sizeof(MSG_AUTODEFEND_PERIOD_SET_REQ), obj);
 
+    return 0;
+
 }
 
-static void app_sendAutoPeriodGetMsg2Device(cJSON* appMsg, OBJECT* obj)
+static int app_sendAutoPeriodGetMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
     int cmd = getMsgCmd(appMsg);
 
@@ -237,13 +248,15 @@ static void app_sendAutoPeriodGetMsg2Device(cJSON* appMsg, OBJECT* obj)
     {
         LOG_FATAL("insufficient memory");
         app_sendCmdRsp2App(cmd, ERR_INTERNAL, obj->IMEI);
-        return;
+        return -1;
     }
 
     req->token = APP_CMD_AUTOPERIOD_SET;
 
     app_sendCmdRsp2App(cmd, ERR_WAITING, obj->IMEI);
     app_sendMsg2Device(req, sizeof(MSG_AUTODEFEND_PERIOD_GET_REQ), obj);
+
+    return 0;
 
 }
 static void getImeiFromTopic(const char* topic, char* IMEI)
@@ -262,6 +275,26 @@ static void getImeiFromTopic(const char* topic, char* IMEI)
 
     return;
 }
+
+typedef struct
+{
+    char cmd;
+    APP_MSG_PROC pfn;
+} APP_MSG_PROC_MAP;
+
+APP_MSG_PROC_MAP msg_proc_map[] = {
+        {APP_CMD_WILD,           app_sendWildMsg2Device},
+        {APP_CMD_FENCE_ON,       app_sendFenceMsg2Device},
+        {APP_CMD_FENCE_OFF,      app_sendFenceMsg2Device},
+        {APP_CMD_FENCE_GET,      app_sendFenceMsg2Device},
+        {APP_CMD_SEEK_ON,        app_sendSeekMsg2Device},
+        {APP_CMD_SEEK_OFF,       app_sendSeekMsg2Device},
+        {APP_CMD_LOCATION,       app_sendLocationMsg2Device},
+        {APP_CMD_AUTOLOCK_ON,    app_sendAutoLockOnMsg2Device},
+        {APP_CMD_AUTOLOCK_OFF,   app_sendAutoLockOffMsg2Device},
+        {APP_CMD_AUTOPERIOD_SET, app_sendAutoPeriodSetMsg2Device},
+        {APP_CMD_AUTOPERIOD_GET, app_sendAutoPeriodGetMsg2Device},
+};
 
 int app_handleApp2devMsg(const char* topic, const char* data, const int len __attribute__((unused)))
 {
@@ -306,58 +339,22 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len __at
         return 0;
     }
 
-    switch (cmd)
+    LOG_INFO("receive app cmd:%d", cmd);
+
+    for (size_t i = 0; i < sizeof(msg_proc_map) / sizeof(msg_proc_map[0]); i++)
     {
-        case APP_CMD_WILD:
-            LOG_INFO("receive app wildcard cmd");
-            app_sendWildMsg2Device(appMsg, obj);
-            break;
-
-        case APP_CMD_FENCE_ON:
-        case APP_CMD_FENCE_OFF:
-        case APP_CMD_FENCE_GET:
-            LOG_INFO("receive app APP_CMD_FENCE_%d", cmd);
-
-            app_sendFenceMsg2Device(appMsg, obj);
-            break;
-
-        case APP_CMD_SEEK_ON:
-        case APP_CMD_SEEK_OFF:
-            LOG_INFO("receive app APP_CMD_SEEK: %d", cmd);
-            app_sendSeekMsg2Device(appMsg, obj);
-            break;
-
-        case APP_CMD_LOCATION:
-            LOG_INFO("receive app APP_CMD_LOCATION");
-            app_sendLocationMsg2Device(appMsg, obj);
-            break;
-
-        case APP_CMD_AUTOLOCK_ON:
-            LOG_INFO("receive app APP_CMD_AUTOLOCK_ON");
-            app_sendAutoLockOnMsg2Device(appMsg, obj);
-
-            break;
-
-        case APP_CMD_AUTOLOCK_OFF:
-            LOG_INFO("receive app APP_CMD_AUTOLOCK_OFF");
-            app_sendAutoLockOffMsg2Device(appMsg, obj);
-
-            break;
-
-        case APP_CMD_AUTOPERIOD_SET:
-            LOG_INFO("receive app APP_CMD_AUTOPERIOD_SET");
-            app_sendAutoPeriodSetMsg2Device(appMsg, obj);
-            break;
-
-        case APP_CMD_AUTOPERIOD_GET:
-        	LOG_INFO("receive app APP_CMD_AUTOPERIOD_GET");
-            app_sendAutoPeriodGetMsg2Device(appMsg, obj);
-            break;
-
-        default:
-            LOG_ERROR("Unknown cmd: %#x", cmd);
-            break;
+        if (msg_proc_map[i].cmd == cmd)
+        {
+            APP_MSG_PROC pfn = msg_proc_map[i].pfn;
+            if (pfn)
+            {
+                pfn(appMsg, obj);
+            }
+        }
     }
-    return 0;
+
+    LOG_ERROR("unknown app cmd:%d", cmd);
+
+    return -1;
 }
 
