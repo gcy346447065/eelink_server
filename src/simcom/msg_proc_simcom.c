@@ -56,7 +56,7 @@ static int simcom_sendMsg(void *msg, size_t len, SESSION *session)
     return 0;
 }
 
-static int get_time()
+static time_t get_time()
 {
     time_t rawtime;
     time(&rawtime);
@@ -447,9 +447,10 @@ static int simcom_autoPeriodSetRsp(const void *msg, SESSION *session)
 
 static int simcom_autoPeriodGetRsp(const void *msg, SESSION *session)
 {
+	const MSG_AUTODEFEND_PEROID_GET_RSP* rsp = (MSG_AUTODEFEND_PEROID_GET_RSP*)msg;
+	OBJECT *obj = session->obj;
 
-    //TODO: to be complted
-
+    app_sendAutoDefendPeriodMsg2App(get_time(), rsp->period, session);
     return 0;
 }
 static int simcom_autoDefendNotify(const void *m, SESSION *session)

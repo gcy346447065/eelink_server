@@ -49,7 +49,7 @@ void mqtt_message_callback(struct mosquitto *m __attribute__((unused)), void *us
 
 }
 
-void mqtt_connect_callback(struct mosquitto *mosq, void *userdata, int rc)
+void mqtt_connect_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int rc)
 {
     if(!rc)
     {
@@ -57,12 +57,11 @@ void mqtt_connect_callback(struct mosquitto *mosq, void *userdata, int rc)
     }
     else
     {
-        //TODO: check whether mosquitto_connack_string here is OK
         LOG_ERROR("Connect failed: result = %s", mosquitto_connack_string(rc));
     }
 }
 
-void mqtt_disconnect_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata, int rc)
+void mqtt_disconnect_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int rc)
 {
 
     if(rc)
@@ -116,12 +115,12 @@ void mqtt_log_callback(struct mosquitto *m __attribute__((unused)), void *userda
 
 }
 
-void mqtt_publish_callback(struct mosquitto *m __attribute__((unused)), void *userdata __attribute__((unused)), int mid __attribute__((unused)))
+void mqtt_publish_callback(struct mosquitto *m __attribute__((unused)), void *userdata __attribute__((unused)), int mid)
 {
     LOG_INFO("Publish mid: %d successfully", mid);
 }
 
-void mqtt_reconnect_cb(evutil_socket_t fd, short a, void * arg)
+void mqtt_reconnect_cb(evutil_socket_t fd __attribute__((unused)), short a __attribute__((unused)), void * arg)
 {
     LOG_INFO("re-connect to MQTT server");
     mqtt_initial(arg);
@@ -162,7 +161,6 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 	int rc = mosquitto_connect(m, host, port, keepalive);
 	if(rc != MOSQ_ERR_SUCCESS)
 	{
-		//TODO: start a timer to re-connect to the MQTT server
 		LOG_ERROR("%s connect to %s:%d failed:%s", id, host, port, mosquitto_strerror(rc));
 
         mosquitto_destroy(m);
@@ -192,12 +190,10 @@ void mqtt_initial(MQTT_ARG* mqtt_arg)
     int port = 1883;
 
     char hostname[256] = {0};
-    int len = 0;
-
     gethostname(hostname, 256);
     hostname[255] = 0;
 
-    len = strlen(hostname) + 10;
+    size_t len = strlen(hostname) + 10;
     mqtt_id = malloc(len);
     if (!mqtt_id)
     {
@@ -254,7 +250,7 @@ void mqtt_cleanup()
 
 }
 
-void mqtt_publish(const char *topic, const void *payload, int payloadlen)
+void mqtt_publish(const char *topic, const void *payload, size_t payloadlen)
 {
 	int rc = mosquitto_publish(mosq, NULL, topic, payloadlen, payload, 0, false);
 	if (rc != MOSQ_ERR_SUCCESS)
@@ -277,7 +273,7 @@ void mqtt_subscribe(const char *imei)
 	}
 	else
 	{
-		LOG_ERROR("subscribe topic: %s error", topic);
+		LOG_ERROR("subscribe topic: %s error %d", topic, rc);
 	}
 }
 

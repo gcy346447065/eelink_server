@@ -127,7 +127,6 @@ int main(int argc, char **argv)
     if (rc)
     {
         LOG_ERROR("connect to sync server failed, try later");
-        //TODO: start a timer to re-connect to the sync server
     }
 
     //start the event loop
