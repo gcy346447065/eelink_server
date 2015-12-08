@@ -277,7 +277,7 @@ void mqtt_subscribe(const char *imei)
 	}
 	else
 	{
-		LOG_ERROR("subscribe topic: %s error", topic);
+		LOG_ERROR("subscribe topic: %s error %d", topic, rc);
 	}
 }
 
