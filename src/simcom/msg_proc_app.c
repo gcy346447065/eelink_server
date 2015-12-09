@@ -348,7 +348,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len __at
             APP_MSG_PROC pfn = msg_proc_map[i].pfn;
             if (pfn)
             {
-                pfn(appMsg, obj);
+                return pfn(appMsg, obj);
             }
         }
     }
