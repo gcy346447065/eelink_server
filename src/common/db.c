@@ -22,7 +22,7 @@ int _db_initial()
 
     conn = mysql_init(NULL);
 
-    mysql_option(conn, MYSQL_OPT_RECONNECT, (char *)&value);
+    mysql_options(conn, MYSQL_OPT_RECONNECT, (char *)&value);
 
     if(!mysql_real_connect(conn, DB_HOST, DB_USER, DB_PWD, DB_NAME, DB_PORT, NULL, 0))
     {
