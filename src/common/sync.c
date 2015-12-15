@@ -37,7 +37,7 @@ static void sendMsg2Sync(void* data, size_t len)
     bufferevent_write(bev, data, len);
 }
 
-static void eventcb(struct bufferevent *bev, short events, void *arg)
+static void event_cb(struct bufferevent *bev, short events, void *arg)
 {
     struct event_base *base = bev->ev_base;
     if (events & BEV_EVENT_CONNECTED)
@@ -110,9 +110,8 @@ int sync_init(struct event_base *base)
 
     bev = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
 
-    bufferevent_setcb(bev, read_cb, write_cb, eventcb, NULL);
-    bufferevent_enable(bev, EV_READ|EV_WRITE);
-
+    bufferevent_setcb(bev, read_cb, write_cb, event_cb, NULL);
+    bufferevent_enable(bev, EV_READ | EV_WRITE);
 
     if (bufferevent_socket_connect(bev,
         (struct sockaddr *)&sin, sizeof(sin)) < 0)
@@ -163,7 +162,8 @@ void sync_newIMEI(const char *imei)
     cJSON_AddStringToObject(root, TAG_IMEI, imei);
 
     char *data = cJSON_PrintUnformatted(root);
-    if (!data) {
+    if (!data) 
+    {
         //TODO: log error
         cJSON_Delete(root);
         return;

@@ -30,21 +30,20 @@ static void leancloud_post(CURL *curl, const char* class, const void* data, int 
 
 	/* pass in a pointer to the data - libcurl will not copy */
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
+
 	/* size of the POST data */
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, len);
 
-//    LOG_INFO("Post leancloud: %s ---> %s", url, data);
+    //LOG_INFO("Post leancloud: %s ---> %s", url, data);
 
     /* Perform the request, res will get the return code */
     CURLcode res = curl_easy_perform(curl);
-
-
-    /* Check for errors */
     if(res != CURLE_OK)
     {
     	LOG_ERROR("curl_easy_perform() failed: %s",curl_easy_strerror(res));
     }
 
+    return;
 }
 
 static int leancloud_get(CURL *curl, const char* class)
@@ -65,7 +64,6 @@ static int leancloud_get(CURL *curl, const char* class)
     }
     return 0;
 }
-
 
 void leancloud_saveGPS(const char* imei, double lat, double lng)
 {
@@ -150,7 +148,6 @@ int leancloud_onGetOBJ(MemroyBuf *chunk)
     cJSON_Delete(root);
     return ret;
 }
-
 
 int leancloud_getOBJ()
 {
