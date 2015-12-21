@@ -103,9 +103,10 @@ int simcom_login(const void *msg, SESSION *session)
             memcpy(obj->IMEI, imei, IMEI_LENGTH + 1);
             memcpy(obj->DID,  imei, IMEI_LENGTH + 1);//IMEI and DID mean the same now
 
-            sync_newIMEI(obj->IMEI);
-
             obj_add(obj);
+
+            sync_newIMEI(obj->IMEI);
+            
             mqtt_subscribe(obj->IMEI);
         }
 

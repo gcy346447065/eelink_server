@@ -17,22 +17,18 @@
 
 #define LEANCLOUD_URL_BASE "https://api.leancloud.cn/1.1"
 
+static struct event *evTimerReconnect = NULL;
+
 static void leancloud_post(CURL *curl, const char* class, const void* data, int len)
 {
 	char url[256] = {0};
 
-
 	snprintf(url, 256, "%s/classes/%s", LEANCLOUD_URL_BASE, class);
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
-
 	curl_easy_setopt(curl, CURLOPT_POST, 1L);
-
-	/* pass in a pointer to the data - libcurl will not copy */
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
-
-	/* size of the POST data */
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, len);
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data); /* pass in a pointer to the data - libcurl will not copy */
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, len); /* size of the POST data */
 
     //LOG_INFO("Post leancloud: %s ---> %s", url, data);
 

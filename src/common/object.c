@@ -26,17 +26,20 @@ static void obj_add_hash(OBJECT *obj)
 
 static void obj_add_db(OBJECT *obj)
 {
-	db_insertOBJ(obj->IMEI, obj->timestamp);
+	db_insertOBJ(obj->IMEI);
 	LOG_INFO("obj %s added to DB", obj->IMEI);
 }
 
 /* it is a callback to initialize object_table.Func db_doWithOBJ needs it to handle with every result(imei, lastlogintime).*/
-static void obj_initial(const char *imei, int timestamp)
+static void obj_initial(const char *imei)
 {
 	OBJECT *obj = obj_new();
+
 	memcpy(obj->IMEI, imei, IMEI_LENGTH);
 	obj->IMEI[IMEI_LENGTH] = 0;
-	obj->timestamp = timestamp;
+
+	obj->timestamp = 0;//TO DO
+
 	obj_add_hash(obj);
 }
 
@@ -73,6 +76,7 @@ void obj_table_initial(void (*mqtt_sub)(const char *))
 {
     /* create hash table */
     object_table = g_hash_table_new_full(g_str_hash, g_str_equal, obj_freeKey, obj_freeValue);
+
     /* read imei data from db*/
 	db_doWithOBJ(obj_initial, mqtt_sub);
 }

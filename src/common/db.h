@@ -28,7 +28,7 @@ int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char s
 int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cellNo);
 
 int db_doWithOBJ(void (*func)(const char*, int), void (*func2)(const char *));
-int db_insertOBJ(const char *imeiName, int lastlogintime);
+int db_insertOBJ(const char *imeiName);
 int db_updateOBJ(const char *imeiName, int lastLoginTime);
 
 #endif	/* DB_H */

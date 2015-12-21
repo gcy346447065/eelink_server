@@ -169,9 +169,9 @@ int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[], int ce
 
 /*Object db
 Names of the table and columns need modifing*/
-int _db_doWithOBJ(void (*func1)(const char*, int), void (*func2)(const char *))
+int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *))
 {
-    char query[] = "select imei, lastlogintime from object";
+    char query[] = "select imei from object";
 
     if(mysql_ping(conn))
     {
@@ -184,22 +184,23 @@ int _db_doWithOBJ(void (*func1)(const char*, int), void (*func2)(const char *))
         LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
         return 2;
     }
+
     MYSQL_RES *result;
     MYSQL_ROW row;
     result = mysql_use_result(conn);
-    while(row= mysql_fetch_row(result))
+    while(row = mysql_fetch_row(result))
     {
-        func1(row[0], atoi(row[1]));
+        func1(row[0]);
         func2(row[0]);
     }
     mysql_free_result(result);
     return 0;
 }
 
-int _db_insertOBJ(const char *imeiName, int lastLoginTime)
+int _db_insertOBJ(const char *imeiName)
 {
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into object(imei, lastlogintime) values(\'%s\', %d)", imeiName, lastLoginTime);
+    snprintf(query, MAX_QUERY, "insert into object(imei) values(\'%s\')", imeiName);
     
     if(mysql_ping(conn))
     {
@@ -214,26 +215,6 @@ int _db_insertOBJ(const char *imeiName, int lastLoginTime)
     }
     return 0;
 }
-
-int _db_updateOBJ(const char *imeiName, int lastLoginTime)
-{
-    char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "update object set lastlogintime = %d where imei = \'%s\'", lastLoginTime, imeiName);
-    
-    if(mysql_ping(conn))
-    {
-        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
-        return 1;
-    }
-
-    if(mysql_query(conn, query))
-    {
-        LOG_ERROR("can't update Obj where imei = %s(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
-        return 2;
-    }
-    return 0;
-}
-
 
 int db_initial()
 {
@@ -306,20 +287,17 @@ int db_doWithOBJ(void (*func)(const char*, int), void (*func2)(const char *))
     return 0;
 }
 
-int db_insertOBJ(const char *imeiName, int lastlogintime)
+int db_insertOBJ(const char *imeiName)
 {
 #ifdef WITH_DB
-    return _db_insertOBJ(imeiName, lastlogintime);
+    return _db_insertOBJ(imeiName);
 #endif
 
     return 0;
 }
 
+/* TO DO: remove the update? */
 int db_updateOBJ(const char *imeiName, int lastLoginTime)
 {
-#ifdef WITH_DB
-    return _db_updateOBJ(imeiName, lastLoginTime);
-#endif
-
     return 0;
 }
