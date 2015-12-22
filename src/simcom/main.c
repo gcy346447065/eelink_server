@@ -28,7 +28,8 @@ static void signal_cb(evutil_socket_t fd, short what, void *arg)
 
 int main(int argc, char **argv)
 {
-    int simcom_port= PORT_SIMCOM;
+    //int simcom_port = PORT_SIMCOM;
+    int simcom_port = 8888;
 
     setvbuf(stdout, NULL, _IONBF, 0);
 

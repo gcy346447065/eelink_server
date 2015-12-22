@@ -31,10 +31,10 @@ static void sig_usr(int signo)
 
 int main(int argc, char **argv)
 {
-    int port = PORT_SYNC;
+    //int port = PORT_SYNC;
+    int port = 8889;
 
     setvbuf(stdout, NULL, _IONBF, 0);
-
 
     if (argc >= 2)
     {
@@ -53,10 +53,12 @@ int main(int argc, char **argv)
 
     base = event_base_new();
     if (!base)
+    {
+        LOG_ERROR("Can't make new event base");
         return 1; /*XXXerr*/
+    }
 
     int rc = log_init("../conf/sync_log.conf");
-
     if (rc)
     {
         LOG_ERROR("log initial failed: rc=%d", rc);
@@ -67,6 +69,7 @@ int main(int argc, char **argv)
     {
         LOG_ERROR("Can't catch SIGINT");
     }
+
     if (signal(SIGTERM, sig_usr) == SIG_ERR)
     {
     	LOG_ERROR("Can't catch SIGTERM");
@@ -95,17 +98,15 @@ int main(int argc, char **argv)
     LOG_INFO("start the event loop");
     event_base_dispatch(base);
 
-
     env_cleanup();
 
-//    sk_free(SSL_COMP_get_compression_methods());
+    //sk_free(SSL_COMP_get_compression_methods());
     LOG_INFO("stop mc server...");
     evconnlistener_free(listener);
 
     event_base_free(base);
     curl_global_cleanup();
     zlog_fini();
-
 
     return 0;
 }
