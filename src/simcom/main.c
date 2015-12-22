@@ -32,7 +32,6 @@ int main(int argc, char **argv)
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
-
     if (argc >= 2)
     {
     	char* strPort = argv[1];
@@ -54,7 +53,6 @@ int main(int argc, char **argv)
         return 1; /*XXXerr*/
 
     int rc = log_init("../conf/simcom_log.conf");
-
     if (rc)
     {
         LOG_ERROR("log initial failed: rc=%d", rc);
@@ -70,7 +68,7 @@ int main(int argc, char **argv)
     struct event *evInt = evsignal_new(base, SIGINT, signal_cb, base);
     if (!evInt || evsignal_add(evInt, NULL) < 0)
     {
-        LOG_ERROR("can't create SIGTERM event");
+        LOG_ERROR("can't create SIGINT event");
     }
 
     rc = mosquitto_lib_init();
@@ -82,7 +80,7 @@ int main(int argc, char **argv)
 
     static MQTT_ARG mqtt_arg =
     {
-            .app_msg_handler = app_handleApp2devMsg
+        .app_msg_handler = app_handleApp2devMsg
     };
     mqtt_arg.base = base;
 
@@ -100,7 +98,6 @@ int main(int argc, char **argv)
     {
     	LOG_FATAL("curl lib initial failed:%d", rc);
     }
-
 
     rc = db_initial();
     if(rc)

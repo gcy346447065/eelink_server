@@ -152,7 +152,7 @@ struct evconnlistener* server_simcom(struct event_base* base, int port)
     sin.sin_port = htons(port);
 
     listener = evconnlistener_new_bind(base, accept_conn_cb, NULL,
-            LEV_OPT_CLOSE_ON_FREE|LEV_OPT_REUSEABLE, -1,
+            LEV_OPT_CLOSE_ON_FREE | LEV_OPT_REUSEABLE, -1,
             (struct sockaddr*)&sin, sizeof(sin));
     if (!listener)
     {

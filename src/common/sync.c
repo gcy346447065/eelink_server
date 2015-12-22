@@ -130,6 +130,7 @@ int sync_init(struct event_base *base)
         {
             //The event_self_cbarg() function was introduced in Libevent 2.1.1-alpha.
             //evTimerReconnect = timer_newOnce(base, &one_minitue, sync_reconnect_fn, event_self_cbarg());
+            
             evTimerReconnect = timer_newOnce(base, &five_minitue, sync_reconnect_fn, base);
         }
         return -1;
