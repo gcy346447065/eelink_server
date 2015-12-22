@@ -63,7 +63,6 @@ CURL* initCurlHandleOfLeancloud()
 		return NULL;
 	}
 
-
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, getLeancloudHeader());
 
     return curl;

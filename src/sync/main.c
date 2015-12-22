@@ -13,7 +13,6 @@
 
 struct event_base *base = NULL;
 
-
 static void sig_usr(int signo)
 {
 	if (signo == SIGINT)
@@ -81,7 +80,7 @@ int main(int argc, char **argv)
     	LOG_FATAL("curl lib initial failed:%d", rc);
     }
 
-    struct evconnlistener*listener = server_sync(base, port);
+    struct evconnlistener *listener = server_sync(base, port);
     if (listener)
     {
         LOG_INFO("start sync server successfully at port:%d", port);

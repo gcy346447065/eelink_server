@@ -133,7 +133,7 @@ int main(int argc, char **argv)
     event_base_dispatch(base);
 
 
-//    sk_free(SSL_COMP_get_compression_methods());
+    //sk_free(SSL_COMP_get_compression_methods());
     LOG_INFO("stop mc server...");
 
     sync_exit();
@@ -156,9 +156,7 @@ int main(int argc, char **argv)
 
     mosquitto_lib_cleanup();
 
-
     zlog_fini();
-
 
     return 0;
 }

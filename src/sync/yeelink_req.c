@@ -41,6 +41,8 @@ static void yeelink_post(CURL *curl, const char* url, const void* data, int len)
     }
 
     //cleanup when the connect is down, see server_mc.c
+    
+    return;
 }
 
 
@@ -78,6 +80,8 @@ void yeelink_createDevice(OBJ_MC* obj, void* arg)
 	free(data);
 
 	curl_easy_cleanup(curl);
+
+	return;
 }
 
 void yeelink_createSensor(int device_id, void* arg)
@@ -114,6 +118,7 @@ void yeelink_createSensor(int device_id, void* arg)
 
 	curl_easy_cleanup(curl);
 
+	return;
 }
 
 void yeelink_saveGPS(OBJ_MC* obj, void* arg)
@@ -144,4 +149,5 @@ void yeelink_saveGPS(OBJ_MC* obj, void* arg)
 	cJSON_Delete(root);
 	free(data);
 
+	return;
 }

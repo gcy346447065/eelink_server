@@ -84,7 +84,6 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
     }
 }
 
-
 static void accept_conn_cb(struct evconnlistener *listener,
     evutil_socket_t fd, struct sockaddr *address, int socklen, void *arg)
 {
@@ -113,7 +112,6 @@ static void accept_conn_cb(struct evconnlistener *listener,
     session->bev = bev;
     session->obj = NULL;
     session->pSendMsg = send_msg;
-
 
     //TODO: set the water-mark and timeout
     bufferevent_setcb(bev, read_cb, write_cb, event_cb, session);

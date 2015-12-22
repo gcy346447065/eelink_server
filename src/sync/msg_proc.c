@@ -2,7 +2,6 @@
 // Created by jk on 15-10-30.
 //
 
-
 #include "msg_proc.h"
 #include "cJSON.h"
 #include "log.h"
@@ -44,7 +43,6 @@ static void msg_saveGPS(cJSON* json)
 
 int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
 {
-
     cJSON* root = cJSON_Parse(m);
     if (!root)
     {
