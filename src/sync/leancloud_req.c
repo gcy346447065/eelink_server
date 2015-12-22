@@ -68,18 +68,22 @@ void leancloud_saveGPS(const char* imei, double lat, double lng)
 
 	cJSON *root = cJSON_CreateObject();
 
-	cJSON_AddStringToObject(root,"IMEI", imei);
-	cJSON_AddNumberToObject(root,"lat",	lat);
-	cJSON_AddNumberToObject(root,"lon",	lng);
-//	cJSON_AddNumberToObject(root,"speed",	speed);
-//	cJSON_AddNumberToObject(root,"course",	course);
-//	cJSON_AddNumberToObject(root,"time", timestamp);
+	cJSON_AddStringToObject(root, "IMEI", imei);
+	cJSON_AddNumberToObject(root, "lat",	lat);
+	cJSON_AddNumberToObject(root, "lon",	lng);
+    //cJSON_AddNumberToObject(root, "speed",	speed);
+    //cJSON_AddNumberToObject(root, "course",	course);
+    //cJSON_AddNumberToObject(root, "time", timestamp);
 	char* data = cJSON_PrintUnformatted(root);
+
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveGPS);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, env);
 	leancloud_post(curl, "GPS", data, strlen(data));
+
 	cJSON_Delete(root);
 	free(data);
+
+    return;
 }
 
 void leancloud_saveDid(const char* imei)
@@ -89,11 +93,15 @@ void leancloud_saveDid(const char* imei)
 
 	cJSON *root = cJSON_CreateObject();
 
-	cJSON_AddStringToObject(root,"IMEI", imei);
+	cJSON_AddStringToObject(root, "IMEI", imei);
 	char* data = cJSON_PrintUnformatted(root);
+
 	leancloud_post(curl, "DID", data, strlen(data));
+
 	cJSON_Delete(root);
 	free(data);
+
+    return;
 }
 
 int leancloud_onGetOBJ(MemroyBuf *chunk)

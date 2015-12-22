@@ -11,10 +11,9 @@
 static void msg_saveDid(cJSON* json)
 {
     cJSON* imei = cJSON_GetObjectItem(json, TAG_IMEI);
-
     if (!imei)
     {
-        //TODO: log error
+        LOG_ERROR("save Did failed");
         return;
     }
 
@@ -32,7 +31,7 @@ static void msg_saveGPS(cJSON* json)
 
     if (!imei || !lat || !lng)
     {
-        //TODO: log error
+        LOG_ERROR("save GPS failed");
         return;
     }
 

@@ -59,26 +59,27 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
 	{
 		LOG_INFO("client connection timeout!");
 
-		bufferevent_free(bev);
 		evutil_socket_t socket = bufferevent_getfd(bev);
 		EVUTIL_CLOSESOCKET(socket);
+        bufferevent_free(bev);
 	}
 	else if (events & (BEV_EVENT_EOF | BEV_EVENT_ERROR))
 	{
 		if (events & BEV_EVENT_ERROR)
 		{
-			 int err = bufferevent_socket_get_dns_error(bev);
-			 if (err)
-			 {
-				 LOG_ERROR("DNS error: %s\n", evutil_gai_strerror(err));
-			 }
+			int err = bufferevent_socket_get_dns_error(bev);
+			if (err)
+			{
+				LOG_ERROR("DNS error: %s\n", evutil_gai_strerror(err));
+			}
+
 			LOG_ERROR("BEV_EVENT_ERROR:%s", evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
 		}
+
 		LOG_INFO("Closing the client connection");
 
 		evutil_socket_t socket = bufferevent_getfd(bev);
 		EVUTIL_CLOSESOCKET(socket);
-
 		bufferevent_free(bev);
 	}
 }
