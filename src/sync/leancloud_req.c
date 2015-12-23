@@ -23,12 +23,12 @@ static int leancloud_post(CURL *curl, const char* class, const void* data, int l
 {
 	char url[256] = {0};
 
-	snprintf(url, 256, "%s/classes/%s", LEANCLOUD_URL_BASE, class);
+    snprintf(url, 256, "%s/classes/%s", LEANCLOUD_URL_BASE, class);
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
-	curl_easy_setopt(curl, CURLOPT_POST, 1L);
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data); /* pass in a pointer to the data - libcurl will not copy */
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, len); /* size of the POST data */
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data); /* pass in a pointer to the data - libcurl will not copy */
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, len); /* size of the POST data */
 
     /* Perform the request, res will get the return code */
     CURLcode res = curl_easy_perform(curl);
@@ -111,7 +111,7 @@ int leancloud_ResaveMultiDid_cb(void)
 {
     LOG_INFO("leancloud_ResaveMultiDid_cb");
 
-    
+
 }
 
 int leancloud_onGetOBJ(MemroyBuf *chunk)
