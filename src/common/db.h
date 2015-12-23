@@ -29,7 +29,7 @@ int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cel
 
 int db_doWithOBJ(void (*func)(const char*, int), void (*func2)(const char *));
 int db_insertOBJ(const char *imeiName);
-int db_updateOBJ(const char *imeiName, int lastLoginTime);
+int db_updateOBJIsPosted(const char *imeiName);
 
 #endif	/* DB_H */
 

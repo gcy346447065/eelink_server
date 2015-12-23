@@ -216,6 +216,26 @@ int _db_insertOBJ(const char *imeiName)
     return 0;
 }
 
+int _db_updateOBJIsPosted(const char *imeiName)
+{
+    char query[MAX_QUERY];
+    snprintf(query, MAX_QUERY, "update object set IsPosted=1 where imei=%s", imeiName);
+
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_ERROR("can't update IsPosted where imei=%s(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+
+    return 0;
+}
+
 int db_initial()
 {
 #ifdef WITH_DB
@@ -296,8 +316,11 @@ int db_insertOBJ(const char *imeiName)
     return 0;
 }
 
-/* TO DO: remove the update? */
-int db_updateOBJ(const char *imeiName, int lastLoginTime)
+int db_updateOBJIsPosted(const char *imeiName)
 {
+#ifdef WITH_DB
+    return _db_updateOBJIsPosted(imeiName);
+#endif
+
     return 0;
 }

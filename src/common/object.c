@@ -47,15 +47,14 @@ static void obj_initial(const char *imei)
 static void obj_update(gpointer key, gpointer value, gpointer user_data)
 {
 	OBJECT *obj = (OBJECT *)value;
-	db_updateOBJ(obj->IMEI, obj->timestamp);
+	//db_updateOBJ(obj->IMEI, obj->timestamp);
 }
 
 static void obj_table_save()
 {
     /* foreach hash */
-    g_hash_table_foreach(object_table, obj_update, NULL);
+    //g_hash_table_foreach(object_table, obj_update, NULL);
 }
-
 
 void obj_freeKey(gpointer key)
 {
@@ -83,7 +82,7 @@ void obj_table_initial(void (*mqtt_sub)(const char *))
 
 void obj_table_destruct()
 {
-	obj_table_save();
+	//obj_table_save();
     g_hash_table_destroy(object_table);
 }
 

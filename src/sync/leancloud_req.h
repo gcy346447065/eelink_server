@@ -8,9 +8,10 @@
 #ifndef SRC_LEANCLOUD_REQ_H_
 #define SRC_LEANCLOUD_REQ_H_
 
-void leancloud_saveDid(const char* imei);
+int leancloud_saveDid(const char* imei);
+int leancloud_saveGPS(const char* imei, double lat, double lng);
 
-void leancloud_saveGPS(const char* imei, double lat, double lng);
+int leancloud_ResaveMultiDid_cb(void);
 
 int leancloud_getOBJ();
 

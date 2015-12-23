@@ -157,7 +157,6 @@ int sync_exit()
 
 void sync_newIMEI(const char *imei)
 {
-
     cJSON *root = cJSON_CreateObject();
 
     cJSON_AddNumberToObject(root, TAG_CMD, CMD_SYNC_NEW_DID);
@@ -166,13 +165,13 @@ void sync_newIMEI(const char *imei)
     char *data = cJSON_PrintUnformatted(root);
     if (!data) 
     {
-        //TODO: log error
+        LOG_ERROR("cJSON print unformatted failed");
         cJSON_Delete(root);
         return;
     }
 
     sendMsg2Sync(data, strlen(data));
-    LOG_INFO("sync %s to leancloud", imei);
+    LOG_INFO("send imei(%s) to sync", imei);
 
     free(data);
     cJSON_Delete(root);
@@ -192,12 +191,13 @@ void sync_gps(const char* imei, float lat, float lng)
     char *data = cJSON_PrintUnformatted(root);
     if (!data)
     {
-        //TODO: log error
+        LOG_ERROR("cJSON print unformatted failed");
         cJSON_Delete(root);
         return;
     }
 
     sendMsg2Sync(data, strlen(data));
+    LOG_INFO("send gps(imei(%s), lat(%f), lng(%f)) to sync", imei, lat, lng);
 
     free(data);
     cJSON_Delete(root);

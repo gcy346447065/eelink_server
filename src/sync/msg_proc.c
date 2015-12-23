@@ -25,7 +25,6 @@ static void msg_saveDid(cJSON* json)
 static void msg_saveGPS(cJSON* json)
 {
     cJSON* imei = cJSON_GetObjectItem(json, TAG_IMEI);
-
     cJSON* lat = cJSON_GetObjectItem(json, TAG_LAT);
     cJSON* lng = cJSON_GetObjectItem(json, TAG_LNG);
 

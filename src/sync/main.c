@@ -7,11 +7,14 @@
 #include "log.h"
 #include "version.h"
 #include "server_sync.h"
+#include "leancloud_req.h"
 #include "session.h"
 #include "port.h"
 #include "env.h"
+#include "db.h"
 
 struct event_base *base = NULL;
+static struct event *evTimerRepost = NULL;
 
 static void sig_usr(int signo)
 {
@@ -80,6 +83,13 @@ int main(int argc, char **argv)
     	LOG_FATAL("curl lib initial failed:%d", rc);
     }
 
+    rc = db_initial();
+    if(rc)
+    {
+        LOG_FATAL("connect to mysql failed");
+        return -1;
+    }
+
     struct evconnlistener *listener = server_sync(base, port);
     if (listener)
     {
@@ -91,6 +101,13 @@ int main(int argc, char **argv)
         return 2;
     }
 
+    //struct timeval one_day = { 86400, 0 };
+    struct timeval one_day = { 300, 0 };
+    if(!evTimerRepost)
+    {
+        evTimerRepost = timer_newLoop(base, &one_day, leancloud_ResaveMultiDid_cb, NULL);
+    }
+    
     env_initial();
 
     //start the event loop
@@ -104,6 +121,8 @@ int main(int argc, char **argv)
     evconnlistener_free(listener);
 
     event_base_free(base);
+
+    db_destruct();
     curl_global_cleanup();
     zlog_fini();
 

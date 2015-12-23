@@ -33,15 +33,15 @@ static void yeelink_post(CURL *curl, const char* url, const void* data, int len)
 
     /* Perform the request, res will get the return code */
     CURLcode res = curl_easy_perform(curl);
-
+	curl_easy_cleanup(curl);
     /* Check for errors */
     if(res != CURLE_OK)
     {
-      LOG_ERROR("curl_easy_perform() failed: %s", curl_easy_strerror(res));
+        LOG_ERROR("curl_easy_perform failed: %s", curl_easy_strerror(res));
     }
 
     //cleanup when the connect is down, see server_mc.c
-    
+
     return;
 }
 
