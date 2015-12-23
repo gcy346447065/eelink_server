@@ -109,7 +109,9 @@ int leancloud_saveDid(const char* imei)
 
 int leancloud_ResaveMultiDid_cb(void)
 {
+    LOG_INFO("leancloud_ResaveMultiDid_cb");
 
+    
 }
 
 int leancloud_onGetOBJ(MemroyBuf *chunk)

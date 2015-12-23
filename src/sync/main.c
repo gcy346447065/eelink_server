@@ -105,7 +105,7 @@ int main(int argc, char **argv)
     struct timeval one_day = { 300, 0 };
     if(!evTimerRepost)
     {
-        evTimerRepost = timer_newLoop(base, &one_day, leancloud_ResaveMultiDid_cb, NULL);
+        evTimerRepost = timer_newLoop(base, &one_day, leancloud_ResaveMultiDid_cb, base);
     }
     
     env_initial();
