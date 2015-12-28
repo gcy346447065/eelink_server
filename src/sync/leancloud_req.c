@@ -144,7 +144,6 @@ int leancloud_makeMultiDidCurl(const char** imeiMulti, int imeiNum, CURL* curl, 
         cJSON_AddStringToObject(request, "IMEI", (*imeiMulti)++);
     }
     
-    //char* data = cJSON_PrintUnformatted(root);
     data = cJSON_Print(root);
     LOG_INFO("%s", data);
 
@@ -155,7 +154,8 @@ int leancloud_makeMultiDidCurl(const char** imeiMulti, int imeiNum, CURL* curl, 
 
 int leancloud_ResaveMultiDid_cb(void)
 {
-    const char** imeiMulti = NULL;
+    const char a[][16] = {0};
+    const char** imeiMulti = a;
     int imeiNum = 2;
     char* data;
 
