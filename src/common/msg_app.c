@@ -36,7 +36,8 @@ void app_sendCmdRsp2App(int cmd, int result, const char *strIMEI)
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send cmd msg to APP" );
+
+    LOG_INFO("send IMEI(%s), cmd(%d), result(%d) response to APP", strIMEI, cmd, result);
     free(json);
     cJSON_Delete(root);
 }
@@ -68,7 +69,7 @@ void app_sendFenceGetRspMsg2App(int cmd, int result, int state, void *session)
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send cmd msg to APP" );
+    LOG_INFO("send fence get response to APP" );
     free(json);
     cJSON_Delete(root);
 }

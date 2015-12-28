@@ -57,7 +57,7 @@ int _db_isTableCreated(const char* imeiName, int *num)
 
     if((res = mysql_list_tables(conn, reg)) == NULL)
     {
-        LOG_ERROR("can't judge whether tables of IMEI:%s(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
+        LOG_ERROR("can't list tables of %s(%u, %s)", reg, mysql_errno(conn), mysql_error(conn));
         return 2;
     }
 

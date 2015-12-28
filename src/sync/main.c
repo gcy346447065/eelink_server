@@ -101,17 +101,11 @@ int main(int argc, char **argv)
         return 2;
     }
 
-    /*struct timeval one_day = { 86400, 0 };
-    if(!evTimerRepost)
-    {
-        evTimerRepost = timer_newLoop(base, &one_day, leancloud_ResaveMultiDid_cb, base);
-    }*/
-
+    //start a one-day timer to resave multiple unsaved DIDs
     struct timeval one_day = { 60, 0 };
-    timer_newLoop(base, &one_day, leancloud_ResaveMultiDid_cb, base);
+    //struct timeval one_day = { 86400, 0 };
+    timer_newLoop(base, &one_day, leancloud_ResaveMultiDid_cb, NULL);
 
-    
-    
     env_initial();
 
     //start the event loop

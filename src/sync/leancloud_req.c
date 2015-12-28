@@ -42,6 +42,29 @@ static int leancloud_post(CURL *curl, const char* class, const void* data, int l
     return 0;
 }
 
+static int leancloud_batch(CURL *curl, const void* data, int len)
+{
+    char url[256] = {0};
+
+    snprintf(url, 256, "%s/batch", LEANCLOUD_URL_BASE);
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data); /* pass in a pointer to the data - libcurl will not copy */
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, len); /* size of the POST data */
+
+    /* Perform the request, res will get the return code */
+    CURLcode res = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+    if(CURLE_OK != res)
+    {
+        LOG_ERROR("leancloud_batch failed: %s", curl_easy_strerror(res));
+        return -1;
+    }
+
+    return 0;
+}
+
 static int leancloud_get(CURL *curl, const char* class)
 {
     char url[256] = {0};
@@ -107,11 +130,53 @@ int leancloud_saveDid(const char* imei)
     return ret;
 }
 
+int leancloud_makeMultiDidCurl(const char** imeiMulti, int imeiNum, CURL* curl, char* data)
+{
+    cJSON *root, *requests, *request;
+    int ret = 0;
+
+    root = cJSON_CreateObject();
+    cJSON_AddItemToObject(root, "requests", requests = cJSON_CreateArray());
+    
+    for(int i=0; i<imeiNum; i++)
+    {
+        cJSON_AddItemToArray(requests, request = cJSON_CreateObject());
+        cJSON_AddStringToObject(request, "IMEI", (*imeiMulti)++);
+    }
+    
+    //char* data = cJSON_PrintUnformatted(root);
+    data = cJSON_Print(root);
+    LOG_INFO("%s", data);
+
+    cJSON_Delete(root);
+
+    return ret;
+}
+
 int leancloud_ResaveMultiDid_cb(void)
 {
-    LOG_INFO("leancloud_ResaveMultiDid_cb");
+    const char** imeiMulti = NULL;
+    int imeiNum = 2;
+    char* data;
 
+    LOG_DEBUG("one-day timer for leancloud_ResaveMultiDid_cb");
 
+    //get unposted IMEI
+    imeiMulti[0] = "1234567890123457";
+    imeiMulti[1] = "1234567890123458";
+    
+    //make multi DID curl
+    ENVIRONMENT* env = env_get();
+    CURL* curl = env->curl_leancloud;
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveDID);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, imeiMulti);
+
+    leancloud_makeMultiDidCurl(imeiMulti, imeiNum, curl, data);
+
+    //batch to save multi DID
+    int ret = leancloud_batch(curl, data, strlen(data));
+
+    return ret;
 }
 
 int leancloud_onGetOBJ(MemroyBuf *chunk)
