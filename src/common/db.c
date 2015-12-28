@@ -324,3 +324,12 @@ int db_updateOBJIsPosted(const char *imeiName)
 
     return 0;
 }
+
+int db_getOBJUnpostedImei(const char *imeiName)
+{
+#ifdef WITH_DB
+    return _db_updateOBJIsPosted(imeiName);
+#endif
+
+    return 0;
+}

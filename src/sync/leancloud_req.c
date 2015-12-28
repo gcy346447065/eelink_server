@@ -17,12 +17,6 @@
 
 #define LEANCLOUD_URL_BASE "https://api.leancloud.cn/1.1"
 
-typedef struct st_imeiMulti
-{
-    const char** imeiMulti;
-    int imeiNum;
-};
-
 static struct event *evTimerReconnect = NULL;
 
 static int leancloud_post(CURL *curl, const char* class, const void* data, int len)
@@ -136,7 +130,7 @@ int leancloud_saveDid(const char* imei)
     return ret;
 }
 
-int leancloud_makeMultiDidCurl(const char** imeiMulti, int imeiNum, CURL* curl, char* data)
+int leancloud_makeMultiDidCurl(st_imeiMulti* pstImeiMulti, char* data)
 {
     cJSON *root, *requests, *request, *body;
     int ret = 0;
@@ -144,13 +138,13 @@ int leancloud_makeMultiDidCurl(const char** imeiMulti, int imeiNum, CURL* curl, 
     root = cJSON_CreateObject();
     cJSON_AddItemToObject(root, "requests", requests = cJSON_CreateArray());
     
-    for(int i=0; i<imeiNum; i++)
+    for(int i = 0; i < pstImeiMulti->imeiNum; i++)
     {
         cJSON_AddItemToArray(requests, request = cJSON_CreateObject());
         cJSON_AddStringToObject(request, "method", "POST");
         cJSON_AddStringToObject(request, "path", "/1.1/classes/DID");
         cJSON_AddItemToObject(request, "body", body = cJSON_CreateObject());
-        cJSON_AddStringToObject(body, "IMEI", *(imeiMulti++));
+        cJSON_AddStringToObject(body, "IMEI", *(pstImeiMulti->ppimeiMulti++));
     }
 
     data = cJSON_PrintUnformatted(root);
@@ -164,24 +158,36 @@ int leancloud_makeMultiDidCurl(const char** imeiMulti, int imeiNum, CURL* curl, 
 int leancloud_ResaveMultiDid_cb(void)
 {
     const char a[][16] = {0};
-    const char** imeiMulti = a;
+    const char** ppimeiMulti = a;
     int imeiNum = 2;
-    char* data;
+    char* data = NULL;
+    st_imeiMulti* pstImeiMulti = (st_imeiMulti*)malloc(sizeof(st_imeiMulti));
 
-    LOG_DEBUG("one-day timer for leancloud_ResaveMultiDid_cb");
+    if (!pstImeiMulti)
+    {
+        LOG_FATAL("memory alloc failed");
+        return -1;
+    }
+
+    LOG_INFO("one-day timer for leancloud_ResaveMultiDid_cb");
 
     //get unposted IMEI
-    imeiMulti[0] = "1234567890123457";
-    imeiMulti[1] = "1234567890123458";
-    imeiMulti[2] = "1234567890123459";
+    ppimeiMulti[0] = "1234567890123457";
+    ppimeiMulti[1] = "1234567890123458";
+    ppimeiMulti[2] = "1234567890123459";
+
+    pstImeiMulti->ppimeiMulti[0] = "1234567890123457";
+    pstImeiMulti->ppimeiMulti[1] = "1234567890123458";
+    pstImeiMulti->ppimeiMulti[2] = "1234567890123459";
+    pstImeiMulti->imeiNum = 2;
     
     //make multi DID curl
     ENVIRONMENT* env = env_get();
     CURL* curl = env->curl_leancloud;
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveMultiDID);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, imeiMulti);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, pstImeiMulti);
 
-    leancloud_makeMultiDidCurl(imeiMulti, imeiNum, curl, data);
+    leancloud_makeMultiDidCurl(pstImeiMulti, data);
 
     //batch to save multi DID
     int ret = leancloud_batch(curl, data, strlen(data));
