@@ -132,7 +132,7 @@ int leancloud_saveDid(const char* imei)
 
 int leancloud_makeMultiDidCurl(const char** imeiMulti, int imeiNum, CURL* curl, char* data)
 {
-    cJSON *root, *requests, *request;
+    cJSON *root, *requests, *request, *body;
     int ret = 0;
 
     root = cJSON_CreateObject();
@@ -141,9 +141,12 @@ int leancloud_makeMultiDidCurl(const char** imeiMulti, int imeiNum, CURL* curl, 
     for(int i=0; i<imeiNum; i++)
     {
         cJSON_AddItemToArray(requests, request = cJSON_CreateObject());
-        cJSON_AddStringToObject(request, "IMEI", (*imeiMulti)++);
+        cJSON_AddStringToObject(request, "method", "POST");
+        cJSON_AddStringToObject(request, "path", "/1.1/classes/DID");
+        cJSON_AddItemToArray(request, body = cJSON_CreateObject());
+        cJSON_AddStringToObject(body, "IMEI", imeiMulti++);
     }
-    
+
     data = cJSON_Print(root);
     LOG_INFO("%s", data);
 
