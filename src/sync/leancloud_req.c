@@ -17,6 +17,12 @@
 
 #define LEANCLOUD_URL_BASE "https://api.leancloud.cn/1.1"
 
+typedef struct st_imeiMulti
+{
+    const char** imeiMulti;
+    int imeiNum;
+};
+
 static struct event *evTimerReconnect = NULL;
 
 static int leancloud_post(CURL *curl, const char* class, const void* data, int len)
@@ -147,7 +153,7 @@ int leancloud_makeMultiDidCurl(const char** imeiMulti, int imeiNum, CURL* curl, 
         cJSON_AddStringToObject(body, "IMEI", *(imeiMulti++));
     }
 
-    data = cJSON_Print(root);
+    data = cJSON_PrintUnformatted(root);
     LOG_INFO("%s", data);
 
     cJSON_Delete(root);
@@ -167,11 +173,12 @@ int leancloud_ResaveMultiDid_cb(void)
     //get unposted IMEI
     imeiMulti[0] = "1234567890123457";
     imeiMulti[1] = "1234567890123458";
+    imeiMulti[2] = "1234567890123459";
     
     //make multi DID curl
     ENVIRONMENT* env = env_get();
     CURL* curl = env->curl_leancloud;
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveDID);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveMultiDID);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, imeiMulti);
 
     leancloud_makeMultiDidCurl(imeiMulti, imeiNum, curl, data);

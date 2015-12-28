@@ -65,6 +65,33 @@ size_t leancloud_onSaveDID(void *contents, size_t size, size_t nmemb, void *user
 	return size * nmemb;
 }
 
+size_t leancloud_onSaveMultiDID(void *contents, size_t size, size_t nmemb, void *userdata)
+{
+	const char** imeiMulti = (const char**) userdata;
+
+	char* rsp = malloc(size * nmemb + 1);
+	memcpy(rsp, contents, size * nmemb);
+	rsp[size * nmemb] = 0;
+
+	cJSON* json = cJSON_Parse(rsp);
+
+	if (!json)
+	{
+		LOG_ERROR("error parse response: %s", rsp);
+	}
+	else
+	{
+		LOG_INFO("get save DID response: %s", rsp);
+
+		//db_updateOBJIsPosted(imei);
+	}
+
+	cJSON_Delete(json);
+	free(rsp);
+
+	return size * nmemb;
+}
+
 size_t leancloud_onRev(void *contents, size_t size, size_t nmemb, void *userdata)
 {
 	size_t realsize = size * nmemb;
