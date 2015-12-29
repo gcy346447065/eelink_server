@@ -17,8 +17,6 @@
 
 #define LEANCLOUD_URL_BASE "https://api.leancloud.cn/1.1"
 
-static struct event *evTimerReconnect = NULL;
-
 static int leancloud_post(CURL *curl, const char* class, const void* data, int len)
 {
 	char url[256] = {0};
@@ -136,6 +134,7 @@ int leancloud_makeMultiDidCurl(st_imeiMulti* pstImeiMulti, char* data)
     int ret = 0;
 
     root = cJSON_CreateObject();
+    
     cJSON_AddItemToObject(root, "requests", requests = cJSON_CreateArray());
     
     for(int i = 0; i < pstImeiMulti->imeiNum; i++)
@@ -157,7 +156,7 @@ int leancloud_makeMultiDidCurl(st_imeiMulti* pstImeiMulti, char* data)
 
 int leancloud_ResaveMultiDid_cb(void)
 {
-    const char a[][16] = {0};
+    char a[10][16] = {0};
     const char** ppimeiMulti = a;
     int imeiNum = 2;
     char* data = NULL;
