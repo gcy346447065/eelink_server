@@ -32,7 +32,7 @@ static int leancloud_post(CURL *curl, const char* class, const void* data, int l
 
     /* Perform the request, res will get the return code */
     CURLcode res = curl_easy_perform(curl);
-    curl_easy_cleanup(curl);
+    //curl_easy_cleanup(curl);
     if(CURLE_OK != res)
     {
     	LOG_ERROR("leancloud_post failed: %s", curl_easy_strerror(res));
@@ -57,7 +57,7 @@ static int leancloud_batch(CURL *curl, const void* data, int len)
 
     /* Perform the request, res will get the return code */
     CURLcode res = curl_easy_perform(curl);
-    curl_easy_cleanup(curl);
+    //curl_easy_cleanup(curl);
     if(CURLE_OK != res)
     {
         LOG_ERROR("leancloud_batch failed: %s", curl_easy_strerror(res));
@@ -77,7 +77,7 @@ static int leancloud_get(CURL *curl, const char* class)
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
 
     CURLcode res = curl_easy_perform(curl);
-    curl_easy_cleanup(curl);
+    //curl_easy_cleanup(curl);
     if(CURLE_OK != res)
     {
         LOG_ERROR("leancloud_get failed: %s", curl_easy_strerror(res));
