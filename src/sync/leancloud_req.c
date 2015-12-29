@@ -175,9 +175,12 @@ int leancloud_ResaveMultiDid_cb(void)
     ppimeiMulti[1] = "1234567890123458";
     ppimeiMulti[2] = "1234567890123459";
 
-    pstImeiMulti->ppimeiMulti[0] = "1234567890123457";
-    pstImeiMulti->ppimeiMulti[1] = "1234567890123458";
-    pstImeiMulti->ppimeiMulti[2] = "1234567890123459";
+    LOG_INFO("hehe");
+
+
+    //pstImeiMulti->ppimeiMulti[0] = "1234567890123457";
+    //pstImeiMulti->ppimeiMulti[1] = "1234567890123458";
+    //pstImeiMulti->ppimeiMulti[2] = "1234567890123459";
     pstImeiMulti->imeiNum = 2;
     
     //make multi DID curl
