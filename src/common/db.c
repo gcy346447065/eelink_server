@@ -16,7 +16,7 @@
 
 static MYSQL *conn = NULL;
 
-int _db_initial()
+static int _db_initial()
 {
     char value = 1;
 
@@ -33,7 +33,7 @@ int _db_initial()
     return 0;
 }
 
-int _db_destruct()
+static int _db_destruct()
 {
     mysql_close(conn);
     LOG_INFO("destruct database: %s", DB_NAME);
@@ -42,7 +42,7 @@ int _db_destruct()
 
 //check whether the given table exists
 //return 1 when exists, else 0
-int _db_isTableCreated(const char* imeiName, int *num)
+static int _db_isTableCreated(const char* imeiName, int *num)
 {
     MYSQL_RES *res;
 
@@ -68,7 +68,7 @@ int _db_isTableCreated(const char* imeiName, int *num)
     return 0;
 }
 
-int _db_createGPS(const char* tableName)
+static int _db_createGPS(const char* tableName)
 {
     char query[MAX_QUERY];
     //create table gps_IMEI(timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT)
@@ -90,7 +90,7 @@ int _db_createGPS(const char* tableName)
     return 0;
 }
 
-int _db_createCGI(const char* tableName)
+static int _db_createCGI(const char* tableName)
 {
     char query[MAX_QUERY];
     //create table cgi_IMEI(timestamp INT, mcc SMALLINT, mnc SMALLINT, lac0 SMALLINT, ci0 SMALLINT, rxl0 SMALLINT...)
@@ -112,7 +112,7 @@ int _db_createCGI(const char* tableName)
     return 0;
 }
 
-int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, short course)
+static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, short course)
 {
     //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
     char query[MAX_QUERY];
@@ -133,7 +133,7 @@ int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char 
     return 0;
 }
 
-int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[], int cellNo)
+static int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[], int cellNo)
 {
     char query[MAX_QUERY];
     int i;
@@ -169,7 +169,7 @@ int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[], int ce
 
 /*Object db
 Names of the table and columns need modifing*/
-int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *))
+static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *))
 {
     char query[] = "select imei from object";
 
@@ -197,7 +197,7 @@ int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *))
     return 0;
 }
 
-int _db_insertOBJ(const char *imeiName)
+static int _db_insertOBJ(const char *imeiName)
 {
     char query[MAX_QUERY];
     snprintf(query, MAX_QUERY, "insert into object(imei) values(\'%s\')", imeiName);
@@ -216,7 +216,7 @@ int _db_insertOBJ(const char *imeiName)
     return 0;
 }
 
-int _db_updateOBJIsPosted(const char *imeiName)
+static int _db_updateOBJIsPosted(const char *imeiName)
 {
     char query[MAX_QUERY];
     snprintf(query, MAX_QUERY, "update object set IsPosted=1 where imei=%s", imeiName);
@@ -236,7 +236,7 @@ int _db_updateOBJIsPosted(const char *imeiName)
     return 0;
 }
 
-int _db_getOBJUnpostedImei(char** ppImeiMulti, int* pImeiNum)
+static int _db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*))
 {
     char query[] = "select imei from object where IsPosted=0";
 
@@ -252,22 +252,21 @@ int _db_getOBJUnpostedImei(char** ppImeiMulti, int* pImeiNum)
         return 2;
     }
 
-    *pImeiNum = 0;
-
     MYSQL_RES *result;
     MYSQL_ROW row;
     result = mysql_use_result(conn);
     while(row = mysql_fetch_row(result))
     {
-        memcpy(*(ppImeiMulti++), row[0], IMEI_LENGTH);
-        (*pImeiNum)++;
+        LOG_INFO("leancloud_saveDid: %s", row[0]);
+
+        func1(row[0]); //leancloud_saveDid
     }
     mysql_free_result(result);
 
     return 0;
 }
 
-int db_initial()
+int db_initial(void)
 {
 #ifdef WITH_DB
     return _db_initial();
@@ -275,7 +274,7 @@ int db_initial()
 
     return 0;
 }
-int db_destruct()
+int db_destruct(void)
 {
 #ifdef WITH_DB
     return _db_destruct();
@@ -356,10 +355,10 @@ int db_updateOBJIsPosted(const char *imeiName)
     return 0;
 }
 
-int db_getOBJUnpostedImei(char** ppImeiMulti, int* pImeiNum)
+int db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*))
 {
 #ifdef WITH_DB
-    return _db_getOBJUnpostedImei(ppImeiMulti, pImeiNum);
+    return _db_ResaveOBJUnpostedImei_cb(func1);
 #endif
 
     return 0;

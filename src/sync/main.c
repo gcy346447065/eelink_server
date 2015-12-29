@@ -16,6 +16,13 @@
 
 struct event_base *base = NULL;
 
+void ResaveUnpostedImei_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
+{
+    LOG_INFO("one-day timer for ResaveUnpostedImei_cb");
+    
+    db_ResaveOBJUnpostedImei_cb(arg); //leancloud_saveDid
+}
+
 static void sig_usr(int signo)
 {
 	if (signo == SIGINT)
@@ -104,7 +111,7 @@ int main(int argc, char **argv)
     //start a one-day timer to resave multiple unsaved DIDs
     struct timeval one_day = { 30, 0 };
     //struct timeval one_day = { 86400, 0 };
-    (void)timer_newLoop(base, &one_day, leancloud_ResaveMultiDid_cb, NULL);
+    (void)timer_newLoop(base, &one_day, ResaveUnpostedImei_cb, leancloud_saveDid);
 
     env_initial();
 

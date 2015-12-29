@@ -18,8 +18,8 @@
 #define DB_NAME "gps"
 #define MAX_QUERY 400
 
-int db_initial();
-int db_destruct();
+int db_initial(void);
+int db_destruct(void);
 
 int db_isTableCreated(const char* imeiName, int *num);
 int db_createGPS(const char* tableName);
@@ -30,7 +30,7 @@ int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cel
 int db_doWithOBJ(void (*func)(const char*, int), void (*func2)(const char *));
 int db_insertOBJ(const char *imeiName);
 int db_updateOBJIsPosted(const char *imeiName);
-int db_getOBJUnpostedImei(char** ppImeiMulti, int* pImeiNum);
+int db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*));
 
 #endif	/* DB_H */
 

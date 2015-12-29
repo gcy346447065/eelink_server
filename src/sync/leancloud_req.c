@@ -178,7 +178,7 @@ int leancloud_ResaveMultiDid_cb(void)
     ppImeiMulti[1] = "1234567890123458";
     ppImeiMulti[2] = "1234567890123459";*/
 
-    db_getOBJUnpostedImei(ppImeiMulti, &ImeiNum);
+    //db_ResaveOBJUnpostedImei();
 
     LOG_INFO("hehe:%d", ImeiNum);
     
