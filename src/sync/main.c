@@ -12,9 +12,9 @@
 #include "port.h"
 #include "env.h"
 #include "db.h"
+#include "timer.h"
 
 struct event_base *base = NULL;
-static struct event *evTimerRepost = NULL;
 
 static void sig_usr(int signo)
 {
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
     //start a one-day timer to resave multiple unsaved DIDs
     struct timeval one_day = { 30, 0 };
     //struct timeval one_day = { 86400, 0 };
-    timer_newLoop(base, &one_day, leancloud_ResaveMultiDid_cb, NULL);
+    (void)timer_newLoop(base, &one_day, leancloud_ResaveMultiDid_cb, NULL);
 
     env_initial();
 

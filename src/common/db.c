@@ -236,7 +236,7 @@ int _db_updateOBJIsPosted(const char *imeiName)
     return 0;
 }
 
-int _db_getOBJUnpostedImei(const char** ppImeiMulti, int* pImeiNum)
+int _db_getOBJUnpostedImei(char** ppImeiMulti, int* pImeiNum)
 {
     char query[] = "select imei from object where IsPosted=0";
 
@@ -356,7 +356,7 @@ int db_updateOBJIsPosted(const char *imeiName)
     return 0;
 }
 
-int db_getOBJUnpostedImei(const char** ppImeiMulti, int* pImeiNum)
+int db_getOBJUnpostedImei(char** ppImeiMulti, int* pImeiNum)
 {
 #ifdef WITH_DB
     return _db_getOBJUnpostedImei(ppImeiMulti, pImeiNum);

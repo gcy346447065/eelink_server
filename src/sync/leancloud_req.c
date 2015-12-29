@@ -130,7 +130,7 @@ int leancloud_saveDid(const char* imei)
     return ret;
 }
 
-int leancloud_makeMultiDidCurl(const char** ppImeiMulti, int ImeiNum, char* data)
+int leancloud_makeMultiDidCurl(char** ppImeiMulti, int ImeiNum, char* data)
 {
     cJSON *root, *requests, *request, *body;
     int ret = 0;
@@ -159,7 +159,7 @@ int leancloud_makeMultiDidCurl(const char** ppImeiMulti, int ImeiNum, char* data
 int leancloud_ResaveMultiDid_cb(void)
 {
     //char a[10][16] = {0};
-    const char** ppImeiMulti = (const char**)malloc(sizeof(10 * IMEI_LENGTH));
+    char** ppImeiMulti = malloc(sizeof(10 * IMEI_LENGTH));
     int ImeiNum = 2;
     char* data = NULL;
 

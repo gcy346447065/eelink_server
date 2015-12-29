@@ -68,7 +68,7 @@ size_t leancloud_onSaveDID(void *contents, size_t size, size_t nmemb, void *user
 
 size_t leancloud_onSaveMultiDID(void *contents, size_t size, size_t nmemb, void *userdata)
 {
-	//struct st_imeiMulti* pstImeiMulti = (struct st_imeiMulti*) userdata;
+	userdata = userdata;
 	LOG_INFO("hehe");
 	//st_imeiMulti* pstImeiMulti = (st_imeiMulti*)malloc(sizeof(st_imeiMulti));
 	//memcpy(pstImeiMulti, userdata, sizeof(st_imeiMulti));

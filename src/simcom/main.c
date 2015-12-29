@@ -16,7 +16,6 @@
 #include "port.h"
 #include "sync.h"
 
-
 static void signal_cb(evutil_socket_t fd, short what, void *arg)
 {
     struct event_base *base = arg;
