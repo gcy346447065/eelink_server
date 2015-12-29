@@ -70,8 +70,8 @@ size_t leancloud_onSaveMultiDID(void *contents, size_t size, size_t nmemb, void 
 {
 	//struct st_imeiMulti* pstImeiMulti = (struct st_imeiMulti*) userdata;
 	LOG_INFO("hehe");
-	st_imeiMulti* pstImeiMulti = (st_imeiMulti*)malloc(sizeof(st_imeiMulti));
-	memcpy(pstImeiMulti, userdata, sizeof(st_imeiMulti));
+	//st_imeiMulti* pstImeiMulti = (st_imeiMulti*)malloc(sizeof(st_imeiMulti));
+	//memcpy(pstImeiMulti, userdata, sizeof(st_imeiMulti));
 
 	char* rsp = malloc(size * nmemb + 1);
 	memcpy(rsp, contents, size * nmemb);
@@ -87,7 +87,7 @@ size_t leancloud_onSaveMultiDID(void *contents, size_t size, size_t nmemb, void 
 	{
 		LOG_INFO("get save DID response: %s", rsp);
 
-		LOG_INFO("pstImeiMulti->imeiNum = %d", pstImeiMulti->imeiNum);
+		//LOG_INFO("pstImeiMulti->imeiNum = %d", pstImeiMulti->imeiNum);
 		//db_updateOBJIsPosted(imei);
 	}
 

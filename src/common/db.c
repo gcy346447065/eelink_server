@@ -236,6 +236,37 @@ int _db_updateOBJIsPosted(const char *imeiName)
     return 0;
 }
 
+int _db_getOBJUnpostedImei(const char** ppImeiMulti, int* pImeiNum)
+{
+    char query[] = "select imei from object where IsPosted=0";
+
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+
+    *pImeiNum = 0;
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    result = mysql_use_result(conn);
+    while(row = mysql_fetch_row(result))
+    {
+        memcpy(*(ppImeiMulti++), row[0], IMEI_LENGTH);
+        (*pImeiNum)++;
+    }
+    mysql_free_result(result);
+
+    return 0;
+}
+
 int db_initial()
 {
 #ifdef WITH_DB
@@ -325,10 +356,10 @@ int db_updateOBJIsPosted(const char *imeiName)
     return 0;
 }
 
-int db_getOBJUnpostedImei(const char *imeiName)
+int db_getOBJUnpostedImei(const char** ppImeiMulti, int* pImeiNum)
 {
 #ifdef WITH_DB
-    return _db_updateOBJIsPosted(imeiName);
+    return _db_getOBJUnpostedImei(ppImeiMulti, pImeiNum);
 #endif
 
     return 0;

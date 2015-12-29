@@ -14,6 +14,8 @@
 #include "curl.h"
 #include "log.h"
 #include "env.h"
+#include "db.h"
+#include "macro.h"
 
 #define LEANCLOUD_URL_BASE "https://api.leancloud.cn/1.1"
 
@@ -128,7 +130,7 @@ int leancloud_saveDid(const char* imei)
     return ret;
 }
 
-int leancloud_makeMultiDidCurl(const char** ppimeiMulti, int imeiNum, char* data)
+int leancloud_makeMultiDidCurl(const char** ppImeiMulti, int ImeiNum, char* data)
 {
     cJSON *root, *requests, *request, *body;
     int ret = 0;
@@ -137,13 +139,13 @@ int leancloud_makeMultiDidCurl(const char** ppimeiMulti, int imeiNum, char* data
     
     cJSON_AddItemToObject(root, "requests", requests = cJSON_CreateArray());
     
-    for(int i = 0; i < imeiNum; i++)
+    for(int i = 0; i < ImeiNum; i++)
     {
         cJSON_AddItemToArray(requests, request = cJSON_CreateObject());
         cJSON_AddStringToObject(request, "method", "POST");
         cJSON_AddStringToObject(request, "path", "/1.1/classes/DID");
         cJSON_AddItemToObject(request, "body", body = cJSON_CreateObject());
-        cJSON_AddStringToObject(body, "IMEI", *(ppimeiMulti++));
+        cJSON_AddStringToObject(body, "IMEI", *(ppImeiMulti++));
     }
 
     data = cJSON_PrintUnformatted(root);
@@ -157,35 +159,37 @@ int leancloud_makeMultiDidCurl(const char** ppimeiMulti, int imeiNum, char* data
 int leancloud_ResaveMultiDid_cb(void)
 {
     char a[10][16] = {0};
-    const char** ppimeiMulti = a;
-    int imeiNum = 2;
+    const char** ppImeiMulti = a;
+    int ImeiNum = 2;
     char* data = NULL;
-    st_imeiMulti* pstImeiMulti = (st_imeiMulti*)malloc(sizeof(st_imeiMulti));
 
+    /*st_imeiMulti* pstImeiMulti = (st_imeiMulti*)malloc(sizeof(st_imeiMulti));
     if (!pstImeiMulti)
     {
         LOG_FATAL("memory alloc failed");
         return -1;
-    }
+    }*/
 
     LOG_INFO("one-day timer for leancloud_ResaveMultiDid_cb");
 
     //get unposted IMEI
-    ppimeiMulti[0] = "1234567890123457";
-    ppimeiMulti[1] = "1234567890123458";
-    ppimeiMulti[2] = "1234567890123459";
+    ppImeiMulti[0] = "1234567890123457";
+    ppImeiMulti[1] = "1234567890123458";
+    ppImeiMulti[2] = "1234567890123459";
 
-    LOG_INFO("hehe");
+    db_getOBJUnpostedImei(ppImeiMulti, &ImeiNum);
+
+    LOG_INFO("hehe:%d", ImeiNum);
     
     //make multi DID curl
     ENVIRONMENT* env = env_get();
     CURL* curl = env->curl_leancloud;
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveMultiDID);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, ppimeiMulti);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
 
     LOG_INFO("hehe");
 
-    leancloud_makeMultiDidCurl(ppimeiMulti, imeiNum, data);
+    leancloud_makeMultiDidCurl(ppImeiMulti, ImeiNum, data);
 
     LOG_INFO("hehe");
 
