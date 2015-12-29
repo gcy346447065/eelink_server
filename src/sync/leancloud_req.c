@@ -158,8 +158,8 @@ int leancloud_makeMultiDidCurl(const char** ppImeiMulti, int ImeiNum, char* data
 
 int leancloud_ResaveMultiDid_cb(void)
 {
-    char a[10][16] = {0};
-    const char** ppImeiMulti = a;
+    //char a[10][16] = {0};
+    const char** ppImeiMulti = (const char**)malloc(sizeof(10 * IMEI_LENGTH));
     int ImeiNum = 2;
     char* data = NULL;
 
@@ -173,9 +173,10 @@ int leancloud_ResaveMultiDid_cb(void)
     LOG_INFO("one-day timer for leancloud_ResaveMultiDid_cb");
 
     //get unposted IMEI
+    /*
     ppImeiMulti[0] = "1234567890123457";
     ppImeiMulti[1] = "1234567890123458";
-    ppImeiMulti[2] = "1234567890123459";
+    ppImeiMulti[2] = "1234567890123459";*/
 
     db_getOBJUnpostedImei(ppImeiMulti, &ImeiNum);
 
