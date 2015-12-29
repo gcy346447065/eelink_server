@@ -39,6 +39,8 @@ static int leancloud_post(CURL *curl, const char* class, const void* data, int l
         return -1;
     }
 
+    LOG_INFO("*********gcy********");
+
     return 0;
 }
 
@@ -114,7 +116,7 @@ int leancloud_saveDid(const char* imei)
 {
 	ENVIRONMENT* env = env_get();
 	CURL* curl = env->curl_leancloud;
-
+    LOG_INFO("*********gcy********");
 	cJSON *root = cJSON_CreateObject();
 
 	cJSON_AddStringToObject(root, "IMEI", imei);

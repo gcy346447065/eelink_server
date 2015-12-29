@@ -223,7 +223,7 @@ static int _db_updateOBJIsPosted(const char *imeiName)
 
     if(mysql_ping(conn))
     {
-        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        LOG_ERROR("can't ping mysql(%u, %s)", mysql_errno(conn), mysql_error(conn));
         return 1;
     }
 
@@ -242,7 +242,7 @@ static int _db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*))
 
     if(mysql_ping(conn))
     {
-        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        LOG_ERROR("can't ping mysql(%u, %s)", mysql_errno(conn), mysql_error(conn));
         return 1;
     }
 
