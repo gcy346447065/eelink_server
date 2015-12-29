@@ -8,17 +8,9 @@
 #ifndef SRC_LEANCLOUD_REQ_H_
 #define SRC_LEANCLOUD_REQ_H_
 
-typedef struct
-{
-    const char** ppimeiMulti;
-    int imeiNum;
-}st_imeiMulti;
-
 int leancloud_saveDid(const char* imei);
 
 int leancloud_saveGPS(const char* imei, double lat, double lng);
-
-int leancloud_ResaveMultiDid_cb(void);
 
 int leancloud_getOBJ();
 

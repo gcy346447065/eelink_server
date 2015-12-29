@@ -187,7 +187,7 @@ static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *)
 
     MYSQL_RES *result;
     MYSQL_ROW row;
-    result = mysql_use_result(conn);
+    result = mysql_store_result(conn);
     while(row = mysql_fetch_row(result))
     {
         func1(row[0]);

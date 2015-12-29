@@ -156,52 +156,6 @@ int leancloud_makeMultiDidCurl(char** ppImeiMulti, int ImeiNum, char* data)
     return ret;
 }
 
-int leancloud_ResaveMultiDid_cb(void)
-{
-    //char a[10][16] = {0};
-    char** ppImeiMulti = malloc(sizeof(10 * IMEI_LENGTH));
-    int ImeiNum = 2;
-    char* data = NULL;
-
-    /*st_imeiMulti* pstImeiMulti = (st_imeiMulti*)malloc(sizeof(st_imeiMulti));
-    if (!pstImeiMulti)
-    {
-        LOG_FATAL("memory alloc failed");
-        return -1;
-    }*/
-
-    LOG_INFO("one-day timer for leancloud_ResaveMultiDid_cb");
-
-    //get unposted IMEI
-    /*
-    ppImeiMulti[0] = "1234567890123457";
-    ppImeiMulti[1] = "1234567890123458";
-    ppImeiMulti[2] = "1234567890123459";*/
-
-    //db_ResaveOBJUnpostedImei();
-
-    LOG_INFO("hehe:%d", ImeiNum);
-    
-    //make multi DID curl
-    ENVIRONMENT* env = env_get();
-    CURL* curl = env->curl_leancloud;
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveMultiDID);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
-
-    LOG_INFO("hehe");
-
-    leancloud_makeMultiDidCurl(ppImeiMulti, ImeiNum, data);
-
-    LOG_INFO("hehe");
-
-    //batch to save multi DID
-    int ret = leancloud_batch(curl, data, strlen(data));
-
-    LOG_INFO("hehe");
-
-    return ret;
-}
-
 int leancloud_onGetOBJ(MemroyBuf *chunk)
 {
     int ret = 0;;
