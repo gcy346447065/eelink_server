@@ -254,7 +254,7 @@ static int _db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*))
 
     MYSQL_RES *result;
     MYSQL_ROW row;
-    result = mysql_use_result(conn);
+    result = mysql_store_result(conn);
     while(row = mysql_fetch_row(result))
     {
         LOG_INFO("leancloud_saveDid: %s", row[0]);
