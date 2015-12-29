@@ -102,7 +102,7 @@ int main(int argc, char **argv)
     }
 
     //start a one-day timer to resave multiple unsaved DIDs
-    struct timeval one_day = { 15, 0 };
+    struct timeval one_day = { 30, 0 };
     //struct timeval one_day = { 86400, 0 };
     timer_newLoop(base, &one_day, leancloud_ResaveMultiDid_cb, NULL);
 

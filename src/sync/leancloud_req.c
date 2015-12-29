@@ -186,10 +186,16 @@ int leancloud_ResaveMultiDid_cb(void)
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveMultiDID);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, pstImeiMulti);
 
+    LOG_INFO("hehe");
+
     leancloud_makeMultiDidCurl(pstImeiMulti, data);
+
+    LOG_INFO("hehe");
 
     //batch to save multi DID
     int ret = leancloud_batch(curl, data, strlen(data));
+
+    LOG_INFO("hehe");
 
     return ret;
 }
