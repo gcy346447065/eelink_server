@@ -40,8 +40,8 @@ static void sig_usr(int signo)
 
 int main(int argc, char **argv)
 {
-    //int port = PORT_SYNC;
-    int port = 8889;
+    int port = PORT_SYNC;
+    //int port = 8889;
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
