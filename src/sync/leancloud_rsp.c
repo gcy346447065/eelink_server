@@ -40,7 +40,7 @@ size_t leancloud_onSaveGPS(void *contents, size_t size, size_t nmemb, void *user
 }
 
 size_t leancloud_onSaveDID(void *contents, size_t size, size_t nmemb, void *userdata)
-{LOG_INFO("*********gcy********");
+{
 	const char* imei = (const char*) userdata;
 
 	char* rsp = malloc(size * nmemb + 1);
