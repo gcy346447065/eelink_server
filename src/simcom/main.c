@@ -131,7 +131,6 @@ int main(int argc, char **argv)
     LOG_INFO("start the event loop");
     event_base_dispatch(base);
 
-
     //sk_free(SSL_COMP_get_compression_methods());
     LOG_INFO("stop mc server...");
 

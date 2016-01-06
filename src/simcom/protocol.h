@@ -8,33 +8,35 @@
 #ifndef _PROTOCOL_H_
 #define _PROTOCOL_H_
 
+#include "macro.h"
+
 #define START_FLAG (0xAA55)
-#define IMEI_LENGTH 16
+//#define IMEI_LENGTH 16
 #define MAX_CELL_NUM 7
 #define TEL_NO_LENGTH 11
 
 
 enum
 {
-    CMD_WILD        = 0x00,
-    CMD_LOGIN       = 0x01,
-    CMD_GPS         = 0x02,
-    CMD_CELL        = 0x03,
-    CMD_PING        = 0x04,
-    CMD_ALARM       = 0x05,
-    CMD_SMS         = 0x06,
-    CMD_433         = 0x07,
-    CMD_DEFEND      = 0x08,
-    CMD_SEEK        = 0x09,
-    CMD_LOCATION    = 0x0a,
-    CMD_SERVER      = 0x0b,
-    CMD_TIMER       = 0x0c,
-    CMD_AUTODEFEND_SWITCH_SET,
-    CMD_AUTODEFEND_SWITCH_GET,
-    CMD_AUTODEFEND_PERIOD_SET,
-    CMD_AUTODEFEND_PERIOD_GET,
-    CMD_AUTODEFEND_NOTIFY,
-
+    CMD_WILD    = 0x00,
+    CMD_LOGIN   = 0x01,
+    CMD_GPS     = 0x02,
+    CMD_CELL    = 0x03,
+    CMD_PING    = 0x04,
+    CMD_ALARM   = 0x05,
+    CMD_SMS     = 0x06,
+    CMD_433     = 0x07,
+    CMD_DEFEND  = 0x08,
+    CMD_SEEK    = 0x09,
+	CMD_LOCATION= 0x0a,
+	CMD_SERVER  = 0x0b,
+	CMD_TIMER   = 0x0c,
+    CMD_AUTODEFEND_SWITCH_SET = 0x0d,
+    CMD_AUTODEFEND_SWITCH_GET = 0x0e,
+    CMD_AUTODEFEND_PERIOD_SET = 0x0f,
+    CMD_AUTODEFEND_PERIOD_GET = 0x10,
+    CMD_MILEAGE = 0x11,
+    CMD_AUTODEFEND_STATE
 };
 
 enum
@@ -103,7 +105,7 @@ typedef struct
     short mcc;  //mobile country code
     short mnc;  //mobile network code
     char  cellNo;// cell count
-//    CELL cell[];
+    //CELL cell[];
 }__attribute__((__packed__)) CGI;       //Cell Global Identifier
 
 /*
@@ -168,6 +170,33 @@ typedef struct
 }__attribute__((__packed__)) MSG_433;
 
 /*
+ * GPS set_time message structure
+ */
+
+typedef struct
+{
+    MSG_HEADER header;
+    int timer;
+}__attribute__((__packed__)) MSG_GPSTIMER_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    int result;
+}__attribute__((__packed__)) MSG_GPSTIMER_RSP;
+
+/*
+*server set_ip/domain message structure
+*this message has no response
+*/
+typedef struct
+{
+    MSG_HEADER header;
+    int port;
+    char server[];
+}__attribute__((__packed__)) MSG_SERVER;
+
+/*
  * defend message structure
  */
  enum DEFEND_TYPE
@@ -215,9 +244,6 @@ typedef struct
 }__attribute__((__packed__)) MSG_SEEK_RSP;
 
 typedef MSG_HEADER MSG_LOCATION;
-
-
-
 
 enum AUTODEFEND_SWITCH
 {
@@ -278,14 +304,22 @@ typedef struct
     MSG_HEADER header;
     int token;
     unsigned char period;   //time unit: minutes
-}__attribute__((__packed__)) MSG_AUTODEFEND_PEROID_GET_RSP;
+}__attribute__((__packed__)) MSG_AUTODEFEND_PERIOD_GET_RSP;
+
+typedef struct
+{
+    MSG_HEADER header;
+    int starttime;
+    int endtime;
+    int mileage;
+}__attribute__((__packed__)) MSG_MILEAGE_REQ;
 
 
 typedef struct
 {
     MSG_HEADER header;
-    int lock;
-}__attribute__((__packed__)) MSG_AUTOLOCK;
+    char state;             //0 express OFF,1 express ON
+}__attribute__((__packed__)) MSG_AUTODEFEND_STATE_REQ;
 
 #pragma pack(pop)
 

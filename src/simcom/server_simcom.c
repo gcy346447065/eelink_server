@@ -43,7 +43,7 @@ static void read_cb(struct bufferevent *bev, void *arg)
     }
 }
 
-static void write_cb(struct bufferevent* bev, void *arg)
+static void write_cb(struct bufferevent* bev __attribute__((unused)), void *arg __attribute__((unused)))
 {
     return;
 }
@@ -85,7 +85,7 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
 }
 
 static void accept_conn_cb(struct evconnlistener *listener,
-    evutil_socket_t fd, struct sockaddr *address, int socklen, void *arg)
+    evutil_socket_t fd, struct sockaddr *address, int socklen __attribute__((unused)), void *arg __attribute__((unused)))
 {
     struct sockaddr_in* p = (struct sockaddr_in *)address;
     //TODO: just handle the IPv4, no IPv6
@@ -124,7 +124,7 @@ static void accept_conn_cb(struct evconnlistener *listener,
     bufferevent_set_timeouts(bev, &tm, &tm);
 }
 
-static void accept_error_cb(struct evconnlistener *listener, void *ctx)
+static void accept_error_cb(struct evconnlistener *listener, void *ctx __attribute__((unused)))
 {
     struct event_base *base = evconnlistener_get_base(listener);
     int err = EVUTIL_SOCKET_ERROR();

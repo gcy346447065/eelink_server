@@ -105,7 +105,7 @@ static void app_sendFenceMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
     int cmd = getMsgCmd(appMsg);
 
-    MSG_DEFEND_REQ *req = alloc_simcomDefendReq(cmd, defendApp2mc(cmd));
+    MSG_DEFEND_REQ *req = (MSG_DEFEND_REQ *)alloc_simcomDefendReq(cmd, defendApp2mc(cmd));
     if (!req)
     {
         LOG_FATAL("insufficient memory");
@@ -122,7 +122,7 @@ static void app_sendSeekMsg2Device(cJSON* appMsg, OBJECT* obj)
     int cmd = getMsgCmd(appMsg);
 
     //TODO: the following should be encapsulate like alloc_simcomDefendReq
-    MSG_SEEK_REQ *req = (MSG_SEEK_REQ *) alloc_simcom_msg(CMD_SEEK, sizeof(MSG_SEEK_REQ));
+    MSG_SEEK_REQ *req = (MSG_SEEK_REQ *)alloc_simcom_msg(CMD_SEEK, sizeof(MSG_SEEK_REQ));
     if (!req)
     {
         LOG_FATAL("insufficient memory");
@@ -141,7 +141,7 @@ static void app_sendLocationMsg2Device(cJSON* appMsg, OBJECT* obj)
     int cmd = getMsgCmd(appMsg);
 
     //TODO: the following should be encapsulate like alloc_simcomDefendReq
-    MSG_LOCATION *req = alloc_simcom_msg(CMD_LOCATION, sizeof(MSG_LOCATION));
+    MSG_LOCATION *req = (MSG_LOCATION *)alloc_simcom_msg(CMD_LOCATION, sizeof(MSG_LOCATION));
     if (!req)
     {
         LOG_FATAL("insufficient memory");
@@ -159,8 +159,8 @@ static void app_sendAutoLockOnMsg2Device(cJSON* appMsg, OBJECT* obj)
     int cmd = getMsgCmd(appMsg);
 
     //TODO: the following should be encapsulate like alloc_simcomDefendReq
-    MSG_AUTODEFEND_SWITCH_SET_REQ *req = alloc_simcom_msg(CMD_AUTODEFEND_SWITCH_SET,
-                                                          sizeof(MSG_AUTODEFEND_SWITCH_SET_REQ));
+    MSG_AUTODEFEND_SWITCH_SET_REQ *req = (MSG_AUTODEFEND_SWITCH_SET_REQ *)alloc_simcom_msg(CMD_AUTODEFEND_SWITCH_SET,
+                                                                                           sizeof(MSG_AUTODEFEND_SWITCH_SET_REQ));
     if (!req)
     {
         LOG_FATAL("insufficient memory");
@@ -180,8 +180,8 @@ static void app_sendAutoLockOffMsg2Device(cJSON* appMsg, OBJECT* obj)
     int cmd = getMsgCmd(appMsg);
 
     //TODO: the following should be encapsulate like alloc_simcomDefendReq
-    MSG_AUTODEFEND_SWITCH_SET_REQ *req = alloc_simcom_msg(CMD_AUTODEFEND_SWITCH_SET,
-                                                          sizeof(MSG_AUTODEFEND_SWITCH_SET_REQ));
+    MSG_AUTODEFEND_SWITCH_SET_REQ *req = (MSG_AUTODEFEND_SWITCH_SET_REQ *)alloc_simcom_msg(CMD_AUTODEFEND_SWITCH_SET,
+                                                                                           sizeof(MSG_AUTODEFEND_SWITCH_SET_REQ));
     if (!req)
     {
         LOG_FATAL("insufficient memory");
@@ -201,8 +201,8 @@ static void app_sendAutoPeriodSetMsg2Device(cJSON* appMsg, OBJECT* obj)
 
 
     //TODO: the following should be encapsulate like alloc_simcomDefendReq
-    MSG_AUTODEFEND_PERIOD_SET_REQ *req = alloc_simcom_msg(CMD_AUTODEFEND_PERIOD_SET,
-                                                          sizeof(MSG_AUTODEFEND_PERIOD_SET_REQ));
+    MSG_AUTODEFEND_PERIOD_SET_REQ *req = (MSG_AUTODEFEND_PERIOD_SET_REQ *)alloc_simcom_msg(CMD_AUTODEFEND_PERIOD_SET,
+                                                                                           sizeof(MSG_AUTODEFEND_PERIOD_SET_REQ));
     if (!req) {
         LOG_FATAL("insufficient memory");
         app_sendCmdRsp2App(cmd, ERR_INTERNAL, obj->IMEI);

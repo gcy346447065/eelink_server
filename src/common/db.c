@@ -197,10 +197,10 @@ static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *)
     return 0;
 }
 
-static int _db_insertOBJ(const char *imeiName)
+static int _db_insertOBJ(const char *imeiName, int ObjectType)
 {
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into object(imei) values(\'%s\')", imeiName);
+    snprintf(query, MAX_QUERY, "insert into object(imei, ObjectType) values(\'%s\', %d)", imeiName, ObjectType);
     
     if(mysql_ping(conn))
     {
@@ -337,10 +337,10 @@ int db_doWithOBJ(void (*func)(const char*, int), void (*func2)(const char *))
     return 0;
 }
 
-int db_insertOBJ(const char *imeiName)
+int db_insertOBJ(const char *imeiName, int ObjectType)
 {
 #ifdef WITH_DB
-    return _db_insertOBJ(imeiName);
+    return _db_insertOBJ(imeiName, ObjectType);
 #endif
 
     return 0;

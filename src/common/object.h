@@ -33,6 +33,8 @@ typedef struct
      * We use the SNR for MAC
      */
 
+    int ObjectType;
+
     char IMEI[IMEI_LENGTH + 1];
     char language;
     char locale;

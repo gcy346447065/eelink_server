@@ -24,6 +24,7 @@
 #include "msg_app.h"
 #include "cgi2gps.h"
 #include "sync.h"
+#include "macro.h"
 
 typedef int (*MSG_PROC)(const void *msg, SESSION *ctx);
 typedef struct
@@ -102,6 +103,7 @@ int simcom_login(const void *msg, SESSION *session)
 
             memcpy(obj->IMEI, imei, IMEI_LENGTH + 1);
             memcpy(obj->DID,  imei, IMEI_LENGTH + 1);//IMEI and DID mean the same now
+            obj->ObjectType = ObjectType_simcom;
 
             obj_add(obj);
 
@@ -260,7 +262,7 @@ int simcom_cell(const void *msg, SESSION *session)
     return 0;
 }
 
-int simcom_ping(const void *msg, SESSION *session)
+int simcom_ping(const void *msg __attribute__((unused)), SESSION *session __attribute__((unused)))
 {
     return 0;
 }
@@ -423,7 +425,7 @@ int simcom_seek(const void *msg, SESSION *session)
 
 static int simcom_autoDefendSetRsp(const void *msg, SESSION *session)
 {
-    const MSG_AUTODEFEND_SWITCH_SET_RSP *rsp = (MSG_AUTODEFEND_SWITCH_SET_RSP*)msg;
+    const MSG_AUTODEFEND_SWITCH_SET_RSP *rsp = (const MSG_AUTODEFEND_SWITCH_SET_RSP*)msg;
     OBJECT* obj = session->obj;
 
     app_sendCmdRsp2App(APP_CMD_AUTOLOCK_ON, rsp->result, obj->IMEI);
@@ -439,7 +441,7 @@ static int simcom_autoDefendGetRsp(const void *msg, SESSION *session)
 
 static int simcom_autoPeriodSetRsp(const void *msg, SESSION *session)
 {
-    const MSG_AUTODEFEND_PERIOD_SET_RSP *rsp = (MSG_AUTODEFEND_PERIOD_SET_RSP*)msg;
+    const MSG_AUTODEFEND_PERIOD_SET_RSP *rsp = (const MSG_AUTODEFEND_PERIOD_SET_RSP*)msg;
     OBJECT *obj = session->obj;
 
     app_sendCmdRsp2App(APP_CMD_AUTOPERIOD_SET, rsp->result, obj->IMEI);
@@ -448,36 +450,51 @@ static int simcom_autoPeriodSetRsp(const void *msg, SESSION *session)
 
 static int simcom_autoPeriodGetRsp(const void *msg, SESSION *session)
 {
-
     //TODO: to be complted
 
     return 0;
 }
-static int simcom_autoDefendNotify(const void *m, SESSION *session)
+
+static int simcom_mileage(const void *msg, SESSION *session)
 {
-    const MSG_AUTOLOCK *msg = m;
-    app_sendAutolockMsg2App(get_time(), msg->lock, session);
+    //TODO: to be complted
+
     return 0;
 }
 
-static MSG_PROC_MAP msgProcs[] =
-        {
-                {CMD_WILD,                  simcom_wild},
-                {CMD_LOGIN,                 simcom_login},
-                {CMD_GPS,                   simcom_gps},
-                {CMD_CELL,                  simcom_cell},
-                {CMD_PING,                  simcom_ping},
-                {CMD_ALARM,                 simcom_alarm},
-                {CMD_433,                   simcom_433},
-                {CMD_DEFEND,                simcom_defend},
-                {CMD_SEEK,                  simcom_seek},
-                {CMD_AUTODEFEND_SWITCH_SET, simcom_autoDefendSetRsp},
-                {CMD_AUTODEFEND_SWITCH_GET, simcom_autoDefendGetRsp},
-                {CMD_AUTODEFEND_PERIOD_SET, simcom_autoPeriodSetRsp},
-                {CMD_AUTODEFEND_PERIOD_GET, simcom_autoPeriodGetRsp},
-                {CMD_AUTODEFEND_NOTIFY,     simcom_autoDefendNotify}
-        };
+static int simcom_autoDefendState(const void *msg, SESSION *session)
+{
+    //TODO: to be complted
 
+    return 0;
+}
+/*
+static int simcom_autoDefendNotify(const void *m, SESSION *session)
+{
+    const MSG_AUTOLOCK *msg = (const MSG_AUTOLOCK *)m;
+
+    app_sendAutolockMsg2App(get_time(), msg->lock, session);
+    return 0;
+}*/
+
+static MSG_PROC_MAP msgProcs[] =
+    {
+        {CMD_WILD,                  simcom_wild},
+        {CMD_LOGIN,                 simcom_login},
+        {CMD_GPS,                   simcom_gps},
+        {CMD_CELL,                  simcom_cell},
+        {CMD_PING,                  simcom_ping},
+        {CMD_ALARM,                 simcom_alarm},
+        {CMD_433,                   simcom_433},
+        {CMD_DEFEND,                simcom_defend},
+        {CMD_SEEK,                  simcom_seek},
+        {CMD_AUTODEFEND_SWITCH_SET, simcom_autoDefendSetRsp},
+        {CMD_AUTODEFEND_SWITCH_GET, simcom_autoDefendGetRsp},
+        {CMD_AUTODEFEND_PERIOD_SET, simcom_autoPeriodSetRsp},
+        {CMD_AUTODEFEND_PERIOD_GET, simcom_autoPeriodGetRsp},
+        {CMD_MILEAGE,               simcom_mileage}
+        {CMD_AUTODEFEND_STATE,      simcom_autoDefendState}
+    };
 
 int handle_one_msg(const void *m, SESSION *ctx)
 {
