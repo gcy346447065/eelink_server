@@ -179,7 +179,7 @@ void sync_newIMEI(const char *imei)
     return;
 }
 
-void sync_gps(const char* imei, float lat, float lng)
+void sync_gps(const char* imei, float lat, float lng, float altitude, char speed, short course)
 {
     cJSON* root = cJSON_CreateObject();
 
@@ -187,6 +187,9 @@ void sync_gps(const char* imei, float lat, float lng)
     cJSON_AddStringToObject(root, TAG_IMEI, imei);
     cJSON_AddNumberToObject(root, TAG_LAT, lat);
     cJSON_AddNumberToObject(root, TAG_LNG, lng);
+    cJSON_AddNumberToObject(root, "ALTITUDE", altitude);
+    cJSON_AddNumberToObject(root, "SPEED", speed);
+    cJSON_AddNumberToObject(root, "COURSE", course);
 
     char *data = cJSON_PrintUnformatted(root);
     if (!data)
@@ -197,7 +200,8 @@ void sync_gps(const char* imei, float lat, float lng)
     }
 
     sendMsg2Sync(data, strlen(data));
-    LOG_INFO("send gps(imei(%s), lat(%f), lng(%f)) to sync", imei, lat, lng);
+    LOG_INFO("send gps(imei(%s), lat(%f), lng(%f), altitude(%f), speed(%u), course(%d)) to sync",
+            imei, lat, lng, altitude, speed, course);
 
     free(data);
     cJSON_Delete(root);

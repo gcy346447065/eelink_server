@@ -90,6 +90,9 @@ void app_sendGpsMsg2App(void* session)
     cJSON_AddNumberToObject(root, "timestamp", obj->timestamp);
     cJSON_AddNumberToObject(root, "lat", obj->lat);
     cJSON_AddNumberToObject(root, "lng", obj->lon);
+    cJSON_AddNumberToObject(root, "altitude", obj->altitude);
+    cJSON_AddNumberToObject(root, "speed", obj->speed);
+    cJSON_AddNumberToObject(root, "course", obj->course);
 
     char *json = cJSON_PrintUnformatted(root);
 

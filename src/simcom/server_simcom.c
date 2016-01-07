@@ -142,12 +142,10 @@ struct evconnlistener* server_simcom(struct event_base* base, int port)
     /* Clear the sockaddr before using it, in case there are extra
      * platform-specific fields that can mess us up. */
     memset(&sin, 0, sizeof(sin));
-    /* This is an INET address */
-    sin.sin_family = AF_INET;
-    /* Listen on 0.0.0.0 */
-    sin.sin_addr.s_addr = INADDR_ANY;
-    /* Listen on the given port. */
-    sin.sin_port = htons(port);
+    
+    sin.sin_family = AF_INET; /* This is an INET address */
+    sin.sin_addr.s_addr = INADDR_ANY; /* Listen on 0.0.0.0 */
+    sin.sin_port = htons(port); /* Listen on the given port. */
 
     listener = evconnlistener_new_bind(base, accept_conn_cb, NULL,
             LEV_OPT_CLOSE_ON_FREE | LEV_OPT_REUSEABLE, -1,

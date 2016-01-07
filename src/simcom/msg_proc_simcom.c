@@ -162,7 +162,8 @@ int simcom_gps(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("GPS: lat(%f), lng(%f)", req->gps.latitude, req->gps.longitude);
+    LOG_INFO("GPS: latitude(%f), longitude(%f), altitude(%f), speed(%u), course(%d)", 
+        req->gps.latitude, req->gps.longitude, req->gps.altitude, req->gps.speed, req->gps.course);
 
     OBJECT * obj = (OBJECT *) session->obj;
     if (!obj)
@@ -188,13 +189,18 @@ int simcom_gps(const void *msg, SESSION *session)
         //leancloud_saveGPS(obj, ctx);
     }
 
+    obj->altitude = req->gps.altitude;
+    obj->speed = req->gps.speed;
+    obj->course = req->gps.course;
+
     app_sendGpsMsg2App(session);
     //stop upload data to yeelink
     //yeelink_saveGPS(obj, ctx);
 
-    db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, 0, 0);
+    //TO DO: add altitude to db
+    db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
 
-    sync_gps(obj->IMEI, obj->lat, obj->lon);
+    sync_gps(obj->IMEI, obj->lat, obj->lon, obj->altitude, obj->speed, obj->course);
 
     return 0;
 }
@@ -492,7 +498,7 @@ static MSG_PROC_MAP msgProcs[] =
         {CMD_AUTODEFEND_SWITCH_GET, simcom_autoDefendGetRsp},
         {CMD_AUTODEFEND_PERIOD_SET, simcom_autoPeriodSetRsp},
         {CMD_AUTODEFEND_PERIOD_GET, simcom_autoPeriodGetRsp},
-        {CMD_MILEAGE,               simcom_mileage}
+        {CMD_MILEAGE,               simcom_mileage},
         {CMD_AUTODEFEND_STATE,      simcom_autoDefendState}
     };
 
