@@ -37,7 +37,7 @@ void mqtt_message_callback(struct mosquitto *m __attribute__((unused)), void *us
 
     LOG_INFO("recieve PUBLISH: %s", message->topic);
 
-    if(strncmp(message->topic,"app2dev/",strlen("app2dev/")) == 0)
+    if(strncmp(message->topic, "app2dev/", strlen("app2dev/")) == 0)
     {
         mqtt_arg->app_msg_handler(message->topic, message->payload, message->payloadlen);
     }
@@ -51,6 +51,9 @@ void mqtt_message_callback(struct mosquitto *m __attribute__((unused)), void *us
 
 void mqtt_connect_callback(struct mosquitto *mosq, void *userdata, int rc)
 {
+    mosq = mosq;
+    userdata = userdata;
+
     if(!rc)
     {
         LOG_INFO("Connect to MQTT server successfully");
@@ -64,8 +67,11 @@ void mqtt_connect_callback(struct mosquitto *mosq, void *userdata, int rc)
     return;
 }
 
-void mqtt_disconnect_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata, int rc)
+void mqtt_disconnect_callback(struct mosquitto *mosq , void *userdata, int rc)
 {
+    mosq = mosq;
+    userdata = userdata;
+
     if(!rc)
     {
         LOG_INFO("client disconnect successfully");
@@ -81,9 +87,11 @@ void mqtt_disconnect_callback(struct mosquitto *mosq __attribute__((unused)), vo
     return;
 }
 
-
-void mqtt_subscribe_callback(struct mosquitto *m __attribute__((unused)), void *userdata __attribute__((unused)), int mid, int qos_count, const int *granted_qos)
+void mqtt_subscribe_callback(struct mosquitto *m , void *userdata , int mid, int qos_count, const int *granted_qos)
 {
+    m = m;
+    userdata = userdata;
+
     LOG_DEBUG("Subscribed (mid: %d): %d", mid, granted_qos[0]);
     for(int i=1; i<qos_count; i++)
     {
@@ -93,45 +101,55 @@ void mqtt_subscribe_callback(struct mosquitto *m __attribute__((unused)), void *
     return;
 }
 
-void mqtt_log_callback(struct mosquitto *m __attribute__((unused)), void *userdata __attribute__((unused)), int level, const char *str)
+void mqtt_log_callback(struct mosquitto *m , void *userdata , int level, const char *str)
 {
+    m = m;
+    userdata = userdata;
+
     switch (level)
     {
-    case MOSQ_LOG_DEBUG:
-        LOG_DEBUG("%s", str);
+        case MOSQ_LOG_DEBUG:
+            LOG_DEBUG("%s", str);
 
-        break;
-    case MOSQ_LOG_INFO:
-    case MOSQ_LOG_NOTICE:
-    case MOSQ_LOG_SUBSCRIBE:
-    case MOSQ_LOG_UNSUBSCRIBE:
-        LOG_INFO("%s", str);
-        break;
+            break;
+        case MOSQ_LOG_INFO:
+        case MOSQ_LOG_NOTICE:
+        case MOSQ_LOG_SUBSCRIBE:
+        case MOSQ_LOG_UNSUBSCRIBE:
+            LOG_INFO("%s", str);
+            break;
 
-    case MOSQ_LOG_WARNING:
-        LOG_WARN("%s", str);
-        break;
+        case MOSQ_LOG_WARNING:
+            LOG_WARN("%s", str);
+            break;
 
-    case MOSQ_LOG_ERR:
-        LOG_ERROR("%s", str);
-        break;
+        case MOSQ_LOG_ERR:
+            LOG_ERROR("%s", str);
+            break;
 
-    default:
-        LOG_ERROR("unknown level log:%s", str);
+        default:
+            LOG_ERROR("unknown level log:%s", str);
+            break;
     }
 
     return;
 }
 
-void mqtt_publish_callback(struct mosquitto *m __attribute__((unused)), void *userdata __attribute__((unused)), int mid __attribute__((unused)))
+void mqtt_publish_callback(struct mosquitto *m , void *userdata , int mid )
 {
+    m = m;
+    userdata = userdata;
+
     LOG_INFO("Publish mid: %d successfully", mid);
 
     return;
 }
 
-void mqtt_reconnect_cb(evutil_socket_t fd, short a, void * arg)
+void mqtt_reconnect_cb(evutil_socket_t fd, short a, void *arg)
 {
+    fd = fd;
+    a = a;
+
     LOG_INFO("re-connect to MQTT server");
     mqtt_initial(arg);
 
