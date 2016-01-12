@@ -41,6 +41,8 @@ static void read_cb(struct bufferevent *bev, void *arg)
             LOG_ERROR("handle simcom message error!");
         }
     }
+
+    return;
 }
 
 static void write_cb(struct bufferevent* bev __attribute__((unused)), void *arg __attribute__((unused)))
@@ -67,11 +69,11 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
     {
         if (events & BEV_EVENT_ERROR)
         {
-             int err = bufferevent_socket_get_dns_error(bev);
-             if (err)
-             {
-                 LOG_ERROR("DNS error: %s\n", evutil_gai_strerror(err));
-             }
+            int err = bufferevent_socket_get_dns_error(bev);
+            if (err)
+            {
+                LOG_ERROR("DNS error: %s\n", evutil_gai_strerror(err));
+            }
             LOG_ERROR("BEV_EVENT_ERROR:%s", evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
         }
 
@@ -82,6 +84,8 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
         EVUTIL_CLOSESOCKET(socket);
         bufferevent_free(bev);
     }
+
+    return;
 }
 
 static void accept_conn_cb(struct evconnlistener *listener,
@@ -116,7 +120,7 @@ static void accept_conn_cb(struct evconnlistener *listener,
     //TODO: set the water-mark and timeout
     bufferevent_setcb(bev, read_cb, write_cb, event_cb, session);
 
-    bufferevent_enable(bev, EV_READ|EV_WRITE);
+    bufferevent_enable(bev, EV_READ | EV_WRITE);
 
     //set the timeout for the connection, when timeout close the connectiont
     struct timeval tm = {600, 0};

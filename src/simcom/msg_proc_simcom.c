@@ -149,13 +149,11 @@ int simcom_login(const void *msg, SESSION *session)
 int simcom_gps(const void *msg, SESSION *session)
 {
     const MSG_GPS *req = (const MSG_GPS *)msg;
-
     if (!req)
     {
         LOG_ERROR("msg handle empty");
         return -1;
     }
-
     if (req->header.length < sizeof(MSG_GPS) - MSG_HEADER_LEN)
     {
         LOG_ERROR("gps message length not enough");
@@ -171,7 +169,6 @@ int simcom_gps(const void *msg, SESSION *session)
         LOG_WARN("MC must first login");
         return -1;
     }
-    //no response message needed
 
     obj->timestamp = get_time();
 
@@ -186,7 +183,6 @@ int simcom_gps(const void *msg, SESSION *session)
         obj->isGPSlocated = 0x01;
         obj->lat = req->gps.latitude;
         obj->lon = req->gps.longitude;
-        //leancloud_saveGPS(obj, ctx);
     }
 
     obj->altitude = req->gps.altitude;
@@ -194,8 +190,6 @@ int simcom_gps(const void *msg, SESSION *session)
     obj->course = req->gps.course;
 
     app_sendGpsMsg2App(session);
-    //stop upload data to yeelink
-    //yeelink_saveGPS(obj, ctx);
 
     //TO DO: add altitude to db
     db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
@@ -220,8 +214,14 @@ int simcom_cell(const void *msg, SESSION *session)
     }
 
     const CGI *cgi = (const CGI *)(req + 1);
+    if (!cgi)
+    {
+        LOG_ERROR("cgi handle empty");
+        return -1;
+    }
 
     LOG_INFO("CGI: mcc(%d), mnc(%d)", ntohs(cgi->mcc), ntohs(cgi->mnc));
+
     OBJECT *obj = session->obj;
     if(!obj)
     {
@@ -240,15 +240,19 @@ int simcom_cell(const void *msg, SESSION *session)
     }
 
     const CELL *cell = (const CELL *)(cgi + 1);
+    if (!cell)
+    {
+        LOG_ERROR("cell handle empty");
+        return -1;
+    }
 
     for(int i = 0; i < num; ++i)
     {
         (obj->cell[i]).mcc = ntohs(cgi->mcc);
         (obj->cell[i]).mnc = ntohs(cgi->mnc);
-        (obj->cell[i]).lac    = ntohs((cell[i]).lac);
-        (obj->cell[i]).ci     = ntohs((cell[i]).cellid);
-        (obj->cell[i]).rxl    = ntohs((cell[i]).rxl);
-        //db_saveCGI(obj->IMEI, obj->timestamp, (obj->cell[i]).mcc, (obj->cell[i]).mnc, (obj->cell[i]).lac, (obj->cell[i]).ci, (obj->cell[i]).rxl);
+        (obj->cell[i]).lac = ntohs((cell[i]).lac);
+        (obj->cell[i]).ci  = ntohs((cell[i]).cellid);
+        (obj->cell[i]).rxl = ntohs((cell[i]).rxl);
     }
     db_saveCGI(obj->IMEI, obj->timestamp, obj->cell, num);
 
@@ -259,9 +263,11 @@ int simcom_cell(const void *msg, SESSION *session)
         //LOG_ERROR("cgi2gps error");
         return 1;
     }
-    obj->isGPSlocated = 0x00;
     obj->lat = lat;
     obj->lon = lon;
+    obj->altitude = 0;
+    obj->speed = 0;
+    obj->course = 0;
 
     app_sendGpsMsg2App(session);
     db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, 0, 0);
@@ -474,14 +480,110 @@ static int simcom_autoDefendState(const void *msg, SESSION *session)
 
     return 0;
 }
-/*
-static int simcom_autoDefendNotify(const void *m, SESSION *session)
-{
-    const MSG_AUTOLOCK *msg = (const MSG_AUTOLOCK *)m;
 
-    app_sendAutolockMsg2App(get_time(), msg->lock, session);
+static int simcom_location(const void *msg, SESSION *session)
+{
+    const MSG_HEADER *req = (const MSG_HEADER *)msg;
+    if(!req)
+    {
+        LOG_ERROR("req handle empty");
+        return -1;
+    }
+    if(req->length < sizeof(CGI) && req->length < sizeof(GPS))
+    {
+        LOG_ERROR("location message length not enough");
+        return -1;
+    }
+
+    const char *isGPS = (const char *)(req + 1);
+
+    if(*isGPS == 0x01)
+    {
+        //location with gps
+        const GPS *gps = (const GPS *)(isGPS + 1);
+        if (!gps)
+        {
+            LOG_ERROR("gps handle empty");
+            return -1;
+        }
+
+        LOG_INFO("GPS: latitude(%f), longitude(%f), altitude(%f), speed(%u), course(%d)", 
+            gps->latitude, gps->longitude, gps->altitude, gps->speed, gps->course);
+
+        OBJECT * obj = (OBJECT *) session->obj;
+        if (!obj)
+        {
+            LOG_WARN("MC must first login");
+            return -1;
+        }
+
+        obj->timestamp = get_time();
+        obj->isGPSlocated = 0x01;
+        obj->lat = gps->latitude;
+        obj->lon = gps->longitude;
+        obj->altitude = gps->altitude;
+        obj->speed = (char)gps->speed;
+        obj->course = (short)gps->course;
+
+        app_sendGpsMsg2App(session);
+    }
+    else if(*isGPS == 0x00)
+    {
+        //location with cell
+        const CGI *cgi = (const CGI *)(isGPS + 1);
+        if (!cgi)
+        {
+            LOG_ERROR("cgi handle empty");
+            return -1;
+        }
+
+        LOG_INFO("CGI: mcc(%d), mnc(%d)", ntohs(cgi->mcc), ntohs(cgi->mnc));
+        OBJECT *obj = session->obj;
+        if(!obj)
+        {
+            LOG_WARN("MC must first login");
+            return -1;
+        }
+
+        obj->timestamp = get_time();
+        obj->isGPSlocated = 0x00;
+
+        int num = cgi->cellNo;
+        if(num > CELL_NUM)
+        {
+            LOG_ERROR("Number:%d of cell is over", num);
+            return -1;
+        }
+
+        const CELL *cell = (const CELL *)(cgi + 1);
+
+        for(int i = 0; i < num; ++i)
+        {
+            (obj->cell[i]).mcc = ntohs(cgi->mcc);
+            (obj->cell[i]).mnc = ntohs(cgi->mnc);
+            (obj->cell[i]).lac = ntohs((cell[i]).lac);
+            (obj->cell[i]).ci  = ntohs((cell[i]).cellid);
+            (obj->cell[i]).rxl = ntohs((cell[i]).rxl);
+        }
+
+        float lat, lon;
+        int rc = cgi2gps(obj->cell, num, &lat, &lon);
+        if(rc != 0)
+        {
+            //LOG_ERROR("cgi2gps error");
+            return 1;
+        }
+        obj->lat = lat;
+        obj->lon = lon;
+        obj->altitude = 0;
+        obj->speed = 0;
+        obj->course = 0;
+
+        app_sendGpsMsg2App(session);
+    }
+
     return 0;
-}*/
+}
 
 static MSG_PROC_MAP msgProcs[] =
     {
@@ -499,7 +601,8 @@ static MSG_PROC_MAP msgProcs[] =
         {CMD_AUTODEFEND_PERIOD_SET, simcom_autoPeriodSetRsp},
         {CMD_AUTODEFEND_PERIOD_GET, simcom_autoPeriodGetRsp},
         {CMD_MILEAGE,               simcom_mileage},
-        {CMD_AUTODEFEND_STATE,      simcom_autoDefendState}
+        {CMD_AUTODEFEND_STATE,      simcom_autoDefendState},
+        {CMD_LOCATION,              simcom_location}
     };
 
 int handle_one_msg(const void *m, SESSION *ctx)
@@ -520,7 +623,6 @@ int handle_one_msg(const void *m, SESSION *ctx)
 
     return -1;
 }
-
 
 int handle_simcom_msg(const char *m, size_t msgLen, void *arg)
 {

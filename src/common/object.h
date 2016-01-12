@@ -48,6 +48,7 @@ typedef struct
 
     CGI_MC cell[CELL_NUM];
     char isGPSlocated;
+    
     short status;
     short voltage;
     short analog1;
