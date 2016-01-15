@@ -461,7 +461,7 @@ static int simcom_autoPeriodSetRsp(const void *msg, SESSION *session)
 static int simcom_autoPeriodGetRsp(const void *msg, SESSION *session)
 {
     //TODO: to be complted?
-    const MSG_AUTODEFEND_PEROID_GET_RSP* rsp = (MSG_AUTODEFEND_PEROID_GET_RSP*)msg;
+    const MSG_AUTODEFEND_PERIOD_GET_RSP* rsp = (const MSG_AUTODEFEND_PERIOD_GET_RSP *)msg;
     OBJECT *obj = session->obj;
 
     app_sendAutoDefendPeriodMsg2App(get_time(), rsp->period, session);
