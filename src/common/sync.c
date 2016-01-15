@@ -37,7 +37,7 @@ static void sendMsg2Sync(void* data, size_t len)
     bufferevent_write(bev, data, len);
 }
 
-static void eventcb(struct bufferevent *bev, short events, void *arg)
+static void event_cb(struct bufferevent *bev, short events, void *arg)
 {
     struct event_base *base = bev->ev_base;
     if (events & BEV_EVENT_CONNECTED)
@@ -106,13 +106,13 @@ int sync_init(struct event_base *base)
     memset(&sin, 0, sizeof(sin));
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(0x7f000001); /* 127.0.0.1 */
-    sin.sin_port = htons(PORT_SYNC);
+    //sin.sin_port = htons(PORT_SYNC);
+    sin.sin_port = htons(8889);
 
     bev = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
 
-    bufferevent_setcb(bev, read_cb, write_cb, eventcb, NULL);
-    bufferevent_enable(bev, EV_READ|EV_WRITE);
-
+    bufferevent_setcb(bev, read_cb, write_cb, event_cb, NULL);
+    bufferevent_enable(bev, EV_READ | EV_WRITE);
 
     if (bufferevent_socket_connect(bev,
         (struct sockaddr *)&sin, sizeof(sin)) < 0)
@@ -130,6 +130,7 @@ int sync_init(struct event_base *base)
         {
             //The event_self_cbarg() function was introduced in Libevent 2.1.1-alpha.
             //evTimerReconnect = timer_newOnce(base, &one_minitue, sync_reconnect_fn, event_self_cbarg());
+
             evTimerReconnect = timer_newOnce(base, &five_minitue, sync_reconnect_fn, base);
         }
         return -1;
@@ -155,13 +156,13 @@ int sync_exit()
 
 void sync_newIMEI(const char *imei)
 {
-
     cJSON *root = cJSON_CreateObject();
 
     cJSON_AddNumberToObject(root, TAG_CMD, CMD_SYNC_NEW_DID);
     cJSON_AddStringToObject(root, TAG_IMEI, imei);
 
     char *data = cJSON_PrintUnformatted(root);
+
     if (!data)
     {
         LOG_ERROR("internal error");
@@ -170,7 +171,7 @@ void sync_newIMEI(const char *imei)
     }
 
     sendMsg2Sync(data, strlen(data));
-    LOG_INFO("sync %s to leancloud", imei);
+    LOG_INFO("send imei(%s) to sync", imei);
 
     free(data);
     cJSON_Delete(root);
@@ -178,7 +179,7 @@ void sync_newIMEI(const char *imei)
     return;
 }
 
-void sync_gps(const char* imei, float lat, float lng)
+void sync_gps(const char* imei, float lat, float lng, float altitude, char speed, short course)
 {
     cJSON* root = cJSON_CreateObject();
 
@@ -186,6 +187,9 @@ void sync_gps(const char* imei, float lat, float lng)
     cJSON_AddStringToObject(root, TAG_IMEI, imei);
     cJSON_AddNumberToObject(root, TAG_LAT, lat);
     cJSON_AddNumberToObject(root, TAG_LNG, lng);
+    cJSON_AddNumberToObject(root, "ALTITUDE", altitude);
+    cJSON_AddNumberToObject(root, "SPEED", speed);
+    cJSON_AddNumberToObject(root, "COURSE", course);
 
     char *data = cJSON_PrintUnformatted(root);
     if (!data)
@@ -196,6 +200,8 @@ void sync_gps(const char* imei, float lat, float lng)
     }
 
     sendMsg2Sync(data, strlen(data));
+    LOG_INFO("send gps(imei(%s), lat(%f), lng(%f), altitude(%f), speed(%u), course(%d)) to sync",
+            imei, lat, lng, altitude, speed, course);
 
     free(data);
     cJSON_Delete(root);

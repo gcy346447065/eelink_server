@@ -14,37 +14,55 @@
 #include "curl.h"
 #include "log.h"
 #include "env.h"
+#include "db.h"
+#include "macro.h"
 
 #define LEANCLOUD_URL_BASE "https://api.leancloud.cn/1.1"
 
-static void leancloud_post(CURL *curl, const char* class, const void* data, int len)
+static int leancloud_post(CURL *curl, const char* class, const void* data, int len)
 {
 	char url[256] = {0};
 
-
-	snprintf(url, 256, "%s/classes/%s", LEANCLOUD_URL_BASE, class);
+    snprintf(url, 256, "%s/classes/%s", LEANCLOUD_URL_BASE, class);
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
-
-	curl_easy_setopt(curl, CURLOPT_POST, 1L);
-
-	/* pass in a pointer to the data - libcurl will not copy */
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
-	/* size of the POST data */
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, len);
-
-//    LOG_INFO("Post leancloud: %s ---> %s", url, data);
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data); /* pass in a pointer to the data - libcurl will not copy */
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, len); /* size of the POST data */
 
     /* Perform the request, res will get the return code */
     CURLcode res = curl_easy_perform(curl);
-
-
-    /* Check for errors */
-    if(res != CURLE_OK)
+    //curl_easy_cleanup(curl);
+    if(CURLE_OK != res)
     {
-    	LOG_ERROR("curl_easy_perform() failed: %s",curl_easy_strerror(res));
+    	LOG_ERROR("leancloud_post failed: %s", curl_easy_strerror(res));
+        return -1;
     }
 
+    return 0;
+}
+
+static int leancloud_batch(CURL *curl, const void* data, int len)
+{
+    char url[256] = {0};
+
+    snprintf(url, 256, "%s/batch", LEANCLOUD_URL_BASE);
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data); /* pass in a pointer to the data - libcurl will not copy */
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, len); /* size of the POST data */
+
+    /* Perform the request, res will get the return code */
+    CURLcode res = curl_easy_perform(curl);
+    //curl_easy_cleanup(curl);
+    if(CURLE_OK != res)
+    {
+        LOG_ERROR("leancloud_batch failed: %s", curl_easy_strerror(res));
+        return -1;
+    }
+
+    return 0;
 }
 
 static int leancloud_get(CURL *curl, const char* class)
@@ -54,52 +72,88 @@ static int leancloud_get(CURL *curl, const char* class)
     snprintf(url, 256, "%s/classes/%s?limit=1000", LEANCLOUD_URL_BASE, class);
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
-
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
 
     CURLcode res = curl_easy_perform(curl);
+    //curl_easy_cleanup(curl);
     if(CURLE_OK != res)
     {
-        LOG_ERROR("curl_easy_perform() failed: %s",curl_easy_strerror(res));
+        LOG_ERROR("leancloud_get failed: %s", curl_easy_strerror(res));
         return -1;
     }
+
     return 0;
 }
 
-
-void leancloud_saveGPS(const char* imei, double lat, double lng)
+int leancloud_saveGPS(const char* imei, double lat, double lng)
 {
 	ENVIRONMENT* env = env_get();
 	CURL* curl = env->curl_leancloud;
 
 	cJSON *root = cJSON_CreateObject();
 
-	cJSON_AddStringToObject(root,"IMEI", imei);
-	cJSON_AddNumberToObject(root,"lat",	lat);
-	cJSON_AddNumberToObject(root,"lon",	lng);
-//	cJSON_AddNumberToObject(root,"speed",	speed);
-//	cJSON_AddNumberToObject(root,"course",	course);
-//	cJSON_AddNumberToObject(root,"time", timestamp);
+	cJSON_AddStringToObject(root, "IMEI", imei);
+	cJSON_AddNumberToObject(root, "lat",  lat);
+	cJSON_AddNumberToObject(root, "lon",  lng);
+    //cJSON_AddNumberToObject(root, "speed",	speed);
+    //cJSON_AddNumberToObject(root, "course",	course);
+    //cJSON_AddNumberToObject(root, "time", timestamp);
 	char* data = cJSON_PrintUnformatted(root);
+
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveGPS);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, env);
-	leancloud_post(curl, "GPS", data, strlen(data));
+	int ret = leancloud_post(curl, "GPS", data, strlen(data));
+
 	cJSON_Delete(root);
 	free(data);
+
+    return ret;
 }
 
-void leancloud_saveDid(const char* imei)
+int leancloud_saveDid(const char* imei)
 {
 	ENVIRONMENT* env = env_get();
 	CURL* curl = env->curl_leancloud;
 
 	cJSON *root = cJSON_CreateObject();
 
-	cJSON_AddStringToObject(root,"IMEI", imei);
+	cJSON_AddStringToObject(root, "IMEI", imei);
 	char* data = cJSON_PrintUnformatted(root);
-	leancloud_post(curl, "DID", data, strlen(data));
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveDID);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, imei);
+	int ret = leancloud_post(curl, "DID", data, strlen(data));
+
 	cJSON_Delete(root);
 	free(data);
+
+    return ret;
+}
+
+int leancloud_makeMultiDidCurl(char** ppImeiMulti, int ImeiNum, char* data)
+{
+    cJSON *root, *requests, *request, *body;
+    int ret = 0;
+
+    root = cJSON_CreateObject();
+    
+    cJSON_AddItemToObject(root, "requests", requests = cJSON_CreateArray());
+    
+    for(int i = 0; i < ImeiNum; i++)
+    {
+        cJSON_AddItemToArray(requests, request = cJSON_CreateObject());
+        cJSON_AddStringToObject(request, "method", "POST");
+        cJSON_AddStringToObject(request, "path", "/1.1/classes/DID");
+        cJSON_AddItemToObject(request, "body", body = cJSON_CreateObject());
+        cJSON_AddStringToObject(body, "IMEI", *(ppImeiMulti++));
+    }
+
+    data = cJSON_PrintUnformatted(root);
+    LOG_INFO("%s", data);
+
+    cJSON_Delete(root);
+
+    return ret;
 }
 
 int leancloud_onGetOBJ(MemroyBuf *chunk)
@@ -150,7 +204,6 @@ int leancloud_onGetOBJ(MemroyBuf *chunk)
     cJSON_Delete(root);
     return ret;
 }
-
 
 int leancloud_getOBJ()
 {

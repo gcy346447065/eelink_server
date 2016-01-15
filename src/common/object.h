@@ -33,6 +33,8 @@ typedef struct
      * We use the SNR for MAC
      */
 
+    int ObjectType;
+
     char IMEI[IMEI_LENGTH + 1];
     char language;
     char locale;
@@ -40,10 +42,13 @@ typedef struct
     time_t timestamp;
     float lat;
     float lon;
+    float altitude;
     char speed;
     short course;
+
     CGI_MC cell[CELL_NUM];
     char isGPSlocated;
+    
     short status;
     short voltage;
     short analog1;

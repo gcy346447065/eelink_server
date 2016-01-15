@@ -27,4 +27,11 @@ typedef struct
 	short rxl;	//receive level
 }__attribute__((__packed__)) CGI_MC;
 
+enum
+{
+    ObjectType_null = 0,
+    ObjectType_tk115 = 1,
+    ObjectType_simcom = 2
+};
+
 #endif /* SRC_MACRO_H_ */

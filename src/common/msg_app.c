@@ -19,8 +19,10 @@
 
 static void app_sendMsg2App(const char *topic, const void *msg, size_t len)
 {
-//  LOG_HEX(data, len);
+    //LOG_HEX(data, len);
     mqtt_publish(topic, msg, len);
+
+    return;
 }
 
 void app_sendCmdRsp2App(int cmd, int result, const char *strIMEI)
@@ -36,9 +38,40 @@ void app_sendCmdRsp2App(int cmd, int result, const char *strIMEI)
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send cmd msg to APP" );
+
+    LOG_INFO("send IMEI(%s), cmd(%d), result(%d) response to APP", strIMEI, cmd, result);
     free(json);
     cJSON_Delete(root);
+
+    return;
+}
+
+void app_sendLocationRsp2App(int result, OBJECT* obj)
+{
+    char topic[IMEI_LENGTH + 13];
+    memset(topic, 0, sizeof(topic));
+    snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/cmd", obj->IMEI);
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, "cmd", APP_CMD_LOCATION);
+    cJSON_AddNumberToObject(root, "result", result);
+    cJSON_AddNumberToObject(root, "isGPSlocated", obj->isGPSlocated);
+    cJSON_AddNumberToObject(root, "timestamp", obj->timestamp);
+    cJSON_AddNumberToObject(root, "lat", obj->lat);
+    cJSON_AddNumberToObject(root, "lng", obj->lon);
+    cJSON_AddNumberToObject(root, "altitude", obj->altitude);
+    cJSON_AddNumberToObject(root, "speed", obj->speed);
+    cJSON_AddNumberToObject(root, "course", obj->course);
+
+    char *json = cJSON_PrintUnformatted(root);
+
+    app_sendMsg2App(topic, json, strlen(json));
+
+    LOG_INFO("send IMEI(%s), cmd(%d), result(%d) response to APP", obj->IMEI, APP_CMD_LOCATION, result);
+    free(json);
+    cJSON_Delete(root);
+
+    return;
 }
 
 void app_sendFenceGetRspMsg2App(int cmd, int result, int state, void *session)
@@ -68,27 +101,38 @@ void app_sendFenceGetRspMsg2App(int cmd, int result, int state, void *session)
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send cmd msg to APP" );
+    LOG_INFO("send fence get response to APP" );
     free(json);
     cJSON_Delete(root);
 }
 
 void app_sendGpsMsg2App(void* session)
 {
+    if (!session)
+    {
+        LOG_FATAL("internal error: session null");
+        return;
+    }
+
     OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
     if (!obj)
     {
-        LOG_ERROR("obj null, no data to upload");
+        LOG_FATAL("internal error: obj null");
         return;
     }
+
     char topic[IMEI_LENGTH + 13];
     memset(topic, 0, sizeof(topic));
     snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/gps", obj->IMEI);
 
     cJSON * root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "timestamp", obj->timestamp);
+    cJSON_AddNumberToObject(root, "isGPSlocated", obj->isGPSlocated);
     cJSON_AddNumberToObject(root, "lat", obj->lat);
     cJSON_AddNumberToObject(root, "lng", obj->lon);
+    cJSON_AddNumberToObject(root, "altitude", obj->altitude);
+    cJSON_AddNumberToObject(root, "speed", obj->speed);
+    cJSON_AddNumberToObject(root, "course", obj->course);
 
     char *json = cJSON_PrintUnformatted(root);
 

@@ -16,8 +16,7 @@
 #include "port.h"
 #include "sync.h"
 
-
-static void signal_cb(evutil_socket_t fd, short what, void *arg)
+static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
     struct event_base *base = arg;
 
@@ -28,10 +27,10 @@ static void signal_cb(evutil_socket_t fd, short what, void *arg)
 
 int main(int argc, char **argv)
 {
-    int simcom_port= PORT_SIMCOM;
+    int simcom_port = PORT_SIMCOM;
+    //int simcom_port = 8888;
 
     setvbuf(stdout, NULL, _IONBF, 0);
-
 
     if (argc >= 2)
     {
@@ -54,7 +53,6 @@ int main(int argc, char **argv)
         return 1; /*XXXerr*/
 
     int rc = log_init("../conf/simcom_log.conf");
-
     if (rc)
     {
         LOG_ERROR("log initial failed: rc=%d", rc);
@@ -70,7 +68,7 @@ int main(int argc, char **argv)
     struct event *evInt = evsignal_new(base, SIGINT, signal_cb, base);
     if (!evInt || evsignal_add(evInt, NULL) < 0)
     {
-        LOG_ERROR("can't create SIGTERM event");
+        LOG_ERROR("can't create SIGINT event");
     }
 
     rc = mosquitto_lib_init();
@@ -82,7 +80,7 @@ int main(int argc, char **argv)
 
     static MQTT_ARG mqtt_arg =
     {
-            .app_msg_handler = app_handleApp2devMsg
+        .app_msg_handler = app_handleApp2devMsg
     };
     mqtt_arg.base = base;
 
@@ -100,7 +98,6 @@ int main(int argc, char **argv)
     {
     	LOG_FATAL("curl lib initial failed:%d", rc);
     }
-
 
     rc = db_initial();
     if(rc)
@@ -133,8 +130,7 @@ int main(int argc, char **argv)
     LOG_INFO("start the event loop");
     event_base_dispatch(base);
 
-
-//    sk_free(SSL_COMP_get_compression_methods());
+    //sk_free(SSL_COMP_get_compression_methods());
     LOG_INFO("stop mc server...");
 
     sync_exit();
@@ -157,9 +153,7 @@ int main(int argc, char **argv)
 
     mosquitto_lib_cleanup();
 
-
     zlog_fini();
-
 
     return 0;
 }

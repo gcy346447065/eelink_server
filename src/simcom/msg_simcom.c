@@ -34,20 +34,20 @@ MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER* pMsg)
     size_t msgLen = 0;
     switch (pMsg->cmd)
     {
-    case CMD_LOGIN:
-        msgLen = sizeof(MSG_LOGIN_RSP);
-        break;
+        case CMD_LOGIN:
+            msgLen = sizeof(MSG_LOGIN_RSP);
+            break;
 
-    case CMD_PING:
-        msgLen = sizeof(MSG_PING_RSP);
-        break;
+        case CMD_PING:
+            msgLen = sizeof(MSG_PING_RSP);
+            break;
 
-    case CMD_SMS:
-        msgLen = sizeof(MSG_SMS_RSP);    //FIXME: without any sms contents
-        break;
+        case CMD_SMS:
+            msgLen = sizeof(MSG_SMS_RSP);    //FIXME: without any sms contents
+            break;
 
-    default:
-        return NULL;
+        default:
+            return NULL;
     }
 
     MSG_HEADER* msg = malloc(msgLen);
@@ -60,7 +60,6 @@ MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER* pMsg)
     return msg;
 }
 
-
 void free_simcom_msg(void* msg)
 {
     free(msg);
@@ -71,7 +70,7 @@ char get_msg_cmd(void *msg)
     return ((MSG_HEADER*)msg)->cmd;
 }
 
-const char *getIMEI(const char *imei)
+const char *getImeiStringFromArray(const char *imei)
 {
     static char ret[IMEI_LENGTH + 1];
     memcpy(ret, imei, IMEI_LENGTH);

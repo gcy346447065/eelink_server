@@ -8,19 +8,21 @@
 #ifndef SRC_MSG_APP_H_
 #define SRC_MSG_APP_H_
 
+#include "object.h"
+
 enum CMD
 {
-    APP_CMD_WILD        = 0,
-    APP_CMD_FENCE_ON    = 1,
-    APP_CMD_FENCE_OFF   = 2,
-    APP_CMD_FENCE_GET   = 3,
-    APP_CMD_SEEK_ON     = 4,
-    APP_CMD_SEEK_OFF    = 5,
-    APP_CMD_LOCATION    = 6,
-    APP_CMD_AUTOLOCK_ON,
-    APP_CMD_AUTOLOCK_OFF,
-    APP_CMD_AUTOPERIOD_SET,
-    APP_CMD_AUTOPERIOD_GET,
+    APP_CMD_WILD            =  0,
+    APP_CMD_FENCE_ON        =  1,
+    APP_CMD_FENCE_OFF       =  2,
+    APP_CMD_FENCE_GET       =  3,
+    APP_CMD_SEEK_ON         =  4,
+    APP_CMD_SEEK_OFF        =  5,
+    APP_CMD_LOCATION        =  6,
+    APP_CMD_AUTOLOCK_ON     =  7,
+    APP_CMD_AUTOLOCK_OFF    =  8,
+    APP_CMD_AUTOPERIOD_SET  =  9,
+    APP_CMD_AUTOPERIOD_GET  = 10,
 
 };
 
@@ -69,6 +71,7 @@ typedef struct
 }__attribute__((__packed__)) F33_MSG;//433
 
 void app_sendCmdRsp2App(int cmd, int result, const char *strIMEI);
+void app_sendLocationRsp2App(int result, OBJECT* obj);
 
 void app_sendFenceGetRspMsg2App(int cmd, int result, int state, void *session);
 void app_sendGpsMsg2App(void* session);

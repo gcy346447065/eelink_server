@@ -13,8 +13,7 @@
 #include "log.h"
 
 MQTTClient client;
-MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
-
+MQTTClient_connectOptions conn_opts = { {'M', 'Q', 'T', 'C'}, 4, 60, 1, 1, NULL, NULL, NULL, 30, 20, NULL, 0, NULL, 0, {0}};
 
 static int extendedCmdArrive(void *context __attribute__((unused)), EXTED_CMD cmd, int status, int ret_string_len, char *ret_string)
 {
@@ -47,7 +46,7 @@ static int messageArrived(void* context __attribute__((unused)), char* topicName
 	LOG_DEBUG("Message arrived, date:%s", ctime(&t));
 	LOG_DEBUG("     qos: %i", m->qos);
 	LOG_DEBUG("     messageid: %"PRIu64"", m->msgid);
-	LOG_DEBUG("     topic: %s", topicName);
+	LOG_DEBUG("     topic(%d): %s",topicLen, topicName);
 	LOG_DEBUG("   message: ");
 
 	LOG_HEX(m->payload, m->payloadlen);
@@ -61,12 +60,14 @@ static int messageArrived(void* context __attribute__((unused)), char* topicName
 
 static void connectionLost(void *context __attribute__((unused)), char *cause)
 {
+	//The reason for the disconnection. Currently, cause is always set to NULL.
 	LOG_WARN("yunba connect lost:%s", cause);
+
 	if (MQTTClient_connect(client, &conn_opts) != MQTTCLIENT_SUCCESS)
 	{
 		LOG_ERROR("failed to re-connect");
 		//FIXME: how to do when connect failed when lost connection
-//		exit(-1);
+		//exit(-1);
 	}
 	else
 	{
@@ -83,12 +84,12 @@ int yunba_connect()
 	int rc = MQTTClient_setup_with_appkey(YUNBA_APPKEY, &reg_info);
 	if (rc < 0)
 	{
-		LOG_ERROR("can't get reg info: rc=%d", rc);
+		LOG_ERROR("can't setup with appkey: rc=%d", rc);
 		return rc;
 	}
 	else
 	{
-		LOG_INFO("yunba reg info: client_id:%s,username:%s,password:%s, devide_id:%s\n",
+		LOG_INFO("yunba reg info: client_id:%s, username:%s, password:%s, devide_id:%s\n",
 				reg_info.client_id, reg_info.username, reg_info.password, reg_info.device_id);
 	}
 
@@ -153,7 +154,7 @@ void yunba_disconnect()
 void yunba_publish(char* topicName, char* payload, int payloadLen)
 {
 //	int rc = MQTTClient_publish_json(client, topicName, data);
-	cJSON *apn_json, *aps;
+	//cJSON *apn_json, *aps;
 	cJSON *Opt = cJSON_CreateObject();
 	cJSON_AddStringToObject(Opt,"time_to_live",  "120");
 	cJSON_AddStringToObject(Opt,"time_delay",  "1100");
@@ -166,14 +167,15 @@ void yunba_publish(char* topicName, char* payload, int payloadLen)
 	cJSON_AddStringToObject(aps,"alert",  "FENCE alarm");
 	cJSON_AddStringToObject(aps,"sound",  "alarm.mp3");
 #endif
-        char* json = cJSON_PrintUnformatted(Opt);
-	LOG_DEBUG("push to yunba: topic=%s,payload=%s, len=%d,opt=%s", topicName, payload, payloadLen, json);
-        free(json);
+
+    char* json = cJSON_PrintUnformatted(Opt);
+	LOG_DEBUG("push to yunba: topic=%s, payload=%s, len=%d, opt=%s", topicName, payload, payloadLen, json);
+    free(json);
 
 	int rc = MQTTClient_publish2(client, topicName, payloadLen, payload, Opt);
 	if (rc != MQTTCLIENT_SUCCESS)
 	{
-		LOG_ERROR("yunba push error:rc = %d", rc);
+		LOG_ERROR("yunba push error: rc = %d", rc);
 		return;
 	}
 	cJSON_Delete(Opt);

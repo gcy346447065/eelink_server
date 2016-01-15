@@ -22,7 +22,6 @@
 static struct mosquitto *mosq = NULL;
 static struct event *evTimerReconnect = NULL;
 
-
 void mqtt_message_callback(struct mosquitto *m __attribute__((unused)), void *userdata, const struct mosquitto_message *message)
 {
     MQTT_ARG* mqtt_arg = (MQTT_ARG*)userdata;
@@ -38,7 +37,7 @@ void mqtt_message_callback(struct mosquitto *m __attribute__((unused)), void *us
 
     LOG_INFO("recieve PUBLISH: %s", message->topic);
 
-    if(strncmp(message->topic,"app2dev/",strlen("app2dev/")) == 0)
+    if(strncmp(message->topic, "app2dev/", strlen("app2dev/")) == 0)
     {
         mqtt_arg->app_msg_handler(message->topic, message->payload, message->payloadlen);
     }
@@ -47,10 +46,14 @@ void mqtt_message_callback(struct mosquitto *m __attribute__((unused)), void *us
         LOG_ERROR("Receive unknown PUBLISH: %s", message->topic);
     }
 
+    return;
 }
 
 void mqtt_connect_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int rc)
 {
+    mosq = mosq;
+    userdata = userdata;
+
     if(!rc)
     {
         LOG_INFO("Connect to MQTT server successfully");
@@ -59,71 +62,97 @@ void mqtt_connect_callback(struct mosquitto *mosq __attribute__((unused)), void 
     {
         LOG_ERROR("Connect failed: result = %s", mosquitto_connack_string(rc));
     }
+
+    return;
 }
 
 void mqtt_disconnect_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int rc)
 {
+    mosq = mosq;
+    userdata = userdata;
 
-    if(rc)
+    if(!rc)
+    {
+        LOG_INFO("client disconnect successfully");
+    }
+    else
     {
         LOG_ERROR("disconnect rc = %d(%s)\n",  rc, mosquitto_strerror(rc));
 
         //it will auto reconnect
         //mosquitto_reconnect(mosq);
     }
-    else
-    {
-        LOG_INFO("client disconnect successfully");
-    }
+
+    return;
 }
 
-
-void mqtt_subscribe_callback(struct mosquitto *m __attribute__((unused)), void *userdata __attribute__((unused)), int mid, int qos_count, const int *granted_qos)
+void mqtt_subscribe_callback(struct mosquitto *m , void *userdata , int mid, int qos_count, const int *granted_qos)
 {
+    m = m;
+    userdata = userdata;
+
     LOG_DEBUG("Subscribed (mid: %d): %d", mid, granted_qos[0]);
-    for(int i=1; i<qos_count; i++){
+    for(int i=1; i<qos_count; i++)
+    {
         LOG_DEBUG(", %d", granted_qos[i]);
     }
+
+    return;
 }
 
-void mqtt_log_callback(struct mosquitto *m __attribute__((unused)), void *userdata __attribute__((unused)), int level, const char *str)
+void mqtt_log_callback(struct mosquitto *m , void *userdata , int level, const char *str)
 {
+    m = m;
+    userdata = userdata;
+
     switch (level)
     {
-    case MOSQ_LOG_DEBUG:
-        LOG_DEBUG("%s", str);
+        case MOSQ_LOG_DEBUG:
+            LOG_DEBUG("%s", str);
 
-        break;
-    case MOSQ_LOG_INFO:
-    case MOSQ_LOG_NOTICE:
-    case MOSQ_LOG_SUBSCRIBE:
-    case MOSQ_LOG_UNSUBSCRIBE:
-        LOG_INFO("%s", str);
-        break;
+            break;
+        case MOSQ_LOG_INFO:
+        case MOSQ_LOG_NOTICE:
+        case MOSQ_LOG_SUBSCRIBE:
+        case MOSQ_LOG_UNSUBSCRIBE:
+            LOG_INFO("%s", str);
+            break;
 
-    case MOSQ_LOG_WARNING:
-        LOG_WARN("%s", str);
-        break;
+        case MOSQ_LOG_WARNING:
+            LOG_WARN("%s", str);
+            break;
 
-    case MOSQ_LOG_ERR:
-        LOG_ERROR("%s", str);
-        break;
+        case MOSQ_LOG_ERR:
+            LOG_ERROR("%s", str);
+            break;
 
-    default:
-        LOG_ERROR("unknown level log:%s", str);
+        default:
+            LOG_ERROR("unknown level log:%s", str);
+            break;
     }
 
+    return;
 }
 
 void mqtt_publish_callback(struct mosquitto *m __attribute__((unused)), void *userdata __attribute__((unused)), int mid)
 {
+    m = m;
+    userdata = userdata;
+
     LOG_INFO("Publish mid: %d successfully", mid);
+
+    return;
 }
 
 void mqtt_reconnect_cb(evutil_socket_t fd __attribute__((unused)), short a __attribute__((unused)), void * arg)
 {
+    fd = fd;
+    a = a;
+
     LOG_INFO("re-connect to MQTT server");
     mqtt_initial(arg);
+
+    return;
 }
 
 static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
@@ -228,6 +257,7 @@ void mqtt_initial(MQTT_ARG* mqtt_arg)
         LOG_ERROR("failed to connect to MQTT");
     }
 
+    return;
 }
 
 void mqtt_cleanup()
@@ -248,6 +278,7 @@ void mqtt_cleanup()
         event_free(evTimerReconnect);
     }
 
+    return;
 }
 
 void mqtt_publish(const char *topic, const void *payload, size_t payloadlen)
@@ -256,8 +287,11 @@ void mqtt_publish(const char *topic, const void *payload, size_t payloadlen)
 	if (rc != MOSQ_ERR_SUCCESS)
 	{
 		LOG_ERROR("mosq pub error: rc = %d(%s)", rc, mosquitto_strerror(rc));
+        return;
 	}
 	LOG_INFO("mosq pub succeed: IMEI(%s)", topic);
+
+    return;
 }
 
 void mqtt_subscribe(const char *imei)
@@ -275,6 +309,8 @@ void mqtt_subscribe(const char *imei)
 	{
 		LOG_ERROR("subscribe topic: %s error %d", topic, rc);
 	}
+
+    return;
 }
 
 void mqtt_unsubscribe(const char *imei)
@@ -285,6 +321,8 @@ void mqtt_unsubscribe(const char *imei)
 	snprintf(topic, IMEI_LENGTH + 20, "app2dev/%s/+/cmd", (char *)imei);
     LOG_INFO("unsubscribe topic: %s", topic);
 	mosquitto_unsubscribe(mosq, NULL, topic);
+
+    return;
 }
 
 

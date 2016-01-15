@@ -19,6 +19,7 @@
 #include "mqtt.h"
 #include "db.h"
 #include "sync.h"
+#include "macro.h"
 
 int msg_send(void *msg, size_t len, SESSION *ctx)
 {
@@ -46,7 +47,6 @@ int tk115_login(const void *msg, SESSION *ctx)
 {
 	const MC_MSG_LOGIN_REQ* req = msg;
 
-
 	OBJECT * obj = ctx->obj;
 	if (!obj)
 	{
@@ -68,6 +68,7 @@ int tk115_login(const void *msg, SESSION *ctx)
 			memcpy(obj->DID, strIMEI, strlen(strIMEI));
 			obj->language = req->language;
 			obj->locale = req->locale;
+			obj->ObjectType = ObjectType_tk115;
 
             sync_newIMEI(obj->IMEI);
 

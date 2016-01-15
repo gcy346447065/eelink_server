@@ -41,9 +41,11 @@ static void read_cb(struct bufferevent *bev, void *arg)
             LOG_ERROR("handle simcom message error!");
         }
     }
+
+    return;
 }
 
-static void write_cb(struct bufferevent* bev, void *arg)
+static void write_cb(struct bufferevent* bev __attribute__((unused)), void *arg __attribute__((unused)))
 {
     return;
 }
@@ -67,26 +69,27 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
     {
         if (events & BEV_EVENT_ERROR)
         {
-             int err = bufferevent_socket_get_dns_error(bev);
-             if (err)
-             {
-                 LOG_ERROR("DNS error: %s\n", evutil_gai_strerror(err));
-             }
+            int err = bufferevent_socket_get_dns_error(bev);
+            if (err)
+            {
+                LOG_ERROR("DNS error: %s\n", evutil_gai_strerror(err));
+            }
             LOG_ERROR("BEV_EVENT_ERROR:%s", evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
         }
-        LOG_INFO("Closing the simcom connection");
-        session_del((SESSION *) arg);
 
+        LOG_INFO("Closing the simcom connection");
+
+        session_del((SESSION *) arg);
         evutil_socket_t socket = bufferevent_getfd(bev);
         EVUTIL_CLOSESOCKET(socket);
-
         bufferevent_free(bev);
     }
+
+    return;
 }
 
-
 static void accept_conn_cb(struct evconnlistener *listener,
-    evutil_socket_t fd, struct sockaddr *address, int socklen, void *arg)
+    evutil_socket_t fd, struct sockaddr *address, int socklen __attribute__((unused)), void *arg __attribute__((unused)))
 {
     struct sockaddr_in* p = (struct sockaddr_in *)address;
     //TODO: just handle the IPv4, no IPv6
@@ -114,11 +117,10 @@ static void accept_conn_cb(struct evconnlistener *listener,
     session->obj = NULL;
     session->pSendMsg = send_msg;
 
-
     //TODO: set the water-mark and timeout
     bufferevent_setcb(bev, read_cb, write_cb, event_cb, session);
 
-    bufferevent_enable(bev, EV_READ|EV_WRITE);
+    bufferevent_enable(bev, EV_READ | EV_WRITE);
 
     //set the timeout for the connection, when timeout close the connectiont
     struct timeval tm = {600, 0};
@@ -126,7 +128,7 @@ static void accept_conn_cb(struct evconnlistener *listener,
     bufferevent_set_timeouts(bev, &tm, &tm);
 }
 
-static void accept_error_cb(struct evconnlistener *listener, void *ctx)
+static void accept_error_cb(struct evconnlistener *listener, void *ctx __attribute__((unused)))
 {
     struct event_base *base = evconnlistener_get_base(listener);
     int err = EVUTIL_SOCKET_ERROR();
@@ -144,15 +146,13 @@ struct evconnlistener* server_simcom(struct event_base* base, int port)
     /* Clear the sockaddr before using it, in case there are extra
      * platform-specific fields that can mess us up. */
     memset(&sin, 0, sizeof(sin));
-    /* This is an INET address */
-    sin.sin_family = AF_INET;
-    /* Listen on 0.0.0.0 */
-    sin.sin_addr.s_addr = INADDR_ANY;
-    /* Listen on the given port. */
-    sin.sin_port = htons(port);
+    
+    sin.sin_family = AF_INET; /* This is an INET address */
+    sin.sin_addr.s_addr = INADDR_ANY; /* Listen on 0.0.0.0 */
+    sin.sin_port = htons(port); /* Listen on the given port. */
 
     listener = evconnlistener_new_bind(base, accept_conn_cb, NULL,
-            LEV_OPT_CLOSE_ON_FREE|LEV_OPT_REUSEABLE, -1,
+            LEV_OPT_CLOSE_ON_FREE | LEV_OPT_REUSEABLE, -1,
             (struct sockaddr*)&sin, sizeof(sin));
     if (!listener)
     {

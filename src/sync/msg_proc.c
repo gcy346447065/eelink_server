@@ -2,7 +2,6 @@
 // Created by jk on 15-10-30.
 //
 
-
 #include "msg_proc.h"
 #include "cJSON.h"
 #include "log.h"
@@ -12,10 +11,9 @@
 static void msg_saveDid(cJSON* json)
 {
     cJSON* imei = cJSON_GetObjectItem(json, TAG_IMEI);
-
     if (!imei)
     {
-        //TODO: log error
+        LOG_ERROR("save Did failed");
         return;
     }
 
@@ -27,13 +25,12 @@ static void msg_saveDid(cJSON* json)
 static void msg_saveGPS(cJSON* json)
 {
     cJSON* imei = cJSON_GetObjectItem(json, TAG_IMEI);
-
     cJSON* lat = cJSON_GetObjectItem(json, TAG_LAT);
     cJSON* lng = cJSON_GetObjectItem(json, TAG_LNG);
 
     if (!imei || !lat || !lng)
     {
-        //TODO: log error
+        LOG_ERROR("save GPS failed");
         return;
     }
 
@@ -44,7 +41,6 @@ static void msg_saveGPS(cJSON* json)
 
 int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
 {
-
     cJSON* root = cJSON_Parse(m);
     if (!root)
     {

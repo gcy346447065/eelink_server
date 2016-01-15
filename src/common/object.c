@@ -26,17 +26,18 @@ static void obj_add_hash(OBJECT *obj)
 
 static void obj_add_db(OBJECT *obj)
 {
-	db_insertOBJ(obj->IMEI, obj->timestamp);
+	db_insertOBJ(obj->IMEI, obj->ObjectType);
 	LOG_INFO("obj %s added to DB", obj->IMEI);
 }
 
 /* it is a callback to initialize object_table.Func db_doWithOBJ needs it to handle with every result(imei, lastlogintime).*/
-static void obj_initial(const char *imei, int timestamp)
+static void obj_initial(const char *imei)
 {
 	OBJECT *obj = obj_new();
+
 	memcpy(obj->IMEI, imei, IMEI_LENGTH);
 	obj->IMEI[IMEI_LENGTH] = 0;
-	obj->timestamp = timestamp;
+
 	obj_add_hash(obj);
 }
 
@@ -44,15 +45,14 @@ static void obj_initial(const char *imei, int timestamp)
 static void obj_update(gpointer key, gpointer value, gpointer user_data)
 {
 	OBJECT *obj = (OBJECT *)value;
-	db_updateOBJ(obj->IMEI, obj->timestamp);
+	//db_updateOBJ(obj->IMEI, obj->timestamp);
 }
 
 static void obj_table_save()
 {
     /* foreach hash */
-    g_hash_table_foreach(object_table, obj_update, NULL);
+    //g_hash_table_foreach(object_table, obj_update, NULL);
 }
-
 
 void obj_freeKey(gpointer key)
 {
@@ -73,13 +73,14 @@ void obj_table_initial(void (*mqtt_sub)(const char *))
 {
     /* create hash table */
     object_table = g_hash_table_new_full(g_str_hash, g_str_equal, obj_freeKey, obj_freeValue);
+
     /* read imei data from db*/
 	db_doWithOBJ(obj_initial, mqtt_sub);
 }
 
 void obj_table_destruct()
 {
-	obj_table_save();
+	//obj_table_save();
     g_hash_table_destroy(object_table);
 }
 
@@ -92,6 +93,8 @@ static void make_pwd(char pwd[])
         pwd[i] = 65 + rand() % (90 - 65);
 	}
     pwd[MAX_PWD_LEN - 1] = '\0';
+
+    return;
 }
 
 OBJECT *obj_new()
@@ -141,8 +144,7 @@ const char* getMacFromIMEI(const unsigned char* IMEI)
 
 	static char mac[MAC_MAC_LEN * 2 + 1] = {0};
 
-    sprintf(mac,"%02X%02X%02X%02X%02X%02X", IMEI[2], IMEI[3],IMEI[4],IMEI[5],IMEI[6],IMEI[7]);
-
+    sprintf(mac,"%02X%02X%02X%02X%02X%02X", IMEI[2],IMEI[3],IMEI[4],IMEI[5],IMEI[6],IMEI[7]);
 
 	return mac;
 }
