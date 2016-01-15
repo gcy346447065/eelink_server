@@ -38,8 +38,6 @@ static void obj_initial(const char *imei)
 	memcpy(obj->IMEI, imei, IMEI_LENGTH);
 	obj->IMEI[IMEI_LENGTH] = 0;
 
-	obj->timestamp = 0;//TO DO
-
 	obj_add_hash(obj);
 }
 
@@ -95,6 +93,8 @@ static void make_pwd(char pwd[])
         pwd[i] = 65 + rand() % (90 - 65);
 	}
     pwd[MAX_PWD_LEN - 1] = '\0';
+
+    return;
 }
 
 OBJECT *obj_new()

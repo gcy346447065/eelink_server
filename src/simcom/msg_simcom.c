@@ -70,7 +70,7 @@ char get_msg_cmd(void *msg)
     return ((MSG_HEADER*)msg)->cmd;
 }
 
-const char *getIMEI(const char *imei)
+const char *getImeiStringFromArray(const char *imei)
 {
     static char ret[IMEI_LENGTH + 1];
     memcpy(ret, imei, IMEI_LENGTH);

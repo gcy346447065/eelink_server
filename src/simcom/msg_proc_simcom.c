@@ -78,6 +78,7 @@ int simcom_wild(const void *m, SESSION *session)
 int simcom_login(const void *msg, SESSION *session)
 {
     const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg;
+    const char *imei = getImeiStringFromArray(req->IMEI);
 
     if (!session)
     {
@@ -86,15 +87,11 @@ int simcom_login(const void *msg, SESSION *session)
     }
 
     OBJECT * obj = session->obj;
-
-    const char *imei = getIMEI(req->IMEI);
-
     if(!obj)
     {
         LOG_DEBUG("mc IMEI(%s) login", imei);
 
         obj = obj_get(imei);
-
         if (!obj)
         {
             LOG_INFO("the first time of simcom IMEI(%s)'s login", imei);
@@ -108,7 +105,6 @@ int simcom_login(const void *msg, SESSION *session)
             obj_add(obj);
 
             sync_newIMEI(obj->IMEI);
-            
             mqtt_subscribe(obj->IMEI);
         }
 
@@ -134,7 +130,6 @@ int simcom_login(const void *msg, SESSION *session)
     }
 
     int ret = 0;
-
     if(!db_isTableCreated(obj->IMEI, &ret) && !ret)
     {
         LOG_INFO("create tables of %s", obj->IMEI);

@@ -190,8 +190,8 @@ static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *)
     result = mysql_store_result(conn);
     while(row = mysql_fetch_row(result))
     {
-        func1(row[0]);
-        func2(row[0]);
+        func1(row[0]); //obj_initial
+        func2(row[0]); //mqtt_subscribe
     }
     mysql_free_result(result);
     return 0;
