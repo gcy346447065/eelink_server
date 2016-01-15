@@ -121,7 +121,6 @@ int sync_init(struct event_base *base)
         bufferevent_free(bev);
         bev = NULL;
 
-        //TODO: start a timer to re-connect to the sync server
         struct timeval five_minitue = { 300, 0 };
         if (evTimerReconnect)
         {
@@ -163,9 +162,10 @@ void sync_newIMEI(const char *imei)
     cJSON_AddStringToObject(root, TAG_IMEI, imei);
 
     char *data = cJSON_PrintUnformatted(root);
-    if (!data) 
+
+    if (!data)
     {
-        LOG_ERROR("cJSON print unformatted failed");
+        LOG_ERROR("internal error");
         cJSON_Delete(root);
         return;
     }
@@ -194,7 +194,7 @@ void sync_gps(const char* imei, float lat, float lng, float altitude, char speed
     char *data = cJSON_PrintUnformatted(root);
     if (!data)
     {
-        LOG_ERROR("cJSON print unformatted failed");
+        LOG_ERROR("internal error");
         cJSON_Delete(root);
         return;
     }

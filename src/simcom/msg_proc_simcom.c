@@ -57,7 +57,7 @@ static int simcom_sendMsg(void *msg, size_t len, SESSION *session)
     return 0;
 }
 
-static int get_time()
+static time_t get_time()
 {
     time_t rawtime;
     time(&rawtime);
@@ -251,6 +251,7 @@ int simcom_cell(const void *msg, SESSION *session)
     }
     db_saveCGI(obj->IMEI, obj->timestamp, obj->cell, num);
 
+#if 0
     float lat, lon;
     int rc = cgi2gps(obj->cell, num, &lat, &lon);
     if(rc != 0)
@@ -266,6 +267,8 @@ int simcom_cell(const void *msg, SESSION *session)
 
     app_sendGpsMsg2App(session);
     db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, 0, 0);
+#endif
+
     return 0;
 }
 
@@ -457,7 +460,11 @@ static int simcom_autoPeriodSetRsp(const void *msg, SESSION *session)
 
 static int simcom_autoPeriodGetRsp(const void *msg, SESSION *session)
 {
-    //TODO: to be complted
+    //TODO: to be complted?
+    const MSG_AUTODEFEND_PEROID_GET_RSP* rsp = (MSG_AUTODEFEND_PEROID_GET_RSP*)msg;
+    OBJECT *obj = session->obj;
+
+    app_sendAutoDefendPeriodMsg2App(get_time(), rsp->period, session);
 
     return 0;
 }

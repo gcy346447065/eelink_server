@@ -39,7 +39,7 @@ typedef struct
     char language;
     char locale;
 
-    int timestamp;
+    time_t timestamp;
     float lat;
     float lon;
     float altitude;

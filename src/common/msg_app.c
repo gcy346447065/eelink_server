@@ -217,6 +217,30 @@ void app_sendAlarmMsg2App(unsigned char type, const char *msg, void *session)
     cJSON_Delete(root);
 }
 
+void app_sendAutoDefendPeriodMsg2App(int timestamp, int period, void * session)
+{
+    OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
+    if (!obj)
+    {
+        LOG_ERROR("obj null, no data to upload");
+        return;
+    }
+    char topic[IMEI_LENGTH + 13];
+    memset(topic, 0, sizeof(topic));
+    snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/autolock", obj->IMEI);
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, "timestamp", timestamp);
+    cJSON_AddNumberToObject(root, "period", period);
+
+    char *json = cJSON_PrintUnformatted(root);
+
+    app_sendMsg2App(topic, json, strlen(json));
+    LOG_INFO("send autolock period to APP: %d", period);
+    free(json);
+    cJSON_Delete(root);
+}
+
 void app_sendDebugMsg2App(const char *msg, size_t length, void *session)
 {
     OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
@@ -232,4 +256,3 @@ void app_sendDebugMsg2App(const char *msg, size_t length, void *session)
     app_sendMsg2App(topic, msg, length);
     LOG_INFO("send debug msg to APP");
 }
-
