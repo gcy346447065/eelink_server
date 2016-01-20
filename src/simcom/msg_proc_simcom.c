@@ -64,7 +64,7 @@ static time_t get_time()
     return rawtime;
 }
 
-int simcom_wild(const void *m, SESSION *session)
+static int simcom_wild(const void *m, SESSION *session)
 {
 	const MSG_HEADER *msg = m;
     const char *msg_log = msg + 1;
@@ -75,7 +75,7 @@ int simcom_wild(const void *m, SESSION *session)
 	return 0;
 }
 
-int simcom_login(const void *msg, SESSION *session)
+static int simcom_login(const void *msg, SESSION *session)
 {
     const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg;
     const char *imei = getImeiStringFromArray(req->IMEI);
@@ -141,7 +141,7 @@ int simcom_login(const void *msg, SESSION *session)
     return 0;
 }
 
-int simcom_ping(const void *msg, SESSION *session)
+static int simcom_ping(const void *msg, SESSION *session)
 {
     msg = msg;
     session = session;
@@ -151,7 +151,7 @@ int simcom_ping(const void *msg, SESSION *session)
     return 0;
 }
 
-int simcom_gps(const void *msg, SESSION *session)
+static int simcom_gps(const void *msg, SESSION *session)
 {
     const MSG_GPS *req = (const MSG_GPS *)msg;
     if (!req)
@@ -196,15 +196,13 @@ int simcom_gps(const void *msg, SESSION *session)
 
     app_sendGpsMsg2App(session);
 
-    //TO DO: add altitude to db
-    db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
-
+    db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->altitude, obj->speed, obj->course);
     sync_gps(obj->IMEI, obj->lat, obj->lon, obj->altitude, obj->speed, obj->course);
 
     return 0;
 }
 
-int simcom_cell(const void *msg, SESSION *session)
+static int simcom_cell(const void *msg, SESSION *session)
 {
     const MSG_HEADER *req = (const MSG_HEADER *)msg;
     if(!req)
@@ -282,7 +280,7 @@ int simcom_cell(const void *msg, SESSION *session)
     return 0;
 }
 
-int simcom_alarm(const void *msg, SESSION *session)
+static int simcom_alarm(const void *msg, SESSION *session)
 {
     const MSG_ALARM_REQ *req = (const MSG_ALARM_REQ *)msg;
     if(!req)
@@ -327,7 +325,7 @@ int simcom_alarm(const void *msg, SESSION *session)
     return 0;
 }
 
-int simcom_sms(const void *msg , SESSION *session )
+static int simcom_sms(const void *msg , SESSION *session )
 {
     msg = msg;
     session = session;
@@ -335,7 +333,7 @@ int simcom_sms(const void *msg , SESSION *session )
     return 0;
 }
 
-int simcom_433(const void *msg, SESSION *session)
+static int simcom_433(const void *msg, SESSION *session)
 {
     const MSG_433 *req = (const MSG_433 *)msg;
     if(!req)
@@ -361,7 +359,7 @@ int simcom_433(const void *msg, SESSION *session)
     return 0;
 }
 
-int simcom_defend(const void *msg, SESSION *session)
+static int simcom_defend(const void *msg, SESSION *session)
 {
     //send ack to APP
     const MSG_DEFEND_RSP *rsp = (const MSG_DEFEND_RSP *)msg;
@@ -408,7 +406,7 @@ int simcom_defend(const void *msg, SESSION *session)
     return 0;
 }
 
-int simcom_seek(const void *msg, SESSION *session)
+static int simcom_seek(const void *msg, SESSION *session)
 {
     //send ack to APP
     const MSG_SEEK_RSP *rsp = (const MSG_SEEK_RSP *)msg;
@@ -470,7 +468,7 @@ static int simcom_locate(const void *msg, SESSION *session)
             return -1;
         }
 
-        LOG_INFO("GPS: latitude(%f), longitude(%f), altitude(%f), speed(%u), course(%d)", 
+        LOG_INFO("LOCATION GPS: latitude(%f), longitude(%f), altitude(%f), speed(%f), course(%f)", 
             gps->latitude, gps->longitude, gps->altitude, gps->speed, gps->course);
 
         OBJECT * obj = (OBJECT *) session->obj;
@@ -500,7 +498,7 @@ static int simcom_locate(const void *msg, SESSION *session)
             return -1;
         }
 
-        LOG_INFO("CGI: mcc(%d), mnc(%d)", ntohs(cgi->mcc), ntohs(cgi->mnc));
+        LOG_INFO("LOCATION CGI: mcc(%d), mnc(%d)", ntohs(cgi->mcc), ntohs(cgi->mnc));
         OBJECT *obj = session->obj;
         if(!obj)
         {
