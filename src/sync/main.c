@@ -55,6 +55,7 @@ int main(int argc, char **argv)
     	}
     }
 
+    /* log haven't work now, it will be writen into nohup file */
     printf("Sync Server %s, with event %s, curl %s\n",
     		VERSION_STR,
 			LIBEVENT_VERSION,

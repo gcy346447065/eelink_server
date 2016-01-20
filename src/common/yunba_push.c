@@ -74,7 +74,7 @@ static void connectionLost(void *context __attribute__((unused)), char *cause)
 		LOG_INFO("re-connect ok");
 	}
 
-
+	return;
 }
 
 int yunba_connect()

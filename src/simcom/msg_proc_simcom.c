@@ -67,10 +67,10 @@ static time_t get_time()
 int simcom_wild(const void *m, SESSION *session)
 {
 	const MSG_HEADER *msg = m;
-    const char *log = m + 1;
-    LOG_DEBUG("DBG:%s", log);
+    const char *msg_log = msg + 1;
 
-	app_sendDebugMsg2App(log, msg->length, session);
+    LOG_DEBUG("DBG:%s", msg_log);
+	app_sendDebugMsg2App(msg_log, msg->length, session);
 
 	return 0;
 }
@@ -141,6 +141,16 @@ int simcom_login(const void *msg, SESSION *session)
     return 0;
 }
 
+int simcom_ping(const void *msg, SESSION *session)
+{
+    msg = msg;
+    session = session;
+
+    LOG_INFO("get simcom ping");
+
+    return 0;
+}
+
 int simcom_gps(const void *msg, SESSION *session)
 {
     const MSG_GPS *req = (const MSG_GPS *)msg;
@@ -155,7 +165,7 @@ int simcom_gps(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("GPS: latitude(%f), longitude(%f), altitude(%f), speed(%u), course(%d)", 
+    LOG_INFO("GPS: latitude(%f), longitude(%f), altitude(%f), speed(%f), course(%f)", 
         req->gps.latitude, req->gps.longitude, req->gps.altitude, req->gps.speed, req->gps.course);
 
     OBJECT * obj = (OBJECT *) session->obj;
@@ -181,8 +191,8 @@ int simcom_gps(const void *msg, SESSION *session)
     }
 
     obj->altitude = req->gps.altitude;
-    obj->speed = req->gps.speed;
-    obj->course = req->gps.course;
+    obj->speed = (char)req->gps.speed;
+    obj->course = (short)req->gps.course;
 
     app_sendGpsMsg2App(session);
 
@@ -272,11 +282,6 @@ int simcom_cell(const void *msg, SESSION *session)
     return 0;
 }
 
-int simcom_ping(const void *msg __attribute__((unused)), SESSION *session __attribute__((unused)))
-{
-    return 0;
-}
-
 int simcom_alarm(const void *msg, SESSION *session)
 {
     const MSG_ALARM_REQ *req = (const MSG_ALARM_REQ *)msg;
@@ -310,9 +315,7 @@ int simcom_alarm(const void *msg, SESSION *session)
     cJSON *root = cJSON_CreateObject();
     cJSON *alarm = cJSON_CreateObject();
     cJSON_AddNumberToObject(alarm,"type", req->alarmType);
-
     cJSON_AddItemToObject(root, "alarm", alarm);
-
     char* json = cJSON_PrintUnformatted(root);
 
     yunba_publish(topic, json, strlen(json));
@@ -320,6 +323,14 @@ int simcom_alarm(const void *msg, SESSION *session)
 
     free(json);
     cJSON_Delete(root);
+
+    return 0;
+}
+
+int simcom_sms(const void *msg , SESSION *session )
+{
+    msg = msg;
+    session = session;
 
     return 0;
 }
@@ -433,57 +444,7 @@ int simcom_seek(const void *msg, SESSION *session)
     return 0;
 }
 
-static int simcom_autoDefendSetRsp(const void *msg, SESSION *session)
-{
-    const MSG_AUTODEFEND_SWITCH_SET_RSP *rsp = (const MSG_AUTODEFEND_SWITCH_SET_RSP*)msg;
-    OBJECT* obj = session->obj;
-
-    app_sendCmdRsp2App(APP_CMD_AUTOLOCK_ON, rsp->result, obj->IMEI);
-    return 0;
-}
-
-static int simcom_autoDefendGetRsp(const void *msg, SESSION *session)
-{
-    //TODO: to be complted
-
-    return 0;
-}
-
-static int simcom_autoPeriodSetRsp(const void *msg, SESSION *session)
-{
-    const MSG_AUTODEFEND_PERIOD_SET_RSP *rsp = (const MSG_AUTODEFEND_PERIOD_SET_RSP*)msg;
-    OBJECT *obj = session->obj;
-
-    app_sendCmdRsp2App(APP_CMD_AUTOPERIOD_SET, rsp->result, obj->IMEI);
-    return 0;
-}
-
-static int simcom_autoPeriodGetRsp(const void *msg, SESSION *session)
-{
-    //TODO: to be complted?
-    const MSG_AUTODEFEND_PERIOD_GET_RSP* rsp = (const MSG_AUTODEFEND_PERIOD_GET_RSP *)msg;
-    OBJECT *obj = session->obj;
-
-    app_sendAutoDefendPeriodMsg2App(get_time(), rsp->period, session);
-
-    return 0;
-}
-
-static int simcom_mileage(const void *msg, SESSION *session)
-{
-    //TODO: to be complted
-
-    return 0;
-}
-
-static int simcom_autoDefendState(const void *msg, SESSION *session)
-{
-    //TODO: to be complted
-
-    return 0;
-}
-
-static int simcom_location(const void *msg, SESSION *session)
+static int simcom_locate(const void *msg, SESSION *session)
 {
     const MSG_HEADER *req = (const MSG_HEADER *)msg;
     if(!req)
@@ -587,24 +548,141 @@ static int simcom_location(const void *msg, SESSION *session)
     return 0;
 }
 
+static int simcom_SetServer(const void *msg, SESSION *session)
+{
+    //TODO: to be complted
+    msg = msg;
+    session = session;
+
+    return 0;
+}
+
+static int simcom_SetTimer(const void *msg, SESSION *session)
+{
+    //TODO: to be complted
+    msg = msg;
+    session = session;
+
+    return 0;
+}
+
+static int simcom_SetAutoswitch(const void *msg, SESSION *session)
+{
+    const MSG_AUTODEFEND_SWITCH_SET_RSP *rsp = (const MSG_AUTODEFEND_SWITCH_SET_RSP*)msg;
+    OBJECT* obj = session->obj;
+
+    app_sendCmdRsp2App(APP_CMD_AUTOLOCK_ON, rsp->result, obj->IMEI);
+    return 0;
+}
+
+static int simcom_GetAutoswitch(const void *msg, SESSION *session)
+{
+    //TODO: to be complted
+    msg = msg;
+    session = session;
+
+    return 0;
+}
+
+static int simcom_SetPeriod(const void *msg, SESSION *session)
+{
+    const MSG_AUTODEFEND_PERIOD_SET_RSP *rsp = (const MSG_AUTODEFEND_PERIOD_SET_RSP*)msg;
+    OBJECT *obj = session->obj;
+
+    app_sendCmdRsp2App(APP_CMD_AUTOPERIOD_SET, rsp->result, obj->IMEI);
+    return 0;
+}
+
+static int simcom_GetPeriod(const void *msg, SESSION *session)
+{
+    //TODO: to be complted?
+    const MSG_AUTODEFEND_PERIOD_GET_RSP* rsp = (const MSG_AUTODEFEND_PERIOD_GET_RSP *)msg;
+    OBJECT *obj = session->obj;
+
+    app_sendAutoDefendPeriodMsg2App(get_time(), rsp->period, session);
+
+    return 0;
+}
+
+static int simcom_itinerary(const void *msg, SESSION *session)
+{
+    //TODO: to be complted
+    msg = msg;
+    session = session;
+
+    return 0;
+}
+
+static int simcom_battery(const void *msg, SESSION *session)
+{
+    //TODO: to be complted
+    msg = msg;
+    session = session;
+
+    return 0;
+}
+
+static int simcom_DefendOn(const void *msg, SESSION *session)
+{
+    //TODO: to be complted
+    msg = msg;
+    session = session;
+
+    return 0;
+}
+
+static int simcom_DefendOff(const void *msg, SESSION *session)
+{
+    //TODO: to be complted
+    msg = msg;
+    session = session;
+
+    return 0;
+}
+
+static int simcom_DefendGet(const void *msg, SESSION *session)
+{
+    //TODO: to be complted
+    msg = msg;
+    session = session;
+
+    return 0;
+}
+
+static int simcom_DefendNotify(const void *msg, SESSION *session)
+{
+    //TODO: to be complted
+    msg = msg;
+    session = session;
+
+    return 0;
+}
+
 static MSG_PROC_MAP msgProcs[] =
     {
-        {CMD_WILD,                  simcom_wild},
-        {CMD_LOGIN,                 simcom_login},
-        {CMD_GPS,                   simcom_gps},
-        {CMD_CELL,                  simcom_cell},
-        {CMD_PING,                  simcom_ping},
-        {CMD_ALARM,                 simcom_alarm},
-        {CMD_433,                   simcom_433},
-        {CMD_DEFEND,                simcom_defend},
-        {CMD_SEEK,                  simcom_seek},
-        {CMD_AUTODEFEND_SWITCH_SET, simcom_autoDefendSetRsp},
-        {CMD_AUTODEFEND_SWITCH_GET, simcom_autoDefendGetRsp},
-        {CMD_AUTODEFEND_PERIOD_SET, simcom_autoPeriodSetRsp},
-        {CMD_AUTODEFEND_PERIOD_GET, simcom_autoPeriodGetRsp},
-        {CMD_MILEAGE,               simcom_mileage},
-        {CMD_AUTODEFEND_STATE,      simcom_autoDefendState},
-        {CMD_LOCATION,              simcom_location}
+        {CMD_WILD,              simcom_wild},
+        {CMD_LOGIN,             simcom_login},
+        {CMD_PING,              simcom_ping},
+        {CMD_GPS,               simcom_gps},
+        {CMD_CELL,              simcom_cell},
+        {CMD_ALARM,             simcom_alarm},
+        {CMD_SMS,               simcom_sms},
+        {CMD_433,               simcom_433},
+        {CMD_DEFEND,            simcom_defend},
+        {CMD_SEEK,              simcom_seek},
+        {CMD_LOCATE,            simcom_locate},
+        {CMD_SET_SERVER,        simcom_SetServer},
+        {CMD_SET_TIMER,         simcom_SetTimer},
+        {CMD_SET_AUTOSWITCH,    simcom_SetAutoswitch},
+        {CMD_GET_AUTOSWITCH,    simcom_GetAutoswitch},
+        {CMD_SET_PERIOD,        simcom_SetPeriod},
+        {CMD_GET_PERIOD,        simcom_GetPeriod},
+        {CMD_ITINERARY,         simcom_itinerary},
+        {CMD_BATTERY,           simcom_battery},
+        {CMD_DEFEND_ON,         simcom_DefendOn},
+        {CMD_DEFEND_OFF,        simcom_DefendOff},
+        {CMD_DEFEND_GET,        simcom_DefendGet},
+        {CMD_DEFEND_NOTIFY,     simcom_DefendNotify}
     };
 
 int handle_one_msg(const void *m, SESSION *ctx)
