@@ -11,6 +11,7 @@
 #include "msg_simcom.h"
 #include "log.h"
 #include "protocol.h"
+#include "macro.h"
 
 static unsigned short seq = 0;
 
@@ -29,7 +30,7 @@ MSG_HEADER* alloc_simcom_msg(char cmd, size_t length)
     return msg;
 }
 
-MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER* pMsg)
+MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER *pMsg)
 {
     size_t msgLen = 0;
     switch (pMsg->cmd)
@@ -70,7 +71,7 @@ char get_msg_cmd(void *msg)
     return ((MSG_HEADER*)msg)->cmd;
 }
 
-const char *getImeiStringFromArray(const char *imei)
+const char *getImeiString(const char *imei)
 {
     static char ret[IMEI_LENGTH + 1];
     memcpy(ret, imei, IMEI_LENGTH);
@@ -78,7 +79,7 @@ const char *getImeiStringFromArray(const char *imei)
     return ret;
 }
 
-void * alloc_simcomWildMsg(const char* data, size_t length)
+void *alloc_simcomWildMsg(const char* data, size_t length)
 {
     MSG_HEADER *msg = alloc_simcom_msg(CMD_WILD, length);
 
@@ -91,13 +92,71 @@ void * alloc_simcomWildMsg(const char* data, size_t length)
     return msg;
 }
 
-void* alloc_simcomDefendReq(int token, unsigned char operator)
+void *alloc_simcomDefendReq(int token, char operator)
 {
     MSG_DEFEND_REQ *req = (MSG_DEFEND_REQ *)alloc_simcom_msg(CMD_DEFEND, sizeof(MSG_DEFEND_REQ));
     if(req)
     {
         req->token = token;
         req->operator = operator;
+    }
+
+    return req;
+}
+
+void *alloc_simcomSeekReq(int token, char operator)
+{
+    MSG_SEEK_REQ *req = (MSG_SEEK_REQ *)alloc_simcom_msg(CMD_SEEK, sizeof(MSG_SEEK_REQ));
+    if(req)
+    {
+        req->token = token;
+        req->operator = operator;
+    }
+
+    return req;
+}
+
+void *alloc_simcomAutolockSetReq(int token, char onOff)
+{
+    MSG_AUTOLOCK_SET_REQ *req = (MSG_AUTOLOCK_SET_REQ *)alloc_simcom_msg(CMD_SET_AUTOSWITCH, sizeof(MSG_AUTOLOCK_SET_REQ));
+    if(req)
+    {
+        req->token = token;
+        req->onOff = onOff;
+    }
+
+    return req;
+}
+
+void *alloc_simcomAutoPeriodSetReq(int token, char period)
+{
+    MSG_AUTOPERIOD_SET_REQ *req = (MSG_AUTOPERIOD_SET_REQ *)alloc_simcom_msg(CMD_SET_PERIOD, sizeof(MSG_AUTOPERIOD_SET_REQ));
+    if(req)
+    {
+        req->token = token;
+        req->period = period;
+    }
+
+    return req;
+}
+
+void *alloc_simcomAutoPeriodGetReq(int token)
+{
+    MSG_AUTOPERIOD_GET_REQ *req = (MSG_AUTOPERIOD_GET_REQ *)alloc_simcom_msg(CMD_GET_PERIOD, sizeof(MSG_AUTOPERIOD_GET_REQ));
+    if(req)
+    {
+        req->token = token;
+    }
+
+    return req;
+}
+
+void *alloc_simcomAutolockGetReq(int token)
+{
+    MSG_AUTOLOCK_GET_REQ *req = (MSG_AUTOLOCK_GET_REQ *)alloc_simcom_msg(CMD_GET_AUTOSWITCH, sizeof(MSG_AUTOLOCK_GET_REQ));
+    if(req)
+    {
+        req->token = token;
     }
 
     return req;
