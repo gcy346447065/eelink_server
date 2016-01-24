@@ -35,7 +35,22 @@ static int _db_initial()
             }
             else
             {
-                LOG_INFO("connect database: NULL");
+                char query[MAX_QUERY];
+                snprintf(query, MAX_QUERY, "create database %s; use %s", DB_NAME, DB_NAME);
+                
+                if(mysql_ping(conn))
+                {
+                    LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+                    return 1;
+                }
+
+                if(mysql_query(conn, query))
+                {
+                    LOG_ERROR("can't create database %s(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
+                    return 2;
+                }
+
+                LOG_INFO("create and connected to database: %s", DB_NAME);
                 return 0;
             }
         }
