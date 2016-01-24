@@ -66,7 +66,25 @@ static int _db_initial()
                     return 2;
                 }
 
-                LOG_INFO("create and use database: %s", DB_NAME);
+                /* creat table object */
+                snprintf(query, MAX_QUERY, "create table object(imei char(16) not null primary key, \
+                                            RegisterTime timestamp default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP, \
+                                            IsPosted tinyint default '0', \
+                                            ObjectType int(4) not null)");
+                
+                if(mysql_ping(conn))
+                {
+                    LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+                    return 1;
+                }
+
+                if(mysql_query(conn, query))
+                {
+                    LOG_ERROR("can't creat table object(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
+                    return 2;
+                }
+
+                LOG_INFO("create and use database: %s, creat table object", DB_NAME);
                 return 0;
             }
         }
