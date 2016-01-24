@@ -261,12 +261,10 @@ int leancloud_sendSms2Tel(const char *SmsTemplate, const char *TelNumber)
 
     cJSON *root = cJSON_CreateObject();
 
-    cJSON_AddStringToObject(root, "template", SmsTemplate);
-    cJSON_AddStringToObject(root, "mobilePhoneNumber", TelNumber);
-    char* data = cJSON_PrintUnformatted(root);
+    cJSON_AddStringToObject(root, "template", "SmsAlarm");
+    cJSON_AddStringToObject(root, "mobilePhoneNumber", "15871413731");
+    char *data = cJSON_PrintUnformatted(root);
 
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onRev);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
     int ret = leancloud_sms(curl, data, strlen(data));
 
     cJSON_Delete(root);
