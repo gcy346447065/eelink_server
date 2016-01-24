@@ -35,6 +35,7 @@ static int _db_initial()
             }
             else
             {
+                /* create database gps */
                 char query[MAX_QUERY];
                 snprintf(query, MAX_QUERY, "create database %s", DB_NAME);
                 
@@ -50,7 +51,7 @@ static int _db_initial()
                     return 2;
                 }
 
-                char query[MAX_QUERY];
+                /* use gps */
                 snprintf(query, MAX_QUERY, "use %s", DB_NAME);
                 
                 if(mysql_ping(conn))
