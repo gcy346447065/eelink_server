@@ -46,7 +46,7 @@ static int leancloud_sms(CURL *curl, const void *data, int len)
 {
     char url[256] = {0};
 
-    snprintf(url, 256, "%s/requestSmsCode", LEANCLOUD_URL_BASE);
+    snprintf(url, 256, "%s/requestSmsCode", "https://leancloud.cn:443/1.1");
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
