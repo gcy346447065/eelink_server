@@ -42,7 +42,7 @@ static int leancloud_post(CURL *curl, const char* class, const void* data, int l
     return 0;
 }
 
-static int leancloud_sms(CURL *curl, const void* data, int len)
+static int leancloud_sms(CURL *curl, const void *data, int len)
 {
     char url[256] = {0};
 
@@ -261,8 +261,8 @@ int leancloud_sendSms2Tel(const char *SmsTemplate, const char *TelNumber)
 
     cJSON *root = cJSON_CreateObject();
 
-    cJSON_AddStringToObject(root, "template", "SmsAlarm");
     cJSON_AddStringToObject(root, "mobilePhoneNumber", "15871413731");
+    cJSON_AddStringToObject(root, "template", "SmsAlarm");
     char *data = cJSON_PrintUnformatted(root);
 
     int ret = leancloud_sms(curl, data, strlen(data));
