@@ -254,7 +254,7 @@ int leancloud_getOBJ(void)
     return 0;
 }
 
-int leancloud_sendSms2Tel(char *SmsTemplate, char *TelNumber)
+int leancloud_sendSms2Tel(const char *SmsTemplate, const char *TelNumber)
 {
     ENVIRONMENT* env = env_get();
     CURL* curl = env->curl_leancloud;

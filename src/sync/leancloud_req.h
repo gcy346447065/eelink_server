@@ -14,6 +14,6 @@ int leancloud_saveGPS(const char* imei, double lat, double lng);
 
 int leancloud_getOBJ(void);
 
-int leancloud_sendSms2Tel(char *SmsTemplate, char *TelNumber);
+int leancloud_sendSms2Tel(const char *SmsTemplate, const char *TelNumber);
 
 #endif /* SRC_LEANCLOUD_REQ_H_ */
