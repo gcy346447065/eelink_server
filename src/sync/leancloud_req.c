@@ -42,6 +42,28 @@ static int leancloud_post(CURL *curl, const char* class, const void* data, int l
     return 0;
 }
 
+static int leancloud_sms(CURL *curl, const void* data, int len)
+{
+    char url[256] = {0};
+
+    snprintf(url, 256, "%s/requestSmsCode", LEANCLOUD_URL_BASE);
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data); /* pass in a pointer to the data - libcurl will not copy */
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, len); /* size of the POST data */
+
+    /* Perform the request, res will get the return code */
+    CURLcode res = curl_easy_perform(curl);
+    if(CURLE_OK != res)
+    {
+        LOG_ERROR("leancloud_sms: %s", curl_easy_strerror(res));
+        return -1;
+    }
+
+    return 0;
+}
+
 static int leancloud_batch(CURL *curl, const void* data, int len)
 {
     char url[256] = {0};
@@ -205,7 +227,7 @@ int leancloud_onGetOBJ(MemroyBuf *chunk)
     return ret;
 }
 
-int leancloud_getOBJ()
+int leancloud_getOBJ(void)
 {
     ENVIRONMENT* env = env_get();
     CURL* curl = env->curl_leancloud;
@@ -230,4 +252,25 @@ int leancloud_getOBJ()
         return -1;
     }
     return 0;
+}
+
+int leancloud_sendSms2Tel(char *SmsTemplate, char *TelNumber)
+{
+    ENVIRONMENT* env = env_get();
+    CURL* curl = env->curl_leancloud;
+
+    cJSON *root = cJSON_CreateObject();
+
+    cJSON_AddStringToObject(root, "template", SmsTemplate);
+    cJSON_AddStringToObject(root, "mobilePhoneNumber", TelNumber);
+    char* data = cJSON_PrintUnformatted(root);
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onRev);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
+    int ret = leancloud_sms(curl, data, strlen(data));
+
+    cJSON_Delete(root);
+    free(data);
+
+    return ret;
 }
