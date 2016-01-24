@@ -851,7 +851,7 @@ static MSG_PROC_MAP msgProcs[] =
 
 int handle_one_msg(const void *m, SESSION *ctx)
 {
-    const MSG_HEADER* msg = (MSG_HEADER*)m;
+    const MSG_HEADER *msg = (const MSG_HEADER *)m;
 
     for (size_t i = 0; i < sizeof(msgProcs) / sizeof(msgProcs[0]); i++)
     {

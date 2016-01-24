@@ -26,11 +26,30 @@ static int _db_initial()
 
     if(!mysql_real_connect(conn, DB_HOST, DB_USER, DB_PWD, DB_NAME, DB_PORT, NULL, 0))
     {
-        LOG_ERROR("can't connect database: %s(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
-        return -1;
+        if(mysql_errno(conn) == 1049) //(1049, Unknown database 'gps')
+        {
+            if(!mysql_real_connect(conn, DB_HOST, DB_USER, DB_PWD, NULL, DB_PORT, NULL, 0))
+            {
+                LOG_ERROR("can't connect database: NULL(%u, %s)", mysql_errno(conn), mysql_error(conn));
+                return -1;
+            }
+            else
+            {
+                LOG_INFO("connect database: NULL");
+                return 0;
+            }
+        }
+        else
+        {
+            LOG_ERROR("can't connect database: %s(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
+            return -1;
+        }
     }
-    LOG_INFO("connect database: %s", DB_NAME);
-    return 0;
+    else
+    {
+        LOG_INFO("connect database: %s", DB_NAME);
+        return 0;
+    }
 }
 
 static int _db_destruct()
