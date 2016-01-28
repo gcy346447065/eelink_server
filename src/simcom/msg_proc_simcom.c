@@ -144,8 +144,6 @@ static int simcom_login(const void *msg, SESSION *session)
 
 static int simcom_ping(const void *msg, SESSION *session)
 {
-    msg = msg;
-    
     if (!session)
     {
         LOG_FATAL("session ptr null");
@@ -159,7 +157,19 @@ static int simcom_ping(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("get simcom ping, imei(%s)", obj->IMEI);
+    LOG_INFO("imei(%s) ping", obj->IMEI);
+
+    MSG_PING_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
+    if (rsp)
+    {
+        simcom_sendMsg(rsp, sizeof(MSG_PING_RSP), session);
+    }
+    else
+    {
+        free(rsp);
+        LOG_ERROR("insufficient memory");
+        return -1;
+    }
 
     return 0;
 }
