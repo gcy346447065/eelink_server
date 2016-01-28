@@ -80,7 +80,7 @@ static int _db_initial()
 
                 if(mysql_query(conn, query))
                 {
-                    LOG_ERROR("can't creat table object(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
+                    LOG_ERROR("can't creat table object(%u, %s)", mysql_errno(conn), mysql_error(conn));
                     return 2;
                 }
 
@@ -232,7 +232,7 @@ static int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[],
         LOG_ERROR("can't insert into cgi_%s(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
         return 2;
     }
-    LOG_INFO(query);
+
     return 0;
 }
 
@@ -339,96 +339,96 @@ int db_initial(void)
 {
 #ifdef WITH_DB
     return _db_initial();
-#endif
-
+#else
     return 0;
+#endif
 }
 int db_destruct(void)
 {
 #ifdef WITH_DB
     return _db_destruct();
-#endif
-
+#else
     return 0;
+#endif
 }
 
 int db_isTableCreated(const char* imeiName, int *num)
 {
 #ifdef WITH_DB
     return _db_isTableCreated(imeiName, num);
-#endif
-
+#else
     return 0;
+#endif
 }
 
 int db_createGPS(const char* tableName)
 {
 #ifdef WITH_DB
     return _db_createGPS(tableName);
-#endif
-
+#else
     return 0;
+#endif
 }
 
 int db_createCGI(const char* tableName)
 {
 #ifdef WITH_DB
     return _db_createCGI(tableName);
-#endif
-
+#else
     return 0;
+#endif
 }
 
 int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, float altitude, float speed, float course)
 {
 #ifdef WITH_DB
     return _db_saveGPS(imeiName, timestamp, lat, lon, altitude, speed, course);
-#endif
-
+#else
     return 0;
+#endif
 }
 
 int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cellNo)
 {
 #ifdef WITH_DB
     return _db_saveCGI(imeiName, timestamp, cell, cellNo);
-#endif
-
+#else
     return 0;
+#endif
 }
 
-int db_doWithOBJ(void (*func)(const char*, int), void (*func2)(const char *))
+int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *))
 {
 #ifdef WITH_DB
     return _db_doWithOBJ(func, func2);
-#endif
-
+#else
     return 0;
+#endif
 }
 
 int db_insertOBJ(const char *imeiName, int ObjectType)
 {
 #ifdef WITH_DB
     return _db_insertOBJ(imeiName, ObjectType);
-#endif
-
+#else
     return 0;
+#endif
 }
 
 int db_updateOBJIsPosted(const char *imeiName)
 {
 #ifdef WITH_DB
     return _db_updateOBJIsPosted(imeiName);
-#endif
-
+#else
     return 0;
+#endif
 }
 
 int db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*))
 {
 #ifdef WITH_DB
     return _db_ResaveOBJUnpostedImei_cb(func1);
-#endif
-
+#else
     return 0;
+#endif
 }
