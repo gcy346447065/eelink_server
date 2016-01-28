@@ -49,11 +49,8 @@ void mqtt_message_callback(struct mosquitto *m __attribute__((unused)), void *us
     return;
 }
 
-void mqtt_connect_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int rc)
+void mqtt_connect_callback(struct mosquitto *m __attribute__((unused)), void *userdata __attribute__((unused)), int rc)
 {
-    mosq = mosq;
-    userdata = userdata;
-
     if(!rc)
     {
         LOG_INFO("Connect to MQTT server successfully");
@@ -66,11 +63,8 @@ void mqtt_connect_callback(struct mosquitto *mosq __attribute__((unused)), void 
     return;
 }
 
-void mqtt_disconnect_callback(struct mosquitto *mosq __attribute__((unused)), void *userdata __attribute__((unused)), int rc)
+void mqtt_disconnect_callback(struct mosquitto *m __attribute__((unused)), void *userdata __attribute__((unused)), int rc)
 {
-    mosq = mosq;
-    userdata = userdata;
-
     if(!rc)
     {
         LOG_INFO("client disconnect successfully");
