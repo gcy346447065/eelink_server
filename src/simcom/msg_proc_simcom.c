@@ -64,21 +64,21 @@ static time_t get_time()
     return rawtime;
 }
 
-int simcom_wild(const void *m, SESSION *session)
+static int simcom_wild(const void *m, SESSION *session)
 {
 	const MSG_HEADER *msg = m;
-    const char *log = m + 1;
-    LOG_DEBUG("DBG:%s", log);
+    const char *msg_log = (const char *)(msg + 1);
 
-	app_sendDebugMsg2App(log, msg->length, session);
+    LOG_DEBUG("DBG:%s", msg_log);
+	app_sendDebugMsg2App(msg_log, msg->length, session);
 
 	return 0;
 }
 
-int simcom_login(const void *msg, SESSION *session)
+static int simcom_login(const void *msg, SESSION *session)
 {
-    const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg;
-    const char *imei = getImeiStringFromArray(req->IMEI);
+    const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg; //TO DO: Version, CCID
+    const char *imei = getImeiString(req->IMEI);
 
     if (!session)
     {
@@ -95,6 +95,8 @@ int simcom_login(const void *msg, SESSION *session)
         if (!obj)
         {
             LOG_INFO("the first time of simcom IMEI(%s)'s login", imei);
+
+            //TO DO: start a 10 min timer, if there is no data uploaded in 10 min, set the device as offline one
 
             obj = obj_new();
 
@@ -117,7 +119,7 @@ int simcom_login(const void *msg, SESSION *session)
         LOG_DEBUG("simcom IMEI(%s) already login", imei);
     }
 
-    MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg(msg);
+    MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
     if (rsp)
     {
         simcom_sendMsg(rsp, sizeof(MSG_LOGIN_RSP), session);
@@ -137,11 +139,32 @@ int simcom_login(const void *msg, SESSION *session)
         db_createGPS(obj->IMEI);
     }
 
+    return 0;
+}
+
+static int simcom_ping(const void *msg, SESSION *session)
+{
+    msg = msg;
+    
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT * obj = (OBJECT *)session->obj;
+    if (!obj)
+    {
+        LOG_WARN("MC must first login");
+        return -1;
+    }
+
+    LOG_INFO("get simcom ping, imei(%s)", obj->IMEI);
 
     return 0;
 }
 
-int simcom_gps(const void *msg, SESSION *session)
+static int simcom_gps(const void *msg, SESSION *session)
 {
     const MSG_GPS *req = (const MSG_GPS *)msg;
     if (!req)
@@ -155,10 +178,10 @@ int simcom_gps(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("GPS: latitude(%f), longitude(%f), altitude(%f), speed(%u), course(%d)", 
+    LOG_INFO("GPS: latitude(%f), longitude(%f), altitude(%f), speed(%f), course(%f)", 
         req->gps.latitude, req->gps.longitude, req->gps.altitude, req->gps.speed, req->gps.course);
 
-    OBJECT * obj = (OBJECT *) session->obj;
+    OBJECT * obj = (OBJECT *)session->obj;
     if (!obj)
     {
         LOG_WARN("MC must first login");
@@ -186,15 +209,13 @@ int simcom_gps(const void *msg, SESSION *session)
 
     app_sendGpsMsg2App(session);
 
-    //TO DO: add altitude to db
-    db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
-
+    db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->altitude, obj->speed, obj->course);
     sync_gps(obj->IMEI, obj->lat, obj->lon, obj->altitude, obj->speed, obj->course);
 
     return 0;
 }
 
-int simcom_cell(const void *msg, SESSION *session)
+static int simcom_cell(const void *msg, SESSION *session)
 {
     const MSG_HEADER *req = (const MSG_HEADER *)msg;
     if(!req)
@@ -272,12 +293,7 @@ int simcom_cell(const void *msg, SESSION *session)
     return 0;
 }
 
-int simcom_ping(const void *msg __attribute__((unused)), SESSION *session __attribute__((unused)))
-{
-    return 0;
-}
-
-int simcom_alarm(const void *msg, SESSION *session)
+static int simcom_alarm(const void *msg, SESSION *session)
 {
     const MSG_ALARM_REQ *req = (const MSG_ALARM_REQ *)msg;
     if(!req)
@@ -309,10 +325,8 @@ int simcom_alarm(const void *msg, SESSION *session)
 
     cJSON *root = cJSON_CreateObject();
     cJSON *alarm = cJSON_CreateObject();
-    cJSON_AddNumberToObject(alarm,"type", req->alarmType);
-
+    cJSON_AddNumberToObject(alarm, "type", req->alarmType);
     cJSON_AddItemToObject(root, "alarm", alarm);
-
     char* json = cJSON_PrintUnformatted(root);
 
     yunba_publish(topic, json, strlen(json));
@@ -324,21 +338,44 @@ int simcom_alarm(const void *msg, SESSION *session)
     return 0;
 }
 
-int simcom_433(const void *msg, SESSION *session)
+static int simcom_sms(const void *msg , SESSION *session)
 {
-    const MSG_433 *req = (const MSG_433 *)msg;
+    const MSG_SMS_REQ *req = (const MSG_SMS_REQ *)msg;
     if(!req)
     {
         LOG_ERROR("msg handle empty");
         return -1;
     }
-    if(req->header.length < sizeof(MSG_433) - MSG_HEADER_LEN)
+    if(req->header.length < sizeof(MSG_SMS_REQ) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("sms message length not enough");
+        return -1;
+    }
+
+    LOG_INFO("SMS: %s", req->telphone);
+
+    //TO DO: sms
+    session = session;
+
+    return 0;
+}
+
+static int simcom_433(const void *msg, SESSION *session)
+{
+    const MSG_433_REQ *req = (const MSG_433_REQ *)msg;
+    if(!req)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(req->header.length < sizeof(MSG_433_REQ) - MSG_HEADER_LEN)
     {
         LOG_ERROR("433 message length not enough");
         return -1;
     }
 
     LOG_INFO("433: %d", req->intensity);
+
     OBJECT *obj = session->obj;
     if(!obj)
     {
@@ -350,7 +387,7 @@ int simcom_433(const void *msg, SESSION *session)
     return 0;
 }
 
-int simcom_defend(const void *msg, SESSION *session)
+static int simcom_defend(const void *msg, SESSION *session)
 {
     //send ack to APP
     const MSG_DEFEND_RSP *rsp = (const MSG_DEFEND_RSP *)msg;
@@ -368,25 +405,25 @@ int simcom_defend(const void *msg, SESSION *session)
     {
         if(rsp->result == 0)
         {
-            app_sendCmdRsp2App(APP_CMD_FENCE_ON, ERR_SUCCESS, strIMEI);
+            app_sendCmdRsp2App(APP_CMD_FENCE_ON, CODE_SUCCESS, strIMEI);
         }
     }
     else if(defend == APP_CMD_FENCE_OFF)
     {
         if(rsp->result == 0)
         {
-            app_sendCmdRsp2App(APP_CMD_FENCE_OFF, ERR_SUCCESS, strIMEI);
+            app_sendCmdRsp2App(APP_CMD_FENCE_OFF, CODE_SUCCESS, strIMEI);
         }
     }
     else if(defend == APP_CMD_FENCE_GET)
     {
         if(rsp->result == DEFEND_ON)
         {
-            app_sendFenceGetRspMsg2App(APP_CMD_FENCE_GET, ERR_SUCCESS, 1, session);
+            app_sendFenceGetRsp2App(APP_CMD_FENCE_GET, CODE_SUCCESS, 1, session);
         }
-        else
+        else if(rsp->result == DEFEND_OFF)
         {
-            app_sendFenceGetRspMsg2App(APP_CMD_FENCE_GET, ERR_SUCCESS, 0, session);
+            app_sendFenceGetRsp2App(APP_CMD_FENCE_GET, CODE_SUCCESS, 0, session);
         }
     }
     else
@@ -394,12 +431,12 @@ int simcom_defend(const void *msg, SESSION *session)
         LOG_ERROR("response defend cmd error");
         return -1;
     }
+
     return 0;
 }
 
-int simcom_seek(const void *msg, SESSION *session)
+static int simcom_seek(const void *msg, SESSION *session)
 {
-    //send ack to APP
     const MSG_SEEK_RSP *rsp = (const MSG_SEEK_RSP *)msg;
     int seek = rsp->token;
 
@@ -415,14 +452,14 @@ int simcom_seek(const void *msg, SESSION *session)
     {
         if(rsp->result == 0)
         {
-            app_sendCmdRsp2App(APP_CMD_SEEK_ON, ERR_SUCCESS, strIMEI);
+            app_sendCmdRsp2App(APP_CMD_SEEK_ON, CODE_SUCCESS, strIMEI);
         }
     }
     else if(seek == APP_CMD_SEEK_OFF)
     {
         if(rsp->result == 0)
         {
-            app_sendCmdRsp2App(APP_CMD_SEEK_OFF, ERR_SUCCESS, strIMEI);
+            app_sendCmdRsp2App(APP_CMD_SEEK_OFF, CODE_SUCCESS, strIMEI);
         }
     }
     else
@@ -430,60 +467,11 @@ int simcom_seek(const void *msg, SESSION *session)
         LOG_ERROR("response seek cmd not exist");
         return -1;
     }
-    return 0;
-}
-
-static int simcom_autoDefendSetRsp(const void *msg, SESSION *session)
-{
-    const MSG_AUTODEFEND_SWITCH_SET_RSP *rsp = (const MSG_AUTODEFEND_SWITCH_SET_RSP*)msg;
-    OBJECT* obj = session->obj;
-
-    app_sendCmdRsp2App(APP_CMD_AUTOLOCK_ON, rsp->result, obj->IMEI);
-    return 0;
-}
-
-static int simcom_autoDefendGetRsp(const void *msg, SESSION *session)
-{
-    //TODO: to be complted
 
     return 0;
 }
 
-static int simcom_autoPeriodSetRsp(const void *msg, SESSION *session)
-{
-    const MSG_AUTODEFEND_PERIOD_SET_RSP *rsp = (const MSG_AUTODEFEND_PERIOD_SET_RSP*)msg;
-    OBJECT *obj = session->obj;
-
-    app_sendCmdRsp2App(APP_CMD_AUTOPERIOD_SET, rsp->result, obj->IMEI);
-    return 0;
-}
-
-static int simcom_autoPeriodGetRsp(const void *msg, SESSION *session)
-{
-    //TODO: to be complted?
-    const MSG_AUTODEFEND_PERIOD_GET_RSP* rsp = (const MSG_AUTODEFEND_PERIOD_GET_RSP *)msg;
-    OBJECT *obj = session->obj;
-
-    app_sendAutoDefendPeriodMsg2App(get_time(), rsp->period, session);
-
-    return 0;
-}
-
-static int simcom_mileage(const void *msg, SESSION *session)
-{
-    //TODO: to be complted
-
-    return 0;
-}
-
-static int simcom_autoDefendState(const void *msg, SESSION *session)
-{
-    //TODO: to be complted
-
-    return 0;
-}
-
-static int simcom_location(const void *msg, SESSION *session)
+static int simcom_locate(const void *msg, SESSION *session)
 {
     const MSG_HEADER *req = (const MSG_HEADER *)msg;
     if(!req)
@@ -509,7 +497,7 @@ static int simcom_location(const void *msg, SESSION *session)
             return -1;
         }
 
-        LOG_INFO("GPS: latitude(%f), longitude(%f), altitude(%f), speed(%u), course(%d)", 
+        LOG_INFO("LOCATION GPS: latitude(%f), longitude(%f), altitude(%f), speed(%f), course(%f)", 
             gps->latitude, gps->longitude, gps->altitude, gps->speed, gps->course);
 
         OBJECT * obj = (OBJECT *) session->obj;
@@ -524,8 +512,8 @@ static int simcom_location(const void *msg, SESSION *session)
         obj->lat = gps->latitude;
         obj->lon = gps->longitude;
         obj->altitude = gps->altitude;
-        obj->speed = (char)gps->speed;
-        obj->course = (short)gps->course;
+        obj->speed = gps->speed;
+        obj->course = gps->course;
 
         app_sendGpsMsg2App(session);
     }
@@ -539,7 +527,7 @@ static int simcom_location(const void *msg, SESSION *session)
             return -1;
         }
 
-        LOG_INFO("CGI: mcc(%d), mnc(%d)", ntohs(cgi->mcc), ntohs(cgi->mnc));
+        LOG_INFO("LOCATION CGI: mcc(%d), mnc(%d)", ntohs(cgi->mcc), ntohs(cgi->mnc));
         OBJECT *obj = session->obj;
         if(!obj)
         {
@@ -587,29 +575,283 @@ static int simcom_location(const void *msg, SESSION *session)
     return 0;
 }
 
-static MSG_PROC_MAP msgProcs[] =
+static int simcom_SetTimer(const void *msg, SESSION *session)
+{
+    const MSG_GPSTIMER_RSP *rsp = (const MSG_GPSTIMER_RSP *)msg;
+
+    OBJECT* obj = session->obj;
+    if (!obj)
     {
-        {CMD_WILD,                  simcom_wild},
-        {CMD_LOGIN,                 simcom_login},
-        {CMD_GPS,                   simcom_gps},
-        {CMD_CELL,                  simcom_cell},
-        {CMD_PING,                  simcom_ping},
-        {CMD_ALARM,                 simcom_alarm},
-        {CMD_433,                   simcom_433},
-        {CMD_DEFEND,                simcom_defend},
-        {CMD_SEEK,                  simcom_seek},
-        {CMD_AUTODEFEND_SWITCH_SET, simcom_autoDefendSetRsp},
-        {CMD_AUTODEFEND_SWITCH_GET, simcom_autoDefendGetRsp},
-        {CMD_AUTODEFEND_PERIOD_SET, simcom_autoPeriodSetRsp},
-        {CMD_AUTODEFEND_PERIOD_GET, simcom_autoPeriodGetRsp},
-        {CMD_MILEAGE,               simcom_mileage},
-        {CMD_AUTODEFEND_STATE,      simcom_autoDefendState},
-        {CMD_LOCATION,              simcom_location}
-    };
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    const char *strIMEI = obj->IMEI;
+
+    if(rsp->result == 0)
+    {
+        //TO DO: APP_CMD_SET_TIMER, CODE_SUCCESS
+        //app_sendCmdRsp2App(APP_CMD_SEEK_ON, CODE_SUCCESS, strIMEI);
+    }
+    else if(rsp->result >= 10)
+    {
+        //TO DO: APP_CMD_GET_TIMER, CODE_SUCCESS
+    }
+    else
+    {
+        //TO DO: APP_CMD_SET_TIMER, CODE_INTERNAL_ERR?
+        return -1;
+    }
+
+    return 0;
+}
+
+static int simcom_SetAutoswitch(const void *msg, SESSION *session)
+{
+    const MSG_AUTOLOCK_SET_RSP *rsp = (const MSG_AUTOLOCK_SET_RSP *)msg;
+    int autolock = rsp->token;
+
+    OBJECT* obj = session->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    const char *strIMEI = obj->IMEI;
+
+    if(autolock == APP_CMD_AUTOLOCK_ON)
+    {
+        if(rsp->result == 0)
+        {
+            app_sendCmdRsp2App(APP_CMD_AUTOLOCK_ON, CODE_SUCCESS, strIMEI);
+        }
+    }
+    else if(autolock == APP_CMD_AUTOLOCK_OFF)
+    {
+        if(rsp->result == 0)
+        {
+            app_sendCmdRsp2App(APP_CMD_AUTOLOCK_OFF, CODE_SUCCESS, strIMEI);
+        }
+    }
+    else
+    {
+        LOG_ERROR("response autolock cmd not exist");
+        return -1;
+    }
+
+    return 0;
+}
+
+static int simcom_GetAutoswitch(const void *msg, SESSION *session)
+{
+    const MSG_AUTOLOCK_GET_RSP *rsp = (const MSG_AUTOLOCK_GET_RSP *)msg;
+
+    OBJECT* obj = session->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    const char *strIMEI = obj->IMEI;
+
+    if(rsp->token == APP_CMD_AUTOLOCK_GET)
+    {
+        if(rsp->result == 0 || rsp->result == 1)
+        {
+            app_sendAutoLockGetRsp2App(APP_CMD_AUTOLOCK_GET, CODE_SUCCESS, rsp->result, session);
+        }
+    }
+
+    return 0;
+}
+
+static int simcom_SetPeriod(const void *msg, SESSION *session)
+{
+    const MSG_AUTOPERIOD_SET_RSP *rsp = (const MSG_AUTOPERIOD_SET_RSP *)msg;
+
+    OBJECT *obj = session->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    const char *strIMEI = obj->IMEI;
+
+    if(rsp->token == APP_CMD_AUTOPERIOD_SET)
+    {
+        if(rsp->result == 0)
+        {
+            app_sendCmdRsp2App(APP_CMD_AUTOPERIOD_SET, CODE_SUCCESS, strIMEI);
+        }
+    }
+    else
+    {
+        LOG_ERROR("response seek cmd not exist");
+        return -1;
+    }
+    return 0;
+}
+
+static int simcom_GetPeriod(const void *msg, SESSION *session)
+{
+    const MSG_AUTOPERIOD_GET_RSP *rsp = (const MSG_AUTOPERIOD_GET_RSP *)msg;
+    int period = rsp->result;
+
+    if(rsp->token == APP_CMD_AUTOPERIOD_GET)
+    {
+        if(period > 0)
+        {
+            app_sendAutoPeriodGetRsp2App(APP_CMD_AUTOPERIOD_GET, CODE_SUCCESS, period, session);
+        }
+    }
+    else
+    {
+        LOG_ERROR("response get period cmd not exist");
+        return -1;
+    }
+
+    return 0;
+}
+
+static int simcom_itinerary(const void *msg, SESSION *session)
+{
+    //TODO: to be complted
+    msg = msg;
+    session = session;
+
+    return 0;
+}
+
+static int simcom_battery(const void *msg, SESSION *session)
+{
+    const MSG_BATTERY_RSP *rsp = (const MSG_BATTERY_RSP *)msg;
+
+    if(rsp->percent != 0)
+    {
+        app_sendBatteryRsp2App(APP_CMD_BATTERY, CODE_SUCCESS, rsp->percent, rsp->miles, session);
+    }
+    else
+    {
+        //TO DO: when to use CODE_BATTERY_LEARNING
+        LOG_ERROR("response get period cmd not exist");
+        app_sendBatteryRsp2App(APP_CMD_BATTERY, CODE_BATTERY_LEARNING, rsp->percent, rsp->miles, session);
+
+        return -1;
+    }
+
+    return 0;
+}
+
+static int simcom_DefendOn(const void *msg, SESSION *session)
+{
+    const MSG_DEFEND_ON_RSP *rsp = (const MSG_DEFEND_ON_RSP *)msg;
+
+    OBJECT *obj = session->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    const char *strIMEI = obj->IMEI;
+
+    if(rsp->result == 0)
+    {
+        app_sendCmdRsp2App(APP_CMD_FENCE_ON, CODE_SUCCESS, strIMEI);
+    }
+    else
+    {
+        app_sendCmdRsp2App(APP_CMD_FENCE_ON, CODE_INTERNAL_ERR, strIMEI);
+    }
+
+    return 0;
+}
+
+static int simcom_DefendOff(const void *msg, SESSION *session)
+{
+    const MSG_DEFEND_OFF_RSP *rsp = (const MSG_DEFEND_OFF_RSP *)msg;
+
+    OBJECT *obj = session->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    const char *strIMEI = obj->IMEI;
+
+    if(rsp->result == 0)
+    {
+        app_sendCmdRsp2App(APP_CMD_FENCE_OFF, CODE_SUCCESS, strIMEI);
+    }
+    else
+    {
+        app_sendCmdRsp2App(APP_CMD_FENCE_OFF, CODE_INTERNAL_ERR, strIMEI);
+    }
+
+    return 0;
+}
+
+static int simcom_DefendGet(const void *msg, SESSION *session)
+{
+    const MSG_DEFEND_GET_RSP *rsp = (const MSG_DEFEND_GET_RSP *)msg;
+
+    if(rsp->status == 0 || rsp->status == 1)
+    {
+        app_sendFenceGetRsp2App(APP_CMD_FENCE_GET, CODE_SUCCESS, rsp->status, session);
+    }
+    else
+    {
+        LOG_ERROR("response get period cmd not exist");
+        return -1;
+    }
+
+    return 0;
+}
+
+static int simcom_DefendNotify(const void *msg, SESSION *session)
+{
+    const MSG_DEFEND_NOTIFY_RSP *rsp = (const MSG_DEFEND_NOTIFY_RSP *)msg;
+
+    if(rsp->status == 0 || rsp->status == 1)
+    {
+        app_sendFenceGetRsp2App(APP_CMD_AUTOLOCK_NOTIFY, CODE_SUCCESS, rsp->status, session);
+    }
+    else
+    {
+        LOG_ERROR("response get period cmd not exist");
+        return -1;
+    }
+
+    return 0;
+}
+
+static MSG_PROC_MAP msgProcs[] =
+{
+    {CMD_WILD,              simcom_wild},
+    {CMD_LOGIN,             simcom_login},
+    {CMD_PING,              simcom_ping},
+    {CMD_GPS,               simcom_gps},
+    {CMD_CELL,              simcom_cell},
+    {CMD_ALARM,             simcom_alarm},
+    {CMD_SMS,               simcom_sms},
+    {CMD_433,               simcom_433},
+    {CMD_DEFEND,            simcom_defend},
+    {CMD_SEEK,              simcom_seek},
+    {CMD_LOCATE,            simcom_locate},
+    {CMD_SET_TIMER,         simcom_SetTimer},
+    {CMD_SET_AUTOSWITCH,    simcom_SetAutoswitch},
+    {CMD_GET_AUTOSWITCH,    simcom_GetAutoswitch},
+    {CMD_SET_PERIOD,        simcom_SetPeriod},
+    {CMD_GET_PERIOD,        simcom_GetPeriod},
+    {CMD_ITINERARY,         simcom_itinerary},
+    {CMD_BATTERY,           simcom_battery},
+    {CMD_DEFEND_ON,         simcom_DefendOn},
+    {CMD_DEFEND_OFF,        simcom_DefendOff},
+    {CMD_DEFEND_GET,        simcom_DefendGet},
+    {CMD_DEFEND_NOTIFY,     simcom_DefendNotify}
+};
 
 int handle_one_msg(const void *m, SESSION *ctx)
 {
-    const MSG_HEADER* msg = (MSG_HEADER*)m;
+    const MSG_HEADER *msg = (const MSG_HEADER *)m;
 
     for (size_t i = 0; i < sizeof(msgProcs) / sizeof(msgProcs[0]); i++)
     {

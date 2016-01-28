@@ -42,6 +42,7 @@ int main(int argc, char **argv)
     	}
     }
 
+    /* log haven't work now, it will be writen into nohup file */
     printf("Electrombile Server %s, with event %s, mosquitto %d, curl %s\n",
     		VERSION_STR,
 			LIBEVENT_VERSION,
@@ -50,7 +51,9 @@ int main(int argc, char **argv)
 
     struct event_base *base = event_base_new();
     if (!base)
+    {
         return 1; /*XXXerr*/
+    }
 
     int rc = log_init("../conf/simcom_log.conf");
     if (rc)

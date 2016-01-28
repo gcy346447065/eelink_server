@@ -191,14 +191,13 @@ int tk115_gps(const void *msg, SESSION *ctx)
 	if (req->location & 0x01)
     {
         //int db_saveGPS(const char *name, int timestamp, int lat, int lon, char speed, short course)
-        db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
+        db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, 0, obj->speed, obj->course);
     }
     else
     {
         //int db_saveCGI(const char *name, int timestamp, short mcc, short mnc, short lac, short ci, short rxl)
         db_saveCGI(obj->IMEI, obj->timestamp, obj->cell, 1);
     }
-
 
 //	leancloud_saveGPS(obj);
 

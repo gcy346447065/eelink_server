@@ -17,12 +17,17 @@ MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER* pMsg);
 
 void free_simcom_msg(void* msg);
 
-const char *getImeiStringFromArray(const char *imei);
+const char *getImeiString(const char *imei);
 
 char get_msg_cmd(void *msg);
 
-void * alloc_simcomWildMsg(const char* data, size_t length);
+void *alloc_simcomWildMsg(const char* data, size_t length);
+void *alloc_simcomDefendReq(int token, char operator);
+void *alloc_simcomSeekReq(int token, char operator);
+void *alloc_simcomAutolockSetReq(int token, char onOff);
+void *alloc_simcomAutoPeriodSetReq(int token, char period);
+void *alloc_simcomAutoPeriodGetReq(int token);
+void *alloc_simcomAutolockGetReq(int token);
 
-void* alloc_simcomDefendReq(int token, unsigned char operator);
 
 #endif /* SRC_MSG_SIMCOM_H_ */

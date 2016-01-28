@@ -26,11 +26,79 @@ static int _db_initial()
 
     if(!mysql_real_connect(conn, DB_HOST, DB_USER, DB_PWD, DB_NAME, DB_PORT, NULL, 0))
     {
-        LOG_ERROR("can't connect database: %s(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
-        return -1;
+        if(mysql_errno(conn) == 1049) //(1049, Unknown database 'gps')
+        {
+            if(!mysql_real_connect(conn, DB_HOST, DB_USER, DB_PWD, NULL, DB_PORT, NULL, 0))
+            {
+                LOG_ERROR("can't connect database: NULL(%u, %s)", mysql_errno(conn), mysql_error(conn));
+                return -1;
+            }
+            else
+            {
+                /* create database gps */
+                char query[MAX_QUERY];
+                snprintf(query, MAX_QUERY, "create database %s", DB_NAME);
+                
+                if(mysql_ping(conn))
+                {
+                    LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+                    return 1;
+                }
+
+                if(mysql_query(conn, query))
+                {
+                    LOG_ERROR("can't create database %s(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
+                    return 2;
+                }
+
+                /* use gps */
+                snprintf(query, MAX_QUERY, "use %s", DB_NAME);
+                
+                if(mysql_ping(conn))
+                {
+                    LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+                    return 1;
+                }
+
+                if(mysql_query(conn, query))
+                {
+                    LOG_ERROR("can't use %s(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
+                    return 2;
+                }
+
+                /* creat table object */
+                snprintf(query, MAX_QUERY, "create table object(imei char(16) not null primary key, \
+                                            RegisterTime timestamp default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP, \
+                                            IsPosted tinyint default '0', \
+                                            ObjectType int(4) not null)");
+                
+                if(mysql_ping(conn))
+                {
+                    LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+                    return 1;
+                }
+
+                if(mysql_query(conn, query))
+                {
+                    LOG_ERROR("can't creat table object(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
+                    return 2;
+                }
+
+                LOG_INFO("create and use database: %s, creat table object", DB_NAME);
+                return 0;
+            }
+        }
+        else
+        {
+            LOG_ERROR("can't connect database: %s(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
+            return -1;
+        }
     }
-    LOG_INFO("connect database: %s", DB_NAME);
-    return 0;
+    else
+    {
+        LOG_INFO("connect database: %s", DB_NAME);
+        return 0;
+    }
 }
 
 static int _db_destruct()
@@ -71,8 +139,8 @@ static int _db_isTableCreated(const char* imeiName, int *num)
 static int _db_createGPS(const char* tableName)
 {
     char query[MAX_QUERY];
-    //create table gps_IMEI(timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT)
-    snprintf(query, MAX_QUERY, "create table gps_%s(timestamp INT,lat DOUBLE(8,5),lon DOUBLE(8,5),speed TINYINT UNSIGNED,course SMALLINT,primary key(timestamp))", tableName);
+    
+    snprintf(query, MAX_QUERY, "create table gps_%s(timestamp INT,lat DOUBLE(9,6),lon DOUBLE(9,6),altitude DOUBLE(9,6),speed DOUBLE(9,6),course DOUBLE(9,6),primary key(timestamp))", tableName);
     
     if(mysql_ping(conn))
     {
@@ -112,11 +180,11 @@ static int _db_createCGI(const char* tableName)
     return 0;
 }
 
-static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, short course)
+static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, float altitude, float speed, float course)
 {
-    //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
+    //timestamp INT, lat DOUBLE, lon DOUBLE, altitude DOUBLE, speed DOUBLE, course DOUBLE
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into gps_%s(timestamp,lat,lon,speed,course) values(%d,%f,%f,%u,%d)",imeiName, timestamp, lat, lon, speed, course);
+    snprintf(query, MAX_QUERY, "insert into gps_%s(timestamp,lat,lon,altitude,speed,course) values(%d,%f,%f,%f,%f,%f)",imeiName, timestamp, lat, lon, altitude, speed, course);
     
     if(mysql_ping(conn))
     {
@@ -129,7 +197,8 @@ static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon
         LOG_ERROR("can't insert into gps_%s(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
         return 2;
     }
-    LOG_INFO("insert into gps_%s: %d, %f, %f, %u, %d", imeiName, timestamp, lat, lon, speed, course);
+
+    LOG_INFO("insert into gps_%s: %d, %f, %f, %f, %f, %f", imeiName, timestamp, lat, lon, altitude, speed, course);
     return 0;
 }
 
@@ -310,10 +379,10 @@ int db_createCGI(const char* tableName)
     return 0;
 }
 
-int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char speed, short course)
+int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, float altitude, float speed, float course)
 {
 #ifdef WITH_DB
-    return _db_saveGPS(imeiName, timestamp, lat, lon, speed, course);
+    return _db_saveGPS(imeiName, timestamp, lat, lon, altitude, speed, course);
 #endif
 
     return 0;
