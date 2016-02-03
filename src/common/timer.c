@@ -20,7 +20,7 @@ struct event* timer_newLoop(struct event_base *base, const struct timeval *timeo
     }
     else
     {
-        LOG_INFO("new loop timer of period %ds", timeout->tv_sec);
+        LOG_INFO("new loop timer of period %lds", timeout->tv_sec);
     }
     evtimer_add(ev, timeout);
 
@@ -37,7 +37,7 @@ struct event* timer_newOnce(struct event_base *base, const struct timeval *timeo
     }
     else
     {
-        LOG_INFO("new one-shot timer of period %ds", timeout->tv_sec);
+        LOG_INFO("new one-shot timer of period %lds", timeout->tv_sec);
     }
     evtimer_add(ev, timeout);
 
@@ -46,7 +46,7 @@ struct event* timer_newOnce(struct event_base *base, const struct timeval *timeo
 
 void timer_react(struct event *ev, struct timeval *timeout)
 {
-    LOG_INFO("react a timer of period %ds", timeout->tv_sec);
+    LOG_INFO("react a timer of period %lds", timeout->tv_sec);
 
     evtimer_add(ev, timeout);
 }
