@@ -38,6 +38,9 @@ SET(SOURCE_FILE
     timer.h
     timer.c
 
+    http.c
+    http.h
+
     ../3rd/cJSON/cJSON.c
     ../3rd/cJSON/cJSON.h
     )
