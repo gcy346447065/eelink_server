@@ -12,34 +12,11 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include "cJSON.h"
-
+#include "yunba_common.h"
 /// @endcond
 
 
-typedef enum {
-	GET_ALIAS =1,
-	GET_ALIAS_ACK,
-	GET_TOPIC,
-	GET_TOPIC_ACK,
-	GET_ALIAS_LIST,
-	GET_ALIAS_LIST_ACK,
-	PUBLISH2,
-	PUBLISH2_ACK,
-	GET_STATUS = 9,
-	GET_STATUS_ACK
-} EXTED_CMD;
 
-enum {
-	PUBLISH2_TLV_TOPIC,
-	PUBLISH2_TLV_PAYLOAD,
-	PUBLISH2_TLV_PLAT,
-	PUBLISH2_TLV_TTL,
-	PUBLISH2_TLV_TIME_DELAY,
-	PUBLISH2_TLV_LOCATION,
-	PUBLISH2_TLV_QOS,
-	PUBLISH2_TLV_APN_JSON,
-	PUBLISH2_TLV_MAX_NUM
-};
 
 /**
  * Return code: No error. Indicates successful completion of an MQTT client
@@ -132,22 +109,6 @@ typedef struct {
  * Bad return code from subscribe, as defined in the 3.1.1 specification
  */
 #define MQTT_BAD_SUBSCRIBE 0x80
-
-
-typedef struct {
-	/* in MQTT v3.1,If the Client ID contains more than 23 characters, the server responds to
-	 * the CONNECT message with a CONNACK return code 2: Identifier Rejected.
-	 * */
-	char client_id[200];
-	/* in MQTT v3.1, it is recommended that passwords are kept to 12 characters or fewer, but
-	 * it is not required. */
-	char username[200];
-	/*in MQTT v3.1, It is recommended that passwords are kept to 12 characters or fewer, but
-	 * it is not required. */
-	char password[200];
-	/* user define it, and change size of device id. */
-	char device_id[200];
-} REG_info;
 
 
 /**
@@ -705,10 +666,10 @@ DLLExport int MQTTClient_publish(MQTTClient handle, const char* topicName, int d
 DLLExport int MQTTClient_publish_json(MQTTClient handle, char* topicName, cJSON *data);
 
 DLLExport int MQTTClient_publish2(MQTTClient handle,
-				const char* topicName, int payloadlen, void* payload, cJSON *data);
+				const char* topicName, int payloadlen, void* payload, cJSON *opt);
 
 DLLExport int MQTTClient_publish2_to_alias(MQTTClient handle,
-				const char* alias, int payloadlen, void* payload, cJSON *data);
+				const char* alias, int payloadlen, void* payload, cJSON *opt);
 
 DLLExport int MQTTClient_publish_to_alias(MQTTClient handle, char* alias, int data_len, void* data);
 
@@ -718,21 +679,21 @@ DLLExport int MQTTClient_set_alias(MQTTClient handle, char* alias);
 
 DLLExport int MQTTClient_get_alias(MQTTClient handle, char* parameter);
 
+DLLExport int MQTTClient_get_aliaslist2(MQTTClient handle, char* parameter);
+
 DLLExport int MQTTClient_get_aliaslist(MQTTClient handle, char* parameter);
 
 DLLExport int MQTTClient_get_topic(MQTTClient handle, char* parameter);
 
+DLLExport int MQTTClient_get_topiclist2(MQTTClient handle, char* parameter);
+
 DLLExport int MQTTClient_get_status(MQTTClient handle, char* parameter);
+
+DLLExport int MQTTClient_get_status2(MQTTClient handle, char* parameter);
 
 DLLExport int MQTTClient_set_broker(MQTTClient *handle, char* broker);
 
 DLLExport int MQTTClient_get_broker(MQTTClient *handle, char* broker);
-
-DLLExport int MQTTClient_setup_with_appkey(char* appkey, REG_info *info);
-
-DLLExport int MQTTClient_setup_with_appkey_and_deviceid(char* appkey, char *deviceid, REG_info *info);
-
-DLLExport int MQTTClient_get_host(char *appkey, char* url);
 
 DLLExport int MQTTClient_waitForCompletion(MQTTClient handle, MQTTClient_deliveryToken dt, unsigned long timeout);
 
