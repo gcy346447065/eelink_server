@@ -307,7 +307,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len __at
     LOG_DEBUG("topic = %s, payload = %s", topic, data);
 
     /* get imei and object from topic */
-    static char strIMEI[IMEI_LENGTH + 1] = {0};
+    char strIMEI[IMEI_LENGTH + 1] = {0};
     getImeiFromTopic(topic, strIMEI);
     OBJECT* obj = obj_get(strIMEI);
     if (!obj)
