@@ -579,7 +579,7 @@ static int simcom_locate(const void *msg, SESSION *session)
         obj->speed = 0;
         obj->course = 0;
 
-        app_sendGpsMsg2App(session);
+        app_sendLocationRsp2App(CODE_SUCCESS, session);
     }
 
     return 0;
