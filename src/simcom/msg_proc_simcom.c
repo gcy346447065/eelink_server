@@ -135,7 +135,7 @@ static int simcom_login(const void *msg, SESSION *session)
                 LOG_FATAL("insufficient memory");
             }
 
-            //app_sendMsg2Device(req, sizeof(MSG_UPGRADE_START_REQ), obj);
+            simcom_sendMsg(req, sizeof(MSG_UPGRADE_START_REQ), session);
         }
     }
 

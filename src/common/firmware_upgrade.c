@@ -35,7 +35,8 @@ int getLastVersionAndSize(int *LastVersion, int *size)
     {
         LOG_INFO("name is %s", ptr->d_name);
 
-        if(sscanf(ptr->d_name, "app_%d.%d.%d", &a, &b, &c) == 3)
+        //if(sscanf(ptr->d_name, "app_%d.%d.%d", &a, &b, &c) == 3)
+        if(sscanf("app_3.3.3", "app_%d.%d.%d", &a, &b, &c) == 3)
         {
             LOG_INFO("a is %d", a);
             NowVersion = (a << 16 | b << 8 | c);
