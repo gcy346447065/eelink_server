@@ -33,12 +33,11 @@ int getLastVersionAndSize(int *LastVersion, int *size)
     //loop for the lastest version
     while(ptr = readdir(dir_handle))
     {
-        LOG_INFO("d_name is %s, d_type is %d", ptr->d_name, ptr->d_type);
+        //LOG_INFO("d_name is %s, d_type is %d", ptr->d_name, ptr->d_type);
 
-        //if(sscanf(ptr->d_name, "app_%d.%d.%d", &a, &b, &c) == 3)
         if(ptr->d_type == 8 && sscanf(ptr->d_name, "app_%d.%d.%d", &a, &b, &c) == 3)//d_type == 8 means file
         {
-            LOG_INFO("a is %d", a);
+            LOG_INFO("a is %d, b is %d, c is %d", a, b, c);
             NowVersion = (a << 16 | b << 8 | c);
 
             if(NowVersion > TempVersion)
@@ -54,10 +53,14 @@ int getLastVersionAndSize(int *LastVersion, int *size)
         *LastVersion = TempVersion;
 
         struct stat buf;
-        stat(LastFileName, &buf);
+        if(stat(LastFileName, &buf) < 0)
+        {
+            return -1;
+        }
+        
         *size = (int)buf.st_size;
 
-        LOG_INFO("LastVersion is %d, size is %d", *LastVersion, *size);
+        LOG_INFO("LastFileName is %s, LastVersion is %d, size is %d", LastFileName, *LastVersion, *size);
     }
 
     closedir(dir_handle);

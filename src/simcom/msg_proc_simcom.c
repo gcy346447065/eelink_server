@@ -138,6 +138,10 @@ static int simcom_login(const void *msg, SESSION *session)
             simcom_sendMsg(req, sizeof(MSG_UPGRADE_START_REQ), session);
         }
     }
+    else
+    {
+        LOG_ERROR("can't get valid last version and size");
+    }
 
     MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
     if(rsp)
@@ -898,7 +902,7 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
     }
     else
     {
-        LOG_INFO("response get upgrade start code error");
+        LOG_INFO("response get upgrade start code(%d) error", rsp->code);
     }
 
     return 0;
