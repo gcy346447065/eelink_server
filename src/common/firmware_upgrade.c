@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <string.h>
+#include <errno.h>
 #include "firmware_upgrade.h"
 #include "macro.h"
 #include "log.h"
@@ -37,11 +38,11 @@ int getLastVersionAndSize(int *LastVersion, int *size)
 
         if(ptr->d_type == 8 && sscanf(ptr->d_name, "app_%d.%d.%d", &a, &b, &c) == 3)//d_type == 8 means file
         {
-            LOG_INFO("a is %d, b is %d, c is %d", a, b, c);
             NowVersion = (a << 16 | b << 8 | c);
 
             if(NowVersion > TempVersion)
             {
+                LOG_INFO("a is %d, b is %d, c is %d", a, b, c);
                 TempVersion = NowVersion;
                 LastFileName = ptr->d_name;
             }
@@ -52,15 +53,18 @@ int getLastVersionAndSize(int *LastVersion, int *size)
     {
         *LastVersion = TempVersion;
 
+        LOG_INFO("LastFileName is %s, LastVersion is %d", LastFileName, *LastVersion);
+
         struct stat buf;
         if(stat(LastFileName, &buf) < 0)
         {
+            LOG_ERROR("stat errno is %d", errno);
             return -1;
         }
-        
+
         *size = (int)buf.st_size;
 
-        LOG_INFO("LastFileName is %s, LastVersion is %d, size is %d", LastFileName, *LastVersion, *size);
+        LOG_INFO("last file size is %d", *size);
     }
 
     closedir(dir_handle);
