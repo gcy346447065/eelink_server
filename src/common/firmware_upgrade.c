@@ -33,10 +33,10 @@ int getLastVersionAndSize(int *LastVersion, int *size)
     //loop for the lastest version
     while(ptr = readdir(dir_handle))
     {
-        LOG_INFO("name is %s", ptr->d_name);
+        LOG_INFO("d_name is %s, d_type is %d", ptr->d_name, ptr->d_type);
 
         //if(sscanf(ptr->d_name, "app_%d.%d.%d", &a, &b, &c) == 3)
-        if(sscanf("app_3.3.3", "app_%d.%d.%d", &a, &b, &c) == 3)
+        if(ptr->d_type == 8 && sscanf(ptr->d_name, "app_%d.%d.%d", &a, &b, &c) == 3)//d_type == 8 means file
         {
             LOG_INFO("a is %d", a);
             NowVersion = (a << 16 | b << 8 | c);
