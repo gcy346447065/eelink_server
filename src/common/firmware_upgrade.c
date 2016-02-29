@@ -15,12 +15,13 @@
 #include "macro.h"
 #include "log.h"
 
+static char *LastFileName = NULL;
+
 int getLastVersionAndSize(int *LastVersion, int *size)
 {
     DIR *dir_handle;
     struct dirent *ptr;
     int a = 0, b = 0, c = 0, NowVersion = 0, TempVersion = 0;
-    char *TempName = NULL;
 
     //enter the dir
     dir_handle = opendir("./firmware/");
@@ -34,14 +35,15 @@ int getLastVersionAndSize(int *LastVersion, int *size)
     {
         LOG_INFO("name is %s", ptr->d_name);
 
-        if(sscanf(ptr->d_name, "app_%d.%d.%d", a, b, c) == 3)
+        if(sscanf(ptr->d_name, "app_%d.%d.%d", &a, &b, &c) == 3)
         {
+            LOG_INFO("a is %d", a);
             NowVersion = (a << 16 | b << 8 | c);
 
             if(NowVersion > TempVersion)
             {
                 TempVersion = NowVersion;
-                TempName = ptr->d_name;
+                LastFileName = ptr->d_name;
             }
         }
     }
@@ -51,7 +53,7 @@ int getLastVersionAndSize(int *LastVersion, int *size)
         *LastVersion = TempVersion;
 
         struct stat buf;
-        stat(TempName, &buf);
+        stat(LastFileName, &buf);
         *size = (int)buf.st_size;
 
         LOG_INFO("LastVersion is %d, size is %d", *LastVersion, *size);
@@ -61,10 +63,12 @@ int getLastVersionAndSize(int *LastVersion, int *size)
     return 0;
 }
 
-/*
-OpenAppFileWithLastVersion()
+int getDataSegmentFromLastFile()
 {
-    return;
+
+    FIRMWARE_SEGMENT_SIZE;
+
+    return 0;
 }
-*/
+
 

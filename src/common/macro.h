@@ -18,7 +18,7 @@
 #define MAGIC_NUMBER 0x12345678
 #define CELL_NUM 7
 
-#define FIRMWARE_FILE_SIZE 1024
+#define FIRMWARE_SEGMENT_SIZE 1024
 
 typedef struct
 {

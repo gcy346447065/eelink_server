@@ -121,24 +121,22 @@ static int simcom_login(const void *msg, SESSION *session)
         LOG_DEBUG("simcom IMEI(%s) already login", imei);
     }
 
-    //get version, compare the version number; if not, send upgrade message
+    //get version, compare the version number; if not, send upgrade start message
     int theLastVersion = 0, theSize = 0;
     if(getLastVersionAndSize(&theLastVersion, &theSize) == 0)
     {
-        LOG_INFO("theLastVersion is %d, theSize is %d", theLastVersion, theSize);
-        /*
+        LOG_INFO("req->version is %d, theLastVersion is %d, theSize is %d", req->version, theLastVersion, theSize);
+        
         if(req->version != theLastVersion)
         {
             MSG_UPGRADE_START_REQ *req = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, theSize);
             if (!req)
             {
                 LOG_FATAL("insufficient memory");
-                app_sendCmdRsp2App(cmd, CODE_INTERNAL_ERR, obj->IMEI);
             }
 
-            app_sendCmdRsp2App(cmd, CODE_WAITING, obj->IMEI);
-            app_sendMsg2Device(req, sizeof(MSG_SEEK_REQ), obj);
-        }*/
+            //app_sendMsg2Device(req, sizeof(MSG_UPGRADE_START_REQ), obj);
+        }
     }
 
     MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
@@ -883,6 +881,25 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
 {
     //get CMD_UPGRADE_START rsp, if code==0
     //send CMD_UPGRADE_DATA req
+
+    const MSG_UPGRADE_START_RSP *rsp = (const MSG_UPGRADE_START_RSP *)msg;
+
+    if(rsp->code == 0)
+    {
+        /*
+        MSG_UPGRADE_START_REQ *req = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, theSize);
+        if (!req)
+        {
+            LOG_FATAL("insufficient memory");
+        }
+
+        app_sendMsg2Device(req, sizeof(MSG_UPGRADE_START_REQ), obj);
+        */
+    }
+    else
+    {
+        LOG_INFO("response get upgrade start code error");
+    }
 
     return 0;
 }
