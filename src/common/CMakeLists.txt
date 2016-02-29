@@ -1,4 +1,7 @@
 SET(SOURCE_FILE
+    firmware_upgrade.c
+    firmware_upgrade.h
+
     log.c
     log.h
 

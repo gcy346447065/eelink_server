@@ -21,6 +21,8 @@ void ResaveUnpostedImei_cb(evutil_socket_t fd __attribute__((unused)), short wha
     LOG_INFO("one-day timer for ResaveUnpostedImei_cb");
     
     db_ResaveOBJUnpostedImei_cb(arg); //leancloud_saveDid
+
+    return;
 }
 
 static void sig_usr(int signo)
@@ -36,6 +38,8 @@ static void sig_usr(int signo)
 		printf("oops! being killed!!!\n");
 		event_base_loopbreak(base);
 	}
+
+    return;
 }
 
 int main(int argc, char **argv)

@@ -161,3 +161,16 @@ void *alloc_simcomAutolockGetReq(int token)
 
     return req;
 }
+
+void *alloc_simcomUpgradeStartReq(int version, int size)
+{
+    MSG_UPGRADE_START_REQ *req = (MSG_UPGRADE_START_REQ *)alloc_simcom_msg(CMD_UPGRADE_START, sizeof(MSG_UPGRADE_START_REQ));
+    if(req)
+    {
+        req->version = version;
+        req->size = size;
+    }
+
+    return req;
+}
+

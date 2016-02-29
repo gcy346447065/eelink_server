@@ -66,6 +66,5 @@ int log_init(const char *conf)
     }
 #endif
 
-
     return 0;
 }
