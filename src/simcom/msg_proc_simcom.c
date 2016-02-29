@@ -78,7 +78,7 @@ static int simcom_wild(const void *m, SESSION *session)
 
 static int simcom_login(const void *msg, SESSION *session)
 {
-    const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg; //TO DO: Version, CCID
+    const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg;
     const char *imei = getImeiString(req->IMEI);
 
     if (!session)
