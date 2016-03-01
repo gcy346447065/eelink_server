@@ -43,8 +43,9 @@ int getLastVersionAndSize(int *LastVersion, int *size)
             if(NowVersion > TempVersion)
             {
                 LOG_INFO("a is %d, b is %d, c is %d", a, b, c);
+                
                 TempVersion = NowVersion;
-                LastFileName = ptr->d_name;
+                sprintf(LastFileName, "./firmware/%s", ptr->d_name);
             }
         }
     }
