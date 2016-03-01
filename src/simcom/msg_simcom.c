@@ -174,12 +174,13 @@ void *alloc_simcomUpgradeStartReq(int version, int size)
     return req;
 }
 
-void *alloc_simcomUpgradeDataReq(int offset, int size)
+void *alloc_simcomUpgradeDataReq(int offset, char *data, int length)
 {
-    MSG_UPGRADE_START_REQ *req = (MSG_UPGRADE_START_REQ *)alloc_simcom_msg(CMD_UPGRADE_START, sizeof(MSG_UPGRADE_START_REQ));
+    MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcom_msg(CMD_UPGRADE_DATA, sizeof(MSG_UPGRADE_DATA_REQ));
     if(req)
     {
-
+        req->offset = offset;
+        memcpy(req->data, data, length);
     }
 
     return req;

@@ -890,15 +890,18 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
 
     if(rsp->code == 0)
     {
-        /*
-        MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, theSize);
+        //get offset and data
+        int offset = 0;
+        char *data = "hehe";
+
+        MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcomUpgradeDataReq(offset, data, 4);
         if (!req)
         {
             LOG_FATAL("insufficient memory");
         }
 
         simcom_sendMsg(req, sizeof(MSG_UPGRADE_DATA_REQ), session);
-        */
+        
     }
     else
     {
