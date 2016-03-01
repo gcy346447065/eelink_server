@@ -49,10 +49,11 @@ static int simcom_sendMsg(void *msg, size_t len, SESSION *session)
     }
     LOG_INFO("gcy6");
     pfn(session->bev, msg, len);
+    LOG_INFO("gcy7");
 
     LOG_DEBUG("send msg(cmd=%d), length(%ld)", get_msg_cmd(msg), len);
     LOG_HEX(msg, len);
-    LOG_INFO("gcy7");
+    LOG_INFO("gcy8");
     free_simcom_msg(msg);
 
     return 0;
