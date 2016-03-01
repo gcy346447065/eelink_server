@@ -186,3 +186,15 @@ void *alloc_simcomUpgradeDataReq(int offset, char *data, int length)
     return req;
 }
 
+void *alloc_simcomUpgradeEndReq(int checksum, int size)
+{
+    MSG_UPGRADE_END_REQ *req = (MSG_UPGRADE_END_REQ *)alloc_simcom_msg(CMD_UPGRADE_END, sizeof(MSG_UPGRADE_END_REQ));
+    if(req)
+    {
+        req->checksum = checksum;
+        req->size = size;
+    }
+
+    return req;
+}
+

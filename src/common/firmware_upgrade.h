@@ -8,7 +8,8 @@
 #ifndef FIRMWARE_UPGRADE_H_
 #define FIRMWARE_UPGRADE_H_
 
-int getLastVersionAndSize(int *LastVersion, int *size);
+int getLastVersionWithFileNameAndSizeStored(void);
 int getLastFileSize(void);
+int getDataSegmentWithGottenSize(int gottenSize, char *data, int *pSendSize);
 
 #endif /* FIRMWARE_UPGRADE_H_ */

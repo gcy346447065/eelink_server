@@ -19,60 +19,55 @@
 static char LastFileName[256];
 static int LastFileSize = 0;
 
-int getLastVersionAndSize(int *LastVersion, int *size)
+int getLastVersionWithFileNameAndSizeStored(void)
 {
     DIR *dir_handle;
     struct dirent *ptr;
-    int a = 0, b = 0, c = 0, NowVersion = 0, TempVersion = 0;
+    int a = 0, b = 0, c = 0, NowVersion = 0, LastVersion = 0;
 
-    //enter the dir
     dir_handle = opendir("./firmware/");
     if(!dir_handle)
     {
         return -1;
     }
 
-    //loop for the lastest version
     while(ptr = readdir(dir_handle))
     {
-        //LOG_INFO("d_name is %s, d_type is %d", ptr->d_name, ptr->d_type);
-
         if(ptr->d_type == 8 && sscanf(ptr->d_name, "app_%d.%d.%d", &a, &b, &c) == 3)//d_type == 8 means file
         {
             //NowVersion = (a << 16 | b << 8 | c);
             NowVersion = a *100 + b *10 + c;
 
-            if(NowVersion > TempVersion)
+            if(NowVersion > LastVersion)
             {
                 LOG_INFO("a is %d, b is %d, c is %d", a, b, c);
 
-                TempVersion = NowVersion;
+                LastVersion = NowVersion;
+
+                memset(LastFileName, 0, 256);
                 sprintf(LastFileName, "./firmware/%s", ptr->d_name);
             }
         }
     }
 
-    if(TempVersion != 0)
+    if(LastVersion != 0)
     {
-        *LastVersion = TempVersion;
-
-        LOG_INFO("LastFileName is %s, LastVersion is %d", LastFileName, *LastVersion);
+        LOG_INFO("LastFileName is %s, LastVersion is %d", LastFileName, LastVersion);
 
         struct stat buf;
         if(stat(LastFileName, &buf) < 0)
         {
             LOG_ERROR("stat errno is %d", errno);
-            return -1;
+            return 0;
         }
 
         LastFileSize = (int)buf.st_size;
-        *size = LastFileSize;
 
-        LOG_INFO("last file size is %d", LastFileSize);
+        LOG_INFO("LastFileSize is %d", LastFileSize);
     }
 
     closedir(dir_handle);
-    return 0;
+    return LastVersion;
 }
 
 int getLastFileSize(void)
@@ -97,6 +92,7 @@ int getDataSegmentWithGottenSize(int gottenSize, char *data, int *pSendSize)
             //send FIRMWARE_SEGMENT_SIZE
             int fd = open(LastFileName, O_RDONLY);
             int sendSize = read(fd, data, FIRMWARE_SEGMENT_SIZE);
+            close(fd);
 
             LOG_INFO("sendSize = %d", sendSize);
 
@@ -116,6 +112,7 @@ int getDataSegmentWithGottenSize(int gottenSize, char *data, int *pSendSize)
             //send delta
             int fd = open(LastFileName, O_RDONLY);
             int sendSize = read(fd, data, delta);
+            close(fd);
 
             LOG_INFO("sendSize = %d", sendSize);
 

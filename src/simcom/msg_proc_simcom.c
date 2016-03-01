@@ -123,8 +123,9 @@ static int simcom_login(const void *msg, SESSION *session)
 
     //get version, compare the version number; if not, send upgrade start message
     int theLastVersion = 0, theSize = 0;
-    if(getLastVersionAndSize(&theLastVersion, &theSize) == 0)
+    if(theLastVersion = getLastVersionWithFileNameAndSizeStored())
     {
+        theSize = getLastFileSize();
         LOG_INFO("req->version is %d, theLastVersion is %d, theSize is %d", req->version, theLastVersion, theSize);
         
         if(req->version != theLastVersion)
@@ -140,7 +141,7 @@ static int simcom_login(const void *msg, SESSION *session)
     }
     else
     {
-        LOG_ERROR("can't get valid last version and size");
+        LOG_ERROR("can't get valid theLastVersion");
     }
 
     MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
@@ -888,11 +889,12 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
     if(rsp->code == 0)
     {
         LOG_INFO("response get upgrade start rsp ok");
-        //get offset and data
-        int offset = 0;
-        char *data = "hehe";
 
-        MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcomUpgradeDataReq(offset, data, 4);
+        char *data;
+        int size;
+        getDataSegmentWithGottenSize(0, data, &size);
+
+        MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcomUpgradeDataReq(0, data, size);
         if (!req)
         {
             LOG_FATAL("insufficient memory");
@@ -910,13 +912,41 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
 
 static int simcom_UpgradeData(const void *msg, SESSION *session)
 {
-    //get CMD_UPGRADE_DATA rsp, if file is over
-    //send CMD_UPGRADE_END req
     const MSG_UPGRADE_DATA_RSP *rsp = (const MSG_UPGRADE_DATA_RSP *)msg;
 
     if(rsp->size > 0)
     {
-        LOG_INFO("response get upgrade data size(%d) ok", rsp->size);
+        int LastSize = getLastFileSize();
+        LOG_INFO("rsp->size is %d, LastSize is %d", rsp->size, LastSize);
+
+        if(rsp->size < LastSize)
+        {
+            char *data;
+            int size;
+            getDataSegmentWithGottenSize(rsp->size, data, &size);
+
+            MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcomUpgradeDataReq(0, data, size);
+            if (!req)
+            {
+                LOG_FATAL("insufficient memory");
+            }
+
+            simcom_sendMsg(req, sizeof(MSG_UPGRADE_DATA_REQ), session);
+        }
+        else
+        {
+            LOG_INFO("send upgrade end request");
+
+            int checksum = 0;
+            
+            MSG_UPGRADE_END_REQ *req4end = (MSG_UPGRADE_END_REQ *)alloc_simcomUpgradeEndReq(checksum, LastSize);
+            if (!req4end)
+            {
+                LOG_FATAL("insufficient memory");
+            }
+
+            simcom_sendMsg(req4end, sizeof(MSG_UPGRADE_END_REQ), session);
+        }
     }
     else
     {
