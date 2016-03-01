@@ -16,7 +16,7 @@
 #include "macro.h"
 #include "log.h"
 
-static char *LastFileName = NULL;
+static char LastFileName[256];
 
 int getLastVersionAndSize(int *LastVersion, int *size)
 {
@@ -43,7 +43,7 @@ int getLastVersionAndSize(int *LastVersion, int *size)
             if(NowVersion > TempVersion)
             {
                 LOG_INFO("a is %d, b is %d, c is %d", a, b, c);
-                
+
                 TempVersion = NowVersion;
                 sprintf(LastFileName, "./firmware/%s", ptr->d_name);
             }
