@@ -24,7 +24,6 @@
 #include "msg_app.h"
 #include "cgi2gps.h"
 #include "sync.h"
-#include "macro.h"
 
 typedef int (*MSG_PROC)(const void *msg, SESSION *ctx);
 typedef struct
@@ -78,7 +77,9 @@ static int simcom_wild(const void *m, SESSION *session)
 static int simcom_login(const void *msg, SESSION *session)
 {
     const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg; //TO DO: Version, CCID
-    const char *imei = getImeiString(req->IMEI);
+    char imei[IMEI_LENGTH + 1];
+    memcpy(imei, req->IMEI, IMEI_LENGTH);
+    imei[IMEI_LENGTH] = 0;
 
     if (!session)
     {
@@ -365,7 +366,6 @@ static int simcom_sms(const void *msg , SESSION *session)
     LOG_INFO("SMS: %s", req->telphone);
 
     //TO DO: sms
-    session = session;
 
     return 0;
 }
@@ -595,7 +595,6 @@ static int simcom_SetTimer(const void *msg, SESSION *session)
         LOG_FATAL("internal error: obj null");
         return -1;
     }
-    const char *strIMEI = obj->IMEI;
 
     if(rsp->result == 0)
     {
@@ -725,8 +724,6 @@ static int simcom_GetPeriod(const void *msg, SESSION *session)
 static int simcom_itinerary(const void *msg, SESSION *session)
 {
     //TODO: to be complted
-    msg = msg;
-    session = session;
 
     return 0;
 }

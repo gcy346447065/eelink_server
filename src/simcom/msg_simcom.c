@@ -9,9 +9,6 @@
 #include <netinet/in.h>
 #include <string.h>
 #include "msg_simcom.h"
-#include "log.h"
-#include "protocol.h"
-#include "macro.h"
 
 static unsigned short seq = 0;
 
@@ -69,14 +66,6 @@ void free_simcom_msg(void* msg)
 char get_msg_cmd(void *msg)
 {
     return ((MSG_HEADER*)msg)->cmd;
-}
-
-const char *getImeiString(const char *imei)
-{
-    static char ret[IMEI_LENGTH + 1];
-    memcpy(ret, imei, IMEI_LENGTH);
-    ret[IMEI_LENGTH] = '\0';
-    return ret;
 }
 
 void *alloc_simcomWildMsg(const char* data, size_t length)

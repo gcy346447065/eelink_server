@@ -9,7 +9,7 @@
 #define _PROTOCOL_H_
 
 #define START_FLAG (0xAA55)
-#define MAX_IMEI_LENGTH 16
+#define MAX_IMEI_LENGTH 15
 #define MAX_CCID_LENGTH 20
 #define MAX_CELL_NUM 7
 #define TEL_NO_LENGTH 11

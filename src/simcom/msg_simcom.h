@@ -17,8 +17,6 @@ MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER* pMsg);
 
 void free_simcom_msg(void* msg);
 
-const char *getImeiString(const char *imei);
-
 char get_msg_cmd(void *msg);
 
 void *alloc_simcomWildMsg(const char* data, size_t length);
