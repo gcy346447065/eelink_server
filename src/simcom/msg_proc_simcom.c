@@ -47,12 +47,12 @@ static int simcom_sendMsg(void *msg, size_t len, SESSION *session)
         LOG_ERROR("device offline");
         return -1;
     }
-
+    LOG_INFO("gcy6");
     pfn(session->bev, msg, len);
 
     LOG_DEBUG("send msg(cmd=%d), length(%ld)", get_msg_cmd(msg), len);
     LOG_HEX(msg, len);
-
+    LOG_INFO("gcy7");
     free_simcom_msg(msg);
 
     return 0;
@@ -894,7 +894,6 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
         int size;
         getDataSegmentWithGottenSize(0, data, &size);
 
-        LOG_INFO("gcy1");
         MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcomUpgradeDataReq(0, data, size);
         if (!req)
         {
@@ -903,6 +902,7 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
         LOG_INFO("gcy5");
 
         simcom_sendMsg(req, sizeof(MSG_UPGRADE_DATA_REQ), session);
+        LOG_INFO("gcy10");
     }
     else
     {
