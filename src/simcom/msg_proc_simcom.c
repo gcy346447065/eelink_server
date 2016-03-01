@@ -939,7 +939,7 @@ static int simcom_UpgradeData(const void *msg, SESSION *session)
         {
             LOG_INFO("send upgrade end request");
 
-            int checksum = 0;
+            int checksum = 0;//TO DO
             
             MSG_UPGRADE_END_REQ *req4end = (MSG_UPGRADE_END_REQ *)alloc_simcomUpgradeEndReq(checksum, LastSize);
             if (!req4end)
@@ -960,8 +960,16 @@ static int simcom_UpgradeData(const void *msg, SESSION *session)
 
 static int simcom_UpgradeEnd(const void *msg, SESSION *session)
 {
-    //get CMD_UPGRADE_END rsp
-    //rsp->code for printf
+    const MSG_UPGRADE_END_RSP *rsp = (const MSG_UPGRADE_END_RSP *)msg;
+
+    if(rsp->code == 0)
+    {
+        LOG_INFO("get upgrade end rsponse, ok");
+    }
+    else
+    {
+        LOG_ERROR("get upgrade end rsponse, error code(%d)", rsp->code);
+    }
     
     return 0;
 }

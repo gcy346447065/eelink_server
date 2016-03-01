@@ -11,5 +11,6 @@
 int getLastVersionWithFileNameAndSizeStored(void);
 int getLastFileSize(void);
 int getDataSegmentWithGottenSize(int gottenSize, char *data, int *pSendSize);
+int getLastFileChecksum(void);
 
 #endif /* FIRMWARE_UPGRADE_H_ */

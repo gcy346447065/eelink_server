@@ -6,6 +6,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -91,6 +92,7 @@ int getDataSegmentWithGottenSize(int gottenSize, char *data, int *pSendSize)
         {
             //send FIRMWARE_SEGMENT_SIZE
             int fd = open(LastFileName, O_RDONLY);
+            lseek(fd, gottenSize, SEEK_SET);
             int sendSize = read(fd, data, FIRMWARE_SEGMENT_SIZE);
             close(fd);
 
@@ -111,6 +113,7 @@ int getDataSegmentWithGottenSize(int gottenSize, char *data, int *pSendSize)
         {
             //send delta
             int fd = open(LastFileName, O_RDONLY);
+            lseek(fd, gottenSize, SEEK_SET);
             int sendSize = read(fd, data, delta);
             close(fd);
 
@@ -141,4 +144,9 @@ int getDataSegmentWithGottenSize(int gottenSize, char *data, int *pSendSize)
     return 0;
 }
 
+int getLastFileChecksum(void)
+{
+    int checksum = 0;
 
+    return checksum;
+}
