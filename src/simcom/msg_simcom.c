@@ -174,3 +174,14 @@ void *alloc_simcomUpgradeStartReq(int version, int size)
     return req;
 }
 
+void *alloc_simcomUpgradeDataReq(int offset, int size)
+{
+    MSG_UPGRADE_START_REQ *req = (MSG_UPGRADE_START_REQ *)alloc_simcom_msg(CMD_UPGRADE_START, sizeof(MSG_UPGRADE_START_REQ));
+    if(req)
+    {
+
+    }
+
+    return req;
+}
+

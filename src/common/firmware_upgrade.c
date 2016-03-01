@@ -38,7 +38,8 @@ int getLastVersionAndSize(int *LastVersion, int *size)
 
         if(ptr->d_type == 8 && sscanf(ptr->d_name, "app_%d.%d.%d", &a, &b, &c) == 3)//d_type == 8 means file
         {
-            NowVersion = (a << 16 | b << 8 | c);
+            //NowVersion = (a << 16 | b << 8 | c);
+            NowVersion = a *100 + b *10 + c;
 
             if(NowVersion > TempVersion)
             {

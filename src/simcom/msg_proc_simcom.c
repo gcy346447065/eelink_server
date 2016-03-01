@@ -891,13 +891,13 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
     if(rsp->code == 0)
     {
         /*
-        MSG_UPGRADE_START_REQ *req = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, theSize);
+        MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, theSize);
         if (!req)
         {
             LOG_FATAL("insufficient memory");
         }
 
-        app_sendMsg2Device(req, sizeof(MSG_UPGRADE_START_REQ), obj);
+        simcom_sendMsg(req, sizeof(MSG_UPGRADE_DATA_REQ), session);
         */
     }
     else
