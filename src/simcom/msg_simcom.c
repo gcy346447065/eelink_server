@@ -180,7 +180,9 @@ void *alloc_simcomUpgradeDataReq(int offset, char *data, int length)
     if(req)
     {
         req->offset = offset;
+        LOG_INFO("gcy2");
         memcpy(req->data, data, length);
+        LOG_INFO("gcy3");
     }
 
     return req;

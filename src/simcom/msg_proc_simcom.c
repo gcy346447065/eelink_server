@@ -890,15 +890,17 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
     {
         LOG_INFO("response get upgrade start rsp ok");
 
-        char *data;
+        char data[1024];
         int size;
         getDataSegmentWithGottenSize(0, data, &size);
 
+        LOG_INFO("gcy1");
         MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcomUpgradeDataReq(0, data, size);
         if (!req)
         {
             LOG_FATAL("insufficient memory");
         }
+        LOG_INFO("gcy5");
 
         simcom_sendMsg(req, sizeof(MSG_UPGRADE_DATA_REQ), session);
     }
@@ -921,7 +923,7 @@ static int simcom_UpgradeData(const void *msg, SESSION *session)
 
         if(rsp->size < LastSize)
         {
-            char *data;
+            char data[1024];
             int size;
             getDataSegmentWithGottenSize(rsp->size, data, &size);
 
