@@ -129,13 +129,13 @@ static int simcom_login(const void *msg, SESSION *session)
         
         if(req->version != theLastVersion)
         {
-            MSG_UPGRADE_START_REQ *req2 = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, theSize);
-            if (!req2)
+            MSG_UPGRADE_START_REQ *req4upgrade = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, theSize);
+            if (!req4upgrade)
             {
                 LOG_FATAL("insufficient memory");
             }
 
-            simcom_sendMsg(req2, sizeof(MSG_UPGRADE_START_REQ), session);
+            simcom_sendMsg(req4upgrade, sizeof(MSG_UPGRADE_START_REQ), session);
         }
     }
     else
@@ -883,13 +883,11 @@ static int simcom_DefendNotify(const void *msg, SESSION *session)
 
 static int simcom_UpgradeStart(const void *msg, SESSION *session)
 {
-    //get CMD_UPGRADE_START rsp, if code==0
-    //send CMD_UPGRADE_DATA req
-
     const MSG_UPGRADE_START_RSP *rsp = (const MSG_UPGRADE_START_RSP *)msg;
 
     if(rsp->code == 0)
     {
+        LOG_INFO("response get upgrade start rsp ok");
         //get offset and data
         int offset = 0;
         char *data = "hehe";
@@ -901,7 +899,6 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
         }
 
         simcom_sendMsg(req, sizeof(MSG_UPGRADE_DATA_REQ), session);
-        
     }
     else
     {
@@ -915,6 +912,16 @@ static int simcom_UpgradeData(const void *msg, SESSION *session)
 {
     //get CMD_UPGRADE_DATA rsp, if file is over
     //send CMD_UPGRADE_END req
+    const MSG_UPGRADE_DATA_RSP *rsp = (const MSG_UPGRADE_DATA_RSP *)msg;
+
+    if(rsp->size > 0)
+    {
+        LOG_INFO("response get upgrade data size(%d) ok", rsp->size);
+    }
+    else
+    {
+        LOG_INFO("response get upgrade data size(%d) error", rsp->size);
+    }
     
     return 0;
 }

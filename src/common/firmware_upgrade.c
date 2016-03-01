@@ -17,6 +17,7 @@
 #include "log.h"
 
 static char LastFileName[256];
+static int LastFileSize = 0;
 
 int getLastVersionAndSize(int *LastVersion, int *size)
 {
@@ -64,19 +65,81 @@ int getLastVersionAndSize(int *LastVersion, int *size)
             return -1;
         }
 
-        *size = (int)buf.st_size;
+        LastFileSize = (int)buf.st_size;
+        *size = LastFileSize;
 
-        LOG_INFO("last file size is %d", *size);
+        LOG_INFO("last file size is %d", LastFileSize);
     }
 
     closedir(dir_handle);
     return 0;
 }
 
-int getDataSegmentFromLastFile()
+int getLastFileSize(void)
 {
+    if(LastFileSize > 0)
+    {
+        return LastFileSize;
+    }
+    else
+    {
+        return 0;
+    }
+}
 
-    FIRMWARE_SEGMENT_SIZE;
+int getDataSegmentWithGottenSize(int gottenSize, char *data, int *pSendSize)
+{
+    if(gottenSize < LastFileSize)
+    {
+        int delta = LastFileSize - gottenSize;
+        if(delta >= FIRMWARE_SEGMENT_SIZE)
+        {
+            //send FIRMWARE_SEGMENT_SIZE
+            int fd = open(LastFileName, O_RDONLY);
+            int sendSize = read(fd, data, FIRMWARE_SEGMENT_SIZE);
+
+            LOG_INFO("sendSize = %d", sendSize);
+
+            if(sendSize < 0 || (sendSize > 0 && sendSize > FIRMWARE_SEGMENT_SIZE))
+            {
+                LOG_ERROR("read file errno(%d)", errno);
+                return -1;
+            }
+            else if(sendSize == 0 || (sendSize > 0 && sendSize <= FIRMWARE_SEGMENT_SIZE))
+            {
+                LOG_INFO("read file ok");
+                *pSendSize = sendSize;
+            }
+        }
+        else
+        {
+            //send delta
+            int fd = open(LastFileName, O_RDONLY);
+            int sendSize = read(fd, data, delta);
+
+            LOG_INFO("sendSize = %d", sendSize);
+
+            if(sendSize == delta)
+            {
+                LOG_INFO("read file ok");
+                *pSendSize = sendSize;
+            }
+            else
+            {
+                LOG_ERROR("read file errno(%d)", errno);
+                return -1;
+            }
+        }
+    }
+    else if(gottenSize == LastFileSize)
+    {
+        LOG_INFO("gottenSize == LastFileSize, upgrade ok");
+    }
+    else
+    {
+        LOG_ERROR("gottenSize > LastFileSize");
+        return -1;
+    }
 
     return 0;
 }

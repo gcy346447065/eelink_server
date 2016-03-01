@@ -9,5 +9,6 @@
 #define FIRMWARE_UPGRADE_H_
 
 int getLastVersionAndSize(int *LastVersion, int *size);
+int getLastFileSize(void);
 
 #endif /* FIRMWARE_UPGRADE_H_ */
