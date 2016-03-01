@@ -129,13 +129,13 @@ static int simcom_login(const void *msg, SESSION *session)
         
         if(req->version != theLastVersion)
         {
-            MSG_UPGRADE_START_REQ *req = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, theSize);
-            if (!req)
+            MSG_UPGRADE_START_REQ *req2 = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, theSize);
+            if (!req2)
             {
                 LOG_FATAL("insufficient memory");
             }
 
-            simcom_sendMsg(req, sizeof(MSG_UPGRADE_START_REQ), session);
+            simcom_sendMsg(req2, sizeof(MSG_UPGRADE_START_REQ), session);
         }
     }
     else
