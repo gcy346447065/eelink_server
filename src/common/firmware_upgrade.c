@@ -14,6 +14,7 @@
 #include <string.h>
 #include <errno.h>
 #include "firmware_upgrade.h"
+#include "adler32.h"
 #include "macro.h"
 #include "log.h"
 
@@ -146,7 +147,13 @@ int getDataSegmentWithGottenSize(int gottenSize, char *data, int *pSendSize)
 
 int getLastFileChecksum(void)
 {
-    int checksum = 0;
+    char *data = malloc(LastFileSize);
+    int fd = open(LastFileName, O_RDONLY);
+    int readSize = read(fd, data, 0);
+
+    int checksum = adler32((unsigned char *)data, LastFileSize);
+
+    LOG_INFO("readSize is %d, LastFileSize is %d, checksum is %d", readSize, LastFileSize, checksum);
 
     return checksum;
 }

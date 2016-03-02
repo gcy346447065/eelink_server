@@ -923,19 +923,19 @@ static int simcom_UpgradeData(const void *msg, SESSION *session)
             int size;
             getDataSegmentWithGottenSize(rsp->size, data, &size);
 
-            MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcomUpgradeDataReq(0, data, size);
+            MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcomUpgradeDataReq(rsp->size, data, size);
             if (!req)
             {
                 LOG_FATAL("insufficient memory");
             }
 
-            simcom_sendMsg(req, sizeof(MSG_UPGRADE_DATA_REQ), session);
+            simcom_sendMsg(req, sizeof(MSG_UPGRADE_DATA_REQ) + size, session);
         }
         else
         {
             LOG_INFO("send upgrade end request");
 
-            int checksum = 0;//TO DO
+            int checksum = getLastFileChecksum();
             
             MSG_UPGRADE_END_REQ *req4end = (MSG_UPGRADE_END_REQ *)alloc_simcomUpgradeEndReq(checksum, LastSize);
             if (!req4end)

@@ -16,20 +16,20 @@
 
 const int MOD_ADLER = 65521;
 
-const uint32_t ADLER_DEFAULT_A = 1;
-const uint32_t ADLER_DEFAULT_B = 0;
+const unsigned int ADLER_DEFAULT_A = 1;
+const unsigned int ADLER_DEFAULT_B = 0;
 
-//const uint32_t ADLER_DEFAULT = ADLER_DEFAULT_B << 16 | ADLER_DEFAULT_A;
+//const unsigned int ADLER_DEFAULT = ADLER_DEFAULT_B << 16 | ADLER_DEFAULT_A;
 
 
 /*
  * data is the location of the data in physical memory
  * len is the length of the data in bytes
  */
-uint32_t adler32(unsigned char *data, size_t len)
+unsigned int adler32(unsigned char *data, size_t len)
 {
-    uint32_t a = ADLER_DEFAULT_A;
-    uint32_t b = ADLER_DEFAULT_B;
+    unsigned int a = ADLER_DEFAULT_A;
+    unsigned int b = ADLER_DEFAULT_B;
     size_t index;
 
     /* Process each byte of the data in order */
@@ -42,10 +42,10 @@ uint32_t adler32(unsigned char *data, size_t len)
     return (b << 16) | a;
 }
 
-uint32_t adler32_con(uint32_t adler32, unsigned char *data, size_t len)
+unsigned int adler32_con(unsigned int adler32, unsigned char *data, size_t len)
 {
-    uint32_t a = adler32 & 0xffff;
-    uint32_t b = (adler32 & 0xffff0000) >> 16;
+    unsigned int a = adler32 & 0xffff;
+    unsigned int b = (adler32 & 0xffff0000) >> 16;
     size_t index;
 
     /* Process each byte of the data in order */

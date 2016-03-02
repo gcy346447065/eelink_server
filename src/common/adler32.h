@@ -24,8 +24,8 @@
          Adler-32(D) = B × 65536 + A
  */
 
-uint32_t adler32(unsigned char *data, size_t len);
-uint32_t adler32_con(uint32_t adler32, unsigned char *data, size_t len);
+unsigned int adler32(unsigned char *data, size_t len);
+unsigned int adler32_con(unsigned int adler32, unsigned char *data, size_t len);
 
 
 #endif /* USER_INC_ADLER32_H_ */
