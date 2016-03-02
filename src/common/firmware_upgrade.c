@@ -149,7 +149,7 @@ int getLastFileChecksum(void)
 {
     unsigned char *data = malloc(LastFileSize);
     int fd = open(LastFileName, O_RDONLY);
-    int readSize = read(fd, data, 0);
+    int readSize = read(fd, data, LastFileSize);
 
     int checksum = adler32(data, LastFileSize);
 
