@@ -176,7 +176,7 @@ void *alloc_simcomUpgradeStartReq(int version, int size)
 
 void *alloc_simcomUpgradeDataReq(int offset, char *data, int length)
 {
-    MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcom_msg(CMD_UPGRADE_DATA, sizeof(MSG_UPGRADE_DATA_REQ) + length);
+    MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcom_msg(CMD_UPGRADE_DATA, sizeof(MSG_UPGRADE_DATA_REQ) + length - 2);
     if(req)
     {
         req->offset = offset;
