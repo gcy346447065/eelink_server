@@ -147,11 +147,11 @@ int getDataSegmentWithGottenSize(int gottenSize, char *data, int *pSendSize)
 
 int getLastFileChecksum(void)
 {
-    char *data = malloc(LastFileSize);
+    unsigned char *data = malloc(LastFileSize);
     int fd = open(LastFileName, O_RDONLY);
     int readSize = read(fd, data, 0);
 
-    int checksum = adler32((unsigned char *)data, LastFileSize);
+    int checksum = adler32(data, LastFileSize);
 
     LOG_INFO("readSize is %d, LastFileSize is %d, checksum is %d", readSize, LastFileSize, checksum);
 
