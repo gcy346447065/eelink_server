@@ -898,7 +898,7 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
             LOG_FATAL("insufficient memory");
         }
 
-        simcom_sendMsg(req, sizeof(MSG_UPGRADE_DATA_REQ) + size - 2, session);
+        simcom_sendMsg(req, sizeof(MSG_UPGRADE_DATA_REQ) + size, session);
     }
     else
     {
