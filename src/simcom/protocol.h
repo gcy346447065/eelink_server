@@ -143,7 +143,7 @@ typedef struct
  */
 enum ALARM_TYPE
 {
-    ALARM_FENCE_OUT,
+    ALARM_FENCE_OUT = 1,
     ALARM_FENCE_IN,
     ALARM_VIBRATE,
 };
