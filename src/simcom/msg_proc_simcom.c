@@ -119,6 +119,18 @@ static int simcom_login(const void *msg, SESSION *session)
         LOG_INFO("simcom IMEI(%s) already login", imei);
     }
 
+    MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
+    if(rsp)
+    {
+        simcom_sendMsg(rsp, sizeof(MSG_LOGIN_RSP), session);
+        LOG_INFO("send login rsp");
+    }
+    else
+    {
+        free(rsp);
+        LOG_ERROR("insufficient memory");
+    }
+
     //get version, compare the version number; if not, send upgrade start message
     int theLastVersion = 0, theSize = 0;
     if(theLastVersion = getLastVersionWithFileNameAndSizeStored())
@@ -140,18 +152,6 @@ static int simcom_login(const void *msg, SESSION *session)
     else
     {
         LOG_ERROR("can't get valid theLastVersion");
-    }
-
-    MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
-    if(rsp)
-    {
-        simcom_sendMsg(rsp, sizeof(MSG_LOGIN_RSP), session);
-    }
-    else
-    {
-        free(rsp);
-        LOG_ERROR("insufficient memory");
-        return -1;
     }
 
     int ret = 0;
