@@ -116,7 +116,7 @@ static int simcom_login(const void *msg, SESSION *session)
     }
     else
     {
-        LOG_DEBUG("simcom IMEI(%s) already login", imei);
+        LOG_INFO("simcom IMEI(%s) already login", imei);
     }
 
     //get version, compare the version number; if not, send upgrade start message
