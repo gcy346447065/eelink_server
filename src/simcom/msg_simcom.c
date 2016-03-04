@@ -97,7 +97,7 @@ void *alloc_simcomDefendReq(int token, char operator)
     MSG_DEFEND_REQ *req = (MSG_DEFEND_REQ *)alloc_simcom_msg(CMD_DEFEND, sizeof(MSG_DEFEND_REQ));
     if(req)
     {
-        req->token = token;
+        req->token = htonl(token);
         req->operator = operator;
     }
 
@@ -109,7 +109,7 @@ void *alloc_simcomSeekReq(int token, char operator)
     MSG_SEEK_REQ *req = (MSG_SEEK_REQ *)alloc_simcom_msg(CMD_SEEK, sizeof(MSG_SEEK_REQ));
     if(req)
     {
-        req->token = token;
+        req->token = htonl(token);
         req->operator = operator;
     }
 
@@ -121,7 +121,7 @@ void *alloc_simcomAutolockSetReq(int token, char onOff)
     MSG_AUTOLOCK_SET_REQ *req = (MSG_AUTOLOCK_SET_REQ *)alloc_simcom_msg(CMD_SET_AUTOSWITCH, sizeof(MSG_AUTOLOCK_SET_REQ));
     if(req)
     {
-        req->token = token;
+        req->token = htonl(token);
         req->onOff = onOff;
     }
 
@@ -133,7 +133,7 @@ void *alloc_simcomAutoPeriodSetReq(int token, char period)
     MSG_AUTOPERIOD_SET_REQ *req = (MSG_AUTOPERIOD_SET_REQ *)alloc_simcom_msg(CMD_SET_PERIOD, sizeof(MSG_AUTOPERIOD_SET_REQ));
     if(req)
     {
-        req->token = token;
+        req->token = htonl(token);
         req->period = period;
     }
 
@@ -145,7 +145,7 @@ void *alloc_simcomAutoPeriodGetReq(int token)
     MSG_AUTOPERIOD_GET_REQ *req = (MSG_AUTOPERIOD_GET_REQ *)alloc_simcom_msg(CMD_GET_PERIOD, sizeof(MSG_AUTOPERIOD_GET_REQ));
     if(req)
     {
-        req->token = token;
+        req->token = htonl(token);
     }
 
     return req;
@@ -156,7 +156,7 @@ void *alloc_simcomAutolockGetReq(int token)
     MSG_AUTOLOCK_GET_REQ *req = (MSG_AUTOLOCK_GET_REQ *)alloc_simcom_msg(CMD_GET_AUTOSWITCH, sizeof(MSG_AUTOLOCK_GET_REQ));
     if(req)
     {
-        req->token = token;
+        req->token = htonl(token);
     }
 
     return req;
@@ -167,8 +167,8 @@ void *alloc_simcomUpgradeStartReq(int version, int size)
     MSG_UPGRADE_START_REQ *req = (MSG_UPGRADE_START_REQ *)alloc_simcom_msg(CMD_UPGRADE_START, sizeof(MSG_UPGRADE_START_REQ));
     if(req)
     {
-        req->version = version;
-        req->size = size;
+        req->version = htonl(version);
+        req->size = htonl(size);
     }
 
     return req;
@@ -179,7 +179,7 @@ void *alloc_simcomUpgradeDataReq(int offset, char *data, int length)
     MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcom_msg(CMD_UPGRADE_DATA, sizeof(MSG_UPGRADE_DATA_REQ) + length);
     if(req)
     {
-        req->offset = offset;
+        req->offset = htonl(offset);
         memcpy(req->data, data, length);
     }
 
@@ -191,8 +191,8 @@ void *alloc_simcomUpgradeEndReq(int checksum, int size)
     MSG_UPGRADE_END_REQ *req = (MSG_UPGRADE_END_REQ *)alloc_simcom_msg(CMD_UPGRADE_END, sizeof(MSG_UPGRADE_END_REQ));
     if(req)
     {
-        req->checksum = checksum;
-        req->size = size;
+        req->checksum = htonl(checksum);
+        req->size = htonl(size);
     }
 
     return req;
