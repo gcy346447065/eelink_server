@@ -119,6 +119,7 @@ static int simcom_login(const void *msg, SESSION *session)
         LOG_INFO("simcom IMEI(%s) already login", imei);
     }
 
+    //login rsp
     MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
     if(rsp)
     {
@@ -129,6 +130,7 @@ static int simcom_login(const void *msg, SESSION *session)
     {
         free(rsp);
         LOG_ERROR("insufficient memory");
+        return -1;
     }
 
     //get version, compare the version number; if not, send upgrade start message
