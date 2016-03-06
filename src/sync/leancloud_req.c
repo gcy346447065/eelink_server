@@ -107,7 +107,7 @@ static int leancloud_get(CURL *curl, const char* class)
     return 0;
 }
 
-int leancloud_saveGPS(const char* imei, double lat, double lng)
+int leancloud_saveGPS(const char* imei, double lat, double lng, double speed, double course)
 {
 	ENVIRONMENT* env = env_get();
 	CURL* curl = env->curl_leancloud;
@@ -117,8 +117,8 @@ int leancloud_saveGPS(const char* imei, double lat, double lng)
 	cJSON_AddStringToObject(root, "IMEI", imei);
 	cJSON_AddNumberToObject(root, "lat",  lat);
 	cJSON_AddNumberToObject(root, "lon",  lng);
-    //cJSON_AddNumberToObject(root, "speed",	speed);
-    //cJSON_AddNumberToObject(root, "course",	course);
+    cJSON_AddNumberToObject(root, "speed",	speed);
+    cJSON_AddNumberToObject(root, "course",	course);
     //cJSON_AddNumberToObject(root, "time", timestamp);
 	char* data = cJSON_PrintUnformatted(root);
 

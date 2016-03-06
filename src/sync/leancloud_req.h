@@ -10,7 +10,7 @@
 
 int leancloud_saveDid(const char* imei);
 
-int leancloud_saveGPS(const char* imei, double lat, double lng);
+int leancloud_saveGPS(const char* imei, double lat, double lng, double, double);
 
 int leancloud_getOBJ(void);
 

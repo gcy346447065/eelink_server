@@ -27,14 +27,21 @@ static void msg_saveGPS(cJSON* json)
     cJSON* imei = cJSON_GetObjectItem(json, TAG_IMEI);
     cJSON* lat = cJSON_GetObjectItem(json, TAG_LAT);
     cJSON* lng = cJSON_GetObjectItem(json, TAG_LNG);
+//    cJSON* altitude = cJSON_GetObjectItem(json, TAG_ALTITUDE);
+    cJSON* speed = cJSON_GetObjectItem(json, TAG_SPEED);
+    cJSON* course = cJSON_GetObjectItem(json, TAG_COURSE);
 
-    if (!imei || !lat || !lng)
+    if (!imei || !lat || !lng || !speed || !course)
     {
         LOG_ERROR("save GPS failed");
         return;
     }
 
-    leancloud_saveGPS(imei->valuestring, lat->valuedouble, lng->valuedouble);
+    leancloud_saveGPS(imei->valuestring,
+                      lat->valuedouble,
+                      lng->valuedouble,
+                      speed->valuedouble,
+                      course->valuedouble);
 
     return;
 }
@@ -63,6 +70,8 @@ int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
         default:
             break;
     }
+
+    cJSON_Delete(root);
 
     return 0;
 }

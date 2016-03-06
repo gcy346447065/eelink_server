@@ -11,6 +11,7 @@
 #include <malloc.h>
 #include <time.h>
 #include <math.h>
+#include <object.h>
 
 #include "msg_proc_simcom.h"
 #include "protocol.h"
@@ -221,7 +222,7 @@ static int simcom_gps(const void *msg, SESSION *session)
     app_sendGpsMsg2App(session);
 
     db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->altitude, obj->speed, obj->course);
-    sync_gps(obj->IMEI, obj->lat, obj->lon, obj->altitude, obj->speed, obj->course);
+    sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->altitude, obj->speed, obj->course);
 
     return 0;
 }
