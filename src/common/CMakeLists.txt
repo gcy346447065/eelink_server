@@ -2,9 +2,6 @@ SET(SOURCE_FILE
     adler32.c
     adler32.h
 
-    firmware_upgrade.c
-    firmware_upgrade.h
-
     log.c
     log.h
 
