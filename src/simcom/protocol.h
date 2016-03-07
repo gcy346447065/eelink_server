@@ -11,6 +11,7 @@
 #define START_FLAG (0xAA55)
 #define MAX_IMEI_LENGTH 15
 #define MAX_CCID_LENGTH 20
+#define MAX_IMSI_LENGTH 16
 #define MAX_CELL_NUM 7
 #define TEL_NO_LENGTH 11
 
@@ -38,7 +39,11 @@ enum
     CMD_DEFEND_ON       = 19,
     CMD_DEFEND_OFF      = 20,
     CMD_DEFEND_GET      = 21,
-    CMD_DEFEND_NOTIFY   = 22
+    CMD_DEFEND_NOTIFY   = 22,
+    CMD_UPGRADE_START   = 23,
+    CMD_UPGRADE_DATA    = 24,
+    CMD_UPGRADE_END     = 25,
+    CMD_SIM_INFO        = 26
 };
 
 enum
@@ -66,10 +71,17 @@ typedef struct
 typedef struct
 {
     MSG_HEADER header;
-    char Version;
+    int version;
+    char deciveType;
     char IMEI[MAX_IMEI_LENGTH];
-    char CCID[MAX_CCID_LENGTH];
 }__attribute__((__packed__)) MSG_LOGIN_REQ;
+
+enum DeviceType{
+    XiaoAnBao1 = 1,
+    XiaoAnBao2 = 2,
+    XiaoAnBao3 = 3,
+    XiaoAnBao4 = 4
+};
 
 typedef MSG_HEADER MSG_LOGIN_RSP;
 
@@ -79,7 +91,7 @@ typedef MSG_HEADER MSG_LOGIN_RSP;
 typedef struct
 {
     MSG_HEADER header;
-    short statue;   //TODO: to define the status bits
+    short status;   //TODO: to define the status bits
 }__attribute__((__packed__)) MSG_PING_REQ;
 
 typedef MSG_HEADER MSG_PING_RSP;
@@ -131,7 +143,7 @@ typedef struct
  */
 enum ALARM_TYPE
 {
-    ALARM_FENCE_OUT,
+    ALARM_FENCE_OUT = 1,
     ALARM_FENCE_IN,
     ALARM_VIBRATE,
 };
@@ -313,15 +325,15 @@ typedef struct
 }__attribute__((__packed__)) MSG_AUTOPERIOD_GET_RSP;
 
 /*
- * mileage upload message structure
+ * itinerary message structure
  */
 typedef struct
 {
     MSG_HEADER header;
     int start;
     int end;
-    int mileage;    //unit: meters
-}__attribute__((__packed__)) MSG_MILEAGE_REQ;
+    int miles;    //unit: meters
+}__attribute__((__packed__)) MSG_ITINERARY_REQ;
 
 /*
  * battery message structure
@@ -359,6 +371,58 @@ typedef struct
     MSG_HEADER header;
     char status;             //0: OFF,1: ON
 }__attribute__((__packed__)) MSG_DEFEND_NOTIFY_RSP;
+
+/*
+ * upgrade message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    int version;
+    int size;               //unit: byte
+}__attribute__((__packed__)) MSG_UPGRADE_START_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char code;              //0:OK, 1:ERROR
+}__attribute__((__packed__)) MSG_UPGRADE_START_RSP;
+
+typedef struct
+{
+    MSG_HEADER header;
+    int offset;
+    char data[];
+}__attribute__((__packed__)) MSG_UPGRADE_DATA_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    int size;              //unit: byte
+}__attribute__((__packed__)) MSG_UPGRADE_DATA_RSP;
+
+typedef struct
+{
+    MSG_HEADER header;
+    int checksum;
+    int size;               //unit: byte
+}__attribute__((__packed__)) MSG_UPGRADE_END_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char code;              //0:OK, 1:ERROR
+}__attribute__((__packed__)) MSG_UPGRADE_END_RSP;
+
+/*
+ * sim info message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    char CCID[MAX_CCID_LENGTH];
+    char IMSI[MAX_IMSI_LENGTH]; //MCC+MNC+MSIN
+}__attribute__((__packed__)) MSG_SIM_INFO_REQ;
 
 #pragma pack(pop)
 

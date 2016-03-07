@@ -26,6 +26,8 @@ void *alloc_simcomAutolockSetReq(int token, char onOff);
 void *alloc_simcomAutoPeriodSetReq(int token, char period);
 void *alloc_simcomAutoPeriodGetReq(int token);
 void *alloc_simcomAutolockGetReq(int token);
-
+void *alloc_simcomUpgradeStartReq(int version, int size);
+void *alloc_simcomUpgradeDataReq(int offset, char *data, int length);
+void *alloc_simcomUpgradeEndReq(int checksum, int size);
 
 #endif /* SRC_MSG_SIMCOM_H_ */

@@ -25,6 +25,7 @@
 #include "msg_app.h"
 #include "cgi2gps.h"
 #include "sync.h"
+#include "firmware_upgrade.h"
 
 typedef int (*MSG_PROC)(const void *msg, SESSION *ctx);
 typedef struct
@@ -46,12 +47,10 @@ static int simcom_sendMsg(void *msg, size_t len, SESSION *session)
         LOG_ERROR("device offline");
         return -1;
     }
-
     pfn(session->bev, msg, len);
 
     LOG_DEBUG("send msg(cmd=%d), length(%ld)", get_msg_cmd(msg), len);
     LOG_HEX(msg, len);
-
     free_simcom_msg(msg);
 
     return 0;
@@ -82,6 +81,7 @@ static int simcom_login(const void *msg, SESSION *session)
     memcpy(imei, req->IMEI, IMEI_LENGTH);
     imei[IMEI_LENGTH] = 0;
 
+
     if (!session)
     {
         LOG_FATAL("session ptr null");
@@ -98,7 +98,8 @@ static int simcom_login(const void *msg, SESSION *session)
         {
             LOG_INFO("the first time of simcom IMEI(%s)'s login", imei);
 
-            //TO DO: start a 10 min timer, if there is no data uploaded in 10 min, set the device as offline one
+            //if there is no data uploaded in 10 min, the device will become offline
+            //for the 600s timeout of connection in server_simcom.c
 
             obj = obj_new();
 
@@ -118,13 +119,15 @@ static int simcom_login(const void *msg, SESSION *session)
     }
     else
     {
-        LOG_DEBUG("simcom IMEI(%s) already login", imei);
+        LOG_INFO("simcom IMEI(%s) already login", imei);
     }
 
+    //login rsp
     MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
-    if (rsp)
+    if(rsp)
     {
         simcom_sendMsg(rsp, sizeof(MSG_LOGIN_RSP), session);
+        LOG_INFO("send login rsp");
     }
     else
     {
@@ -141,11 +144,38 @@ static int simcom_login(const void *msg, SESSION *session)
         db_createGPS(obj->IMEI);
     }
 
+    //get version, compare the version number; if not, send upgrade start message
+    int theLastVersion = 0, theSize = 0;
+    if(theLastVersion = getLastVersionWithFileNameAndSizeStored())
+    {
+        theSize = getLastFileSize();
+        LOG_INFO("req->version is %d, theLastVersion is %d, theSize is %d", ntohl(req->version), theLastVersion, theSize);
+        
+        if(ntohl(req->version) != theLastVersion)
+        {
+            MSG_UPGRADE_START_REQ *req4upgrade = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, theSize);
+            if (!req4upgrade)
+            {
+                LOG_FATAL("insufficient memory");
+            }
+
+            simcom_sendMsg(req4upgrade, sizeof(MSG_UPGRADE_START_REQ), session);
+        }
+    }
+    else
+    {
+        LOG_ERROR("can't get valid theLastVersion");
+    }
+
     return 0;
 }
 
 static int simcom_ping(const void *msg, SESSION *session)
 {
+    //TO DO: unused
+    //const MSG_PING_REQ *req = (const MSG_PING_REQ *)msg;
+    //ntohs(req->status);
+
     if (!session)
     {
         LOG_FATAL("session ptr null");
@@ -260,7 +290,7 @@ static int simcom_cell(const void *msg, SESSION *session)
     obj->timestamp = get_time();
     obj->isGPSlocated = 0x00;
 
-    int num = cgi->cellNo;
+    int num = (int)cgi->cellNo;
     if(num > CELL_NUM)
     {
         LOG_ERROR("Number:%d of cell is over", num);
@@ -358,7 +388,7 @@ static int simcom_sms(const void *msg , SESSION *session)
         LOG_ERROR("msg handle empty");
         return -1;
     }
-    if(req->header.length < sizeof(MSG_SMS_REQ) - MSG_HEADER_LEN)
+    if(ntohs(req->header.length) < sizeof(MSG_SMS_REQ) - MSG_HEADER_LEN)
     {
         LOG_ERROR("sms message length not enough");
         return -1;
@@ -379,13 +409,13 @@ static int simcom_433(const void *msg, SESSION *session)
         LOG_ERROR("msg handle empty");
         return -1;
     }
-    if(req->header.length < sizeof(MSG_433_REQ) - MSG_HEADER_LEN)
+    if(ntohs(req->header.length) < sizeof(MSG_433_REQ) - MSG_HEADER_LEN)
     {
         LOG_ERROR("433 message length not enough");
         return -1;
     }
 
-    LOG_INFO("433: %d", req->intensity);
+    LOG_INFO("433: %d", ntohl(req->intensity));
 
     OBJECT *obj = session->obj;
     if(!obj)
@@ -400,9 +430,8 @@ static int simcom_433(const void *msg, SESSION *session)
 
 static int simcom_defend(const void *msg, SESSION *session)
 {
-    //send ack to APP
     const MSG_DEFEND_RSP *rsp = (const MSG_DEFEND_RSP *)msg;
-    int defend = rsp->token;
+    int defend = ntohl(rsp->token);
 
     OBJECT* obj = session->obj;
     if (!obj)
@@ -449,7 +478,7 @@ static int simcom_defend(const void *msg, SESSION *session)
 static int simcom_seek(const void *msg, SESSION *session)
 {
     const MSG_SEEK_RSP *rsp = (const MSG_SEEK_RSP *)msg;
-    int seek = rsp->token;
+    int seek = ntohl(rsp->token);
 
     OBJECT* obj = session->obj;
     if (!obj)
@@ -490,7 +519,7 @@ static int simcom_locate(const void *msg, SESSION *session)
         LOG_ERROR("req handle empty");
         return -1;
     }
-    if(req->length < sizeof(CGI) && req->length < sizeof(GPS))
+    if(ntohs(req->length) < sizeof(CGI) && ntohs(req->length) < sizeof(GPS))
     {
         LOG_ERROR("location message length not enough");
         return -1;
@@ -597,18 +626,19 @@ static int simcom_SetTimer(const void *msg, SESSION *session)
         return -1;
     }
 
-    if(rsp->result == 0)
+    //TO DO: add set timer in APP first
+    if(ntohl(rsp->result) == 0)
     {
-        //TO DO: APP_CMD_SET_TIMER, CODE_SUCCESS
+        //APP_CMD_SET_TIMER, CODE_SUCCESS
         //app_sendCmdRsp2App(APP_CMD_SEEK_ON, CODE_SUCCESS, strIMEI);
     }
-    else if(rsp->result >= 10)
+    else if(ntohl(rsp->result) >= 10)
     {
-        //TO DO: APP_CMD_GET_TIMER, CODE_SUCCESS
+        //APP_CMD_GET_TIMER, CODE_SUCCESS
     }
     else
     {
-        //TO DO: APP_CMD_SET_TIMER, CODE_INTERNAL_ERR?
+        //APP_CMD_SET_TIMER, CODE_INTERNAL_ERR?
         return -1;
     }
 
@@ -618,7 +648,7 @@ static int simcom_SetTimer(const void *msg, SESSION *session)
 static int simcom_SetAutoswitch(const void *msg, SESSION *session)
 {
     const MSG_AUTOLOCK_SET_RSP *rsp = (const MSG_AUTOLOCK_SET_RSP *)msg;
-    int autolock = rsp->token;
+    int autolock = ntohl(rsp->token);
 
     OBJECT* obj = session->obj;
     if (!obj)
@@ -663,7 +693,7 @@ static int simcom_GetAutoswitch(const void *msg, SESSION *session)
     }
     const char *strIMEI = obj->IMEI;
 
-    if(rsp->token == APP_CMD_AUTOLOCK_GET)
+    if(ntohl(rsp->token) == APP_CMD_AUTOLOCK_GET)
     {
         if(rsp->result == 0 || rsp->result == 1)
         {
@@ -686,7 +716,7 @@ static int simcom_SetPeriod(const void *msg, SESSION *session)
     }
     const char *strIMEI = obj->IMEI;
 
-    if(rsp->token == APP_CMD_AUTOPERIOD_SET)
+    if(ntohl(rsp->token) == APP_CMD_AUTOPERIOD_SET)
     {
         if(rsp->result == 0)
         {
@@ -706,7 +736,7 @@ static int simcom_GetPeriod(const void *msg, SESSION *session)
     const MSG_AUTOPERIOD_GET_RSP *rsp = (const MSG_AUTOPERIOD_GET_RSP *)msg;
     int period = rsp->result;
 
-    if(rsp->token == APP_CMD_AUTOPERIOD_GET)
+    if(ntohl(rsp->token) == APP_CMD_AUTOPERIOD_GET)
     {
         if(period > 0)
         {
@@ -725,6 +755,30 @@ static int simcom_GetPeriod(const void *msg, SESSION *session)
 static int simcom_itinerary(const void *msg, SESSION *session)
 {
     //TODO: to be complted
+
+    const MSG_ITINERARY_REQ *req = (const MSG_ITINERARY_REQ *)msg;
+    if(!req)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(req->header.length) < sizeof(MSG_ITINERARY_REQ) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("itinerary message length not enough");
+        return -1;
+    }
+
+    LOG_INFO("itinerary: strat(%d), end(%d), miles(%d)", ntohl(req->start), ntohl(req->end), ntohl(req->miles));
+
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+        LOG_WARN("MC must first login");
+        return -1;
+    }
+
+    //TO DO:
+    //app_sendItineraryMsg2App(get_time(), ntohl(req->intensity), session);
 
     return 0;
 }
@@ -831,6 +885,104 @@ static int simcom_DefendNotify(const void *msg, SESSION *session)
     return 0;
 }
 
+static int simcom_UpgradeStart(const void *msg, SESSION *session)
+{
+    const MSG_UPGRADE_START_RSP *rsp = (const MSG_UPGRADE_START_RSP *)msg;
+
+    if(rsp->code == 0)
+    {
+        LOG_INFO("response get upgrade start rsp ok");
+
+        char data[1024];
+        int size;
+        getDataSegmentWithGottenSize(0, data, &size);
+
+        MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcomUpgradeDataReq(0, data, size);
+        if (!req)
+        {
+            LOG_FATAL("insufficient memory");
+        }
+
+        simcom_sendMsg(req, sizeof(MSG_UPGRADE_DATA_REQ) + size, session);
+    }
+    else
+    {
+        LOG_INFO("response get upgrade start code(%d) error", rsp->code);
+    }
+
+    return 0;
+}
+
+static int simcom_UpgradeData(const void *msg, SESSION *session)
+{
+    const MSG_UPGRADE_DATA_RSP *rsp = (const MSG_UPGRADE_DATA_RSP *)msg;
+
+    if(ntohl(rsp->size) > 0)
+    {
+        int LastSize = getLastFileSize();
+        LOG_INFO("rsp->size is %d, LastSize is %d", ntohl(rsp->size), LastSize);
+
+        if(ntohl(rsp->size) < LastSize)
+        {
+            char data[1024];
+            int size;
+            getDataSegmentWithGottenSize(ntohl(rsp->size), data, &size);
+
+            MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcomUpgradeDataReq(ntohl(rsp->size), data, size);
+            if (!req)
+            {
+                LOG_FATAL("insufficient memory");
+            }
+
+            simcom_sendMsg(req, sizeof(MSG_UPGRADE_DATA_REQ) + size, session);
+        }
+        else
+        {
+            LOG_INFO("send upgrade end request");
+
+            int checksum = getLastFileChecksum();
+            
+            MSG_UPGRADE_END_REQ *req4end = (MSG_UPGRADE_END_REQ *)alloc_simcomUpgradeEndReq(checksum, LastSize);
+            if (!req4end)
+            {
+                LOG_FATAL("insufficient memory");
+            }
+
+            simcom_sendMsg(req4end, sizeof(MSG_UPGRADE_END_REQ), session);
+        }
+    }
+    else
+    {
+        LOG_INFO("response get upgrade data size(%d) error", ntohl(rsp->size));
+    }
+    
+    return 0;
+}
+
+static int simcom_UpgradeEnd(const void *msg, SESSION *session)
+{
+    const MSG_UPGRADE_END_RSP *rsp = (const MSG_UPGRADE_END_RSP *)msg;
+
+    if(rsp->code == 0)
+    {
+        LOG_INFO("get upgrade end rsponse, ok");
+    }
+    else
+    {
+        LOG_ERROR("get upgrade end rsponse, error code(%d)", rsp->code);
+    }
+    
+    return 0;
+}
+
+static int simcom_SimInfo(const void *msg, SESSION *session)
+{
+    //get CMD_SIM_INFO req
+    //remember CCID and IMSI
+    
+    return 0;
+}
+
 static MSG_PROC_MAP msgProcs[] =
 {
     {CMD_WILD,              simcom_wild},
@@ -854,7 +1006,11 @@ static MSG_PROC_MAP msgProcs[] =
     {CMD_DEFEND_ON,         simcom_DefendOn},
     {CMD_DEFEND_OFF,        simcom_DefendOff},
     {CMD_DEFEND_GET,        simcom_DefendGet},
-    {CMD_DEFEND_NOTIFY,     simcom_DefendNotify}
+    {CMD_DEFEND_NOTIFY,     simcom_DefendNotify},
+    {CMD_UPGRADE_START,     simcom_UpgradeStart},
+    {CMD_UPGRADE_DATA,      simcom_UpgradeData},
+    {CMD_UPGRADE_END,       simcom_UpgradeEnd},
+    {CMD_SIM_INFO,          simcom_SimInfo}
 };
 
 int handle_one_msg(const void *m, SESSION *ctx)

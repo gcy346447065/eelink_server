@@ -1,5 +1,7 @@
 SET(SOURCE_FILE
     main.c
+    firmware_upgrade.c
+    firmware_upgrade.h
     server_simcom.c
     server_simcom.h
     msg_proc_app.c
