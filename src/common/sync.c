@@ -199,8 +199,8 @@ void sync_gps(const char* imei, int timestamp, float lat, float lng, char speed,
     }
 
     sendMsg2Sync(data, strlen(data));
-    LOG_INFO("send gps(imei(%s), lat(%f), lng(%f), speed(%u), course(%d)) to sync",
-            imei, lat, lng, speed, course);
+    LOG_INFO("send gps(timestamp(%d), imei(%s), lat(%f), lng(%f), speed(%u), course(%d)) to sync",
+            timestamp, imei, lat, lng, speed, course);
 
     free(data);
     cJSON_Delete(root);

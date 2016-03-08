@@ -30,7 +30,7 @@ int getLastVersionWithFileNameAndSizeStored(void)
     dir_handle = opendir("./firmware/");
     if(!dir_handle)
     {
-        return -1;
+        return 0;
     }
 
     while(ptr = readdir(dir_handle))
