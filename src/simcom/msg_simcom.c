@@ -20,7 +20,7 @@ MSG_HEADER* alloc_simcom_msg(char cmd, size_t length)
     {
         msg->signature = htons(START_FLAG);
         msg->cmd = cmd;
-        msg->seq = htons(seq++);
+        msg->seq = seq++;
         msg->length = htons(length - MSG_HEADER_LEN);
     }
 
@@ -53,7 +53,7 @@ MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER *pMsg)
     msg->signature = htons(START_FLAG);
     msg->cmd = pMsg->cmd;
     msg->length = htons(msgLen - MSG_HEADER_LEN);
-    msg->seq = htons(pMsg->seq);
+    msg->seq = pMsg->seq;
 
     return msg;
 }
