@@ -10,13 +10,13 @@
 #include <string.h>
 #include "msg_simcom.h"
 
-static unsigned short seq = 0;
+static char seq = 0;
 
 MSG_HEADER* alloc_simcom_msg(char cmd, size_t length)
 {
     MSG_HEADER* msg = malloc(length);
 
-    if (msg)
+    if(msg)
     {
         msg->signature = htons(START_FLAG);
         msg->cmd = cmd;
@@ -52,8 +52,8 @@ MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER *pMsg)
 
     msg->signature = htons(START_FLAG);
     msg->cmd = pMsg->cmd;
-    msg->length = htons(msgLen - MSG_HEADER_LEN);
     msg->seq = pMsg->seq;
+    msg->length = htons(msgLen - MSG_HEADER_LEN);
 
     return msg;
 }

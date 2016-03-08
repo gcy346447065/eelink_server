@@ -24,7 +24,7 @@ int db_destruct(void);
 int db_isTableCreated(const char* imeiName, int *num);
 int db_createGPS(const char* tableName);
 int db_createCGI(const char* tableName);
-int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, float speed, float course);
+int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char speed, short course);
 int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cellNo);
 
 int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *));

@@ -81,7 +81,6 @@ static int simcom_login(const void *msg, SESSION *session)
     memcpy(imei, req->IMEI, IMEI_LENGTH);
     imei[IMEI_LENGTH] = 0;
 
-
     if (!session)
     {
         LOG_FATAL("session ptr null");
@@ -191,18 +190,6 @@ static int simcom_ping(const void *msg, SESSION *session)
 
     LOG_INFO("imei(%s) ping", obj->IMEI);
 
-    MSG_PING_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
-    if (rsp)
-    {
-        simcom_sendMsg(rsp, sizeof(MSG_PING_RSP), session);
-    }
-    else
-    {
-        free(rsp);
-        LOG_ERROR("insufficient memory");
-        return -1;
-    }
-
     return 0;
 }
 
@@ -220,8 +207,8 @@ static int simcom_gps(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("GPS: latitude(%f), longitude(%f), speed(%d), course(%d)",
-        req->gps.latitude, req->gps.longitude, req->gps.speed, req->gps.course);
+    LOG_INFO("GPS: timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
+        ntohl(req->gps.timestamp), req->gps.latitude, req->gps.longitude, req->gps.speed, ntohs(req->gps.course));
 
     OBJECT * obj = (OBJECT *)session->obj;
     if (!obj)
@@ -229,8 +216,6 @@ static int simcom_gps(const void *msg, SESSION *session)
         LOG_WARN("MC must first login");
         return -1;
     }
-
-//    obj->timestamp = get_time();
 
     if (fabs(obj->lat - req->gps.latitude) < FLT_EPSILON
         && fabs(obj->lon - req->gps.longitude) < FLT_EPSILON)
@@ -245,10 +230,9 @@ static int simcom_gps(const void *msg, SESSION *session)
         obj->lon = req->gps.longitude;
     }
 
-//    obj->altitude = req->gps.altitude;
-    obj->timestamp = req->gps.timestamp;
+    obj->timestamp = ntohl(req->gps.timestamp);
     obj->speed = req->gps.speed;
-    obj->course = req->gps.course;
+    obj->course = ntohs(req->gps.course);
 
     app_sendGpsMsg2App(session);
 
@@ -538,8 +522,8 @@ static int simcom_locate(const void *msg, SESSION *session)
             return -1;
         }
 
-        LOG_INFO("LOCATION GPS: latitude(%f), longitude(%f), speed(%d), course(%d)",
-            gps->latitude, gps->longitude, gps->speed, gps->course);
+        LOG_INFO("LOCATION GPS: timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
+            ntohl(gps->timestamp), gps->latitude, gps->longitude, gps->speed, ntohs(gps->course));
 
         OBJECT * obj = (OBJECT *) session->obj;
         if (!obj)
@@ -548,12 +532,12 @@ static int simcom_locate(const void *msg, SESSION *session)
             return -1;
         }
 
-        obj->timestamp = gps->timestamp;
+        obj->timestamp = ntohl(gps->timestamp);
         obj->isGPSlocated = 0x01;
         obj->lat = gps->latitude;
         obj->lon = gps->longitude;
         obj->speed = gps->speed;
-        obj->course = gps->course;
+        obj->course = ntohs(gps->course);
 
         app_sendGpsMsg2App(session);
     }

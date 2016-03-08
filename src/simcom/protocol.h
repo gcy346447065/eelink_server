@@ -94,8 +94,6 @@ typedef struct
     short status;   //TODO: to define the status bits
 }__attribute__((__packed__)) MSG_PING_REQ;
 
-typedef MSG_HEADER MSG_PING_RSP;
-
 /*
  * GPS message structure
  */

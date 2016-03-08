@@ -180,7 +180,7 @@ static int _db_createCGI(const char* tableName)
     return 0;
 }
 
-static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, int course)
+static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, short course)
 {
     //timestamp INT, lat DOUBLE, lon DOUBLE, speed DOUBLE, course DOUBLE
     char query[MAX_QUERY];
@@ -379,7 +379,7 @@ int db_createCGI(const char* tableName)
 #endif
 }
 
-int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, float speed, float course)
+int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char speed, short course)
 {
 #ifdef WITH_DB
     return _db_saveGPS(imeiName, timestamp, lat, lon, speed, course);
