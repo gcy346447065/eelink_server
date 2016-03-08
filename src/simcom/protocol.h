@@ -59,7 +59,7 @@ typedef struct
 {
     short signature;
     char cmd;
-    short seq;
+    char seq;
     short length;
 }__attribute__((__packed__)) MSG_HEADER;
 
