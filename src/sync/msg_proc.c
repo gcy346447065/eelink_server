@@ -27,7 +27,6 @@ static void msg_saveGPS(cJSON* json)
     cJSON* imei = cJSON_GetObjectItem(json, TAG_IMEI);
     cJSON* lat = cJSON_GetObjectItem(json, TAG_LAT);
     cJSON* lng = cJSON_GetObjectItem(json, TAG_LNG);
-//    cJSON* altitude = cJSON_GetObjectItem(json, TAG_ALTITUDE);
     cJSON* speed = cJSON_GetObjectItem(json, TAG_SPEED);
     cJSON* course = cJSON_GetObjectItem(json, TAG_COURSE);
 

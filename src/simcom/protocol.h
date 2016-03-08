@@ -59,7 +59,7 @@ typedef struct
 {
     short signature;
     char cmd;
-    short seq;
+    char seq;
     short length;
 }__attribute__((__packed__)) MSG_HEADER;
 
@@ -94,18 +94,16 @@ typedef struct
     short status;   //TODO: to define the status bits
 }__attribute__((__packed__)) MSG_PING_REQ;
 
-typedef MSG_HEADER MSG_PING_RSP;
-
 /*
  * GPS message structure
  */
 typedef struct
 {
+    int timestamp;
     float longitude;
     float latitude;
-    float altitude;
-    float speed;
-    float course;
+    char speed;
+    short course;
 }__attribute__((__packed__)) GPS;
 
 typedef struct

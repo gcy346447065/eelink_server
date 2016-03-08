@@ -25,8 +25,9 @@ static void app_sendMsg2Device(void *msg, size_t len, OBJECT *obj)
         LOG_ERROR("obj %s offline", obj->IMEI);
         return;
     }
+
     MSG_SEND pfn = session->pSendMsg;
-    if (!pfn)
+    if(!pfn)
     {
         LOG_ERROR("device offline");
         return;
@@ -97,7 +98,7 @@ static char autolockSetApp2mc(int cmd)
 static int getMsgCmd(cJSON* appMsg)
 {
     cJSON* cmdItem = cJSON_GetObjectItem(appMsg, "cmd");
-    if (!cmdItem)
+    if(!cmdItem)
     {
         LOG_ERROR("command format error:no cmd item");
         return -1;
@@ -109,7 +110,7 @@ static int getMsgCmd(cJSON* appMsg)
 static int app_sendWildMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
     cJSON *dataItem = cJSON_GetObjectItem(appMsg, "data");
-    if (!dataItem) 
+    if(!dataItem) 
     {
         LOG_ERROR("wild cmd with no data");
         return -1;
@@ -117,7 +118,7 @@ static int app_sendWildMsg2Device(cJSON* appMsg, OBJECT* obj)
     char* data = dataItem->string;
 
     void *msg = alloc_simcomWildMsg(data, strlen(data));
-    if (!msg)
+    if(!msg)
     {
         LOG_FATAL("insufficient memory");
         app_sendCmdRsp2App(APP_CMD_WILD, CODE_INTERNAL_ERR, obj->IMEI);
@@ -208,7 +209,8 @@ static int app_sendAutoPeriodSetMsg2Device(cJSON* appMsg, OBJECT* obj)
     }
 
     MSG_AUTOPERIOD_SET_REQ *req = (MSG_AUTOPERIOD_SET_REQ *)alloc_simcomAutoPeriodSetReq(cmd, periodItem->valueint);
-    if (!req) {
+    if (!req) 
+    {
         LOG_FATAL("insufficient memory");
         app_sendCmdRsp2App(cmd, CODE_INTERNAL_ERR, obj->IMEI);
         return -1;

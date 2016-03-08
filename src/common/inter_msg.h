@@ -15,7 +15,6 @@ enum
 #define TAG_IMEI "IMEI"
 #define TAG_LAT "LAT"
 #define TAG_LNG "LNG"
-#define TAG_ALTITUDE "ALTITUDE"
 #define TAG_SPEED "SPEED"
 #define TAG_COURSE "COURSE"
 
