@@ -101,11 +101,11 @@ typedef MSG_HEADER MSG_PING_RSP;
  */
 typedef struct
 {
+    int timestamp;
     float longitude;
     float latitude;
-    float altitude;
-    float speed;
-    float course;
+    char speed;
+    short course;
 }__attribute__((__packed__)) GPS;
 
 typedef struct

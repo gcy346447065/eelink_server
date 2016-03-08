@@ -42,9 +42,8 @@ typedef struct
     time_t timestamp;
     float lat;
     float lon;
-    float altitude;
-    float speed;
-    float course;
+    char speed;
+    short course;
 
     CGI_MC cell[CELL_NUM];
     char isGPSlocated;

@@ -180,11 +180,11 @@ static int _db_createCGI(const char* tableName)
     return 0;
 }
 
-static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, float altitude, float speed, float course)
+static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, int course)
 {
-    //timestamp INT, lat DOUBLE, lon DOUBLE, altitude DOUBLE, speed DOUBLE, course DOUBLE
+    //timestamp INT, lat DOUBLE, lon DOUBLE, speed DOUBLE, course DOUBLE
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into gps_%s(timestamp,lat,lon,altitude,speed,course) values(%d,%f,%f,%f,%f,%f)",imeiName, timestamp, lat, lon, altitude, speed, course);
+    snprintf(query, MAX_QUERY, "insert into gps_%s(timestamp,lat,lon,speed,course) values(%d,%f,%f,%d,%d)",imeiName, timestamp, lat, lon, speed, course);
     
     if(mysql_ping(conn))
     {
@@ -198,7 +198,7 @@ static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon
         return 2;
     }
 
-    LOG_INFO("insert into gps_%s: %d, %f, %f, %f, %f, %f", imeiName, timestamp, lat, lon, altitude, speed, course);
+    LOG_INFO("insert into gps_%s: %d, %f, %f, %d, %d", imeiName, timestamp, lat, lon, speed, course);
     return 0;
 }
 
@@ -379,10 +379,10 @@ int db_createCGI(const char* tableName)
 #endif
 }
 
-int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, float altitude, float speed, float course)
+int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, float speed, float course)
 {
 #ifdef WITH_DB
-    return _db_saveGPS(imeiName, timestamp, lat, lon, altitude, speed, course);
+    return _db_saveGPS(imeiName, timestamp, lat, lon, speed, course);
 #else
     return 0;
 #endif

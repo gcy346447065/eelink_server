@@ -220,8 +220,8 @@ static int simcom_gps(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("GPS: latitude(%f), longitude(%f), altitude(%f), speed(%f), course(%f)", 
-        req->gps.latitude, req->gps.longitude, req->gps.altitude, req->gps.speed, req->gps.course);
+    LOG_INFO("GPS: latitude(%f), longitude(%f), speed(%d), course(%d)",
+        req->gps.latitude, req->gps.longitude, req->gps.speed, req->gps.course);
 
     OBJECT * obj = (OBJECT *)session->obj;
     if (!obj)
@@ -230,7 +230,7 @@ static int simcom_gps(const void *msg, SESSION *session)
         return -1;
     }
 
-    obj->timestamp = get_time();
+//    obj->timestamp = get_time();
 
     if (fabs(obj->lat - req->gps.latitude) < FLT_EPSILON
         && fabs(obj->lon - req->gps.longitude) < FLT_EPSILON)
@@ -245,14 +245,15 @@ static int simcom_gps(const void *msg, SESSION *session)
         obj->lon = req->gps.longitude;
     }
 
-    obj->altitude = req->gps.altitude;
+//    obj->altitude = req->gps.altitude;
+    obj->timestamp = req->gps.timestamp;
     obj->speed = req->gps.speed;
     obj->course = req->gps.course;
 
     app_sendGpsMsg2App(session);
 
-    db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->altitude, obj->speed, obj->course);
-    sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->altitude, obj->speed, obj->course);
+    db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
+    sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
 
     return 0;
 }
@@ -537,8 +538,8 @@ static int simcom_locate(const void *msg, SESSION *session)
             return -1;
         }
 
-        LOG_INFO("LOCATION GPS: latitude(%f), longitude(%f), altitude(%f), speed(%f), course(%f)", 
-            gps->latitude, gps->longitude, gps->altitude, gps->speed, gps->course);
+        LOG_INFO("LOCATION GPS: latitude(%f), longitude(%f), speed(%d), course(%d)",
+            gps->latitude, gps->longitude, gps->speed, gps->course);
 
         OBJECT * obj = (OBJECT *) session->obj;
         if (!obj)
@@ -547,11 +548,10 @@ static int simcom_locate(const void *msg, SESSION *session)
             return -1;
         }
 
-        obj->timestamp = get_time();
+        obj->timestamp = gps->timestamp;
         obj->isGPSlocated = 0x01;
         obj->lat = gps->latitude;
         obj->lon = gps->longitude;
-        obj->altitude = gps->altitude;
         obj->speed = gps->speed;
         obj->course = gps->course;
 
@@ -605,7 +605,6 @@ static int simcom_locate(const void *msg, SESSION *session)
         }
         obj->lat = lat;
         obj->lon = lon;
-        obj->altitude = 0;
         obj->speed = 0;
         obj->course = 0;
 
