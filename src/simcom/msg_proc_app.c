@@ -129,20 +129,54 @@ static int app_sendWildMsg2Device(cJSON* appMsg, OBJECT* obj)
     return 0;
 }
 
-static int app_sendFenceMsg2Device(cJSON* appMsg, OBJECT* obj)
+static int app_sendFenceOnMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
-    int cmd = getMsgCmd(appMsg);
+    appMsg = appMsg;
 
-    MSG_DEFEND_REQ *req = (MSG_DEFEND_REQ *)alloc_simcomDefendReq(cmd, defendApp2mc(cmd));
+    MSG_HEADER *req = (MSG_HEADER *)alloc_simcom_msg(CMD_DEFEND_ON, sizeof(MSG_HEADER));
     if (!req)
     {
         LOG_FATAL("insufficient memory");
-        app_sendCmdRsp2App(cmd, CODE_INTERNAL_ERR, obj->IMEI);
+        app_sendCmdRsp2App(APP_CMD_FENCE_ON, CODE_INTERNAL_ERR, obj->IMEI);
         return -1;
     }
 
-    app_sendCmdRsp2App(cmd, CODE_WAITING, obj->IMEI);
-    app_sendMsg2Device(req, sizeof(MSG_DEFEND_REQ), obj);
+    app_sendCmdRsp2App(APP_CMD_FENCE_ON, CODE_WAITING, obj->IMEI);
+    app_sendMsg2Device(req, sizeof(MSG_HEADER), obj);
+    return 0;
+}
+
+static int app_sendFenceOffMsg2Device(cJSON* appMsg, OBJECT* obj)
+{
+    appMsg = appMsg;
+
+    MSG_HEADER *req = (MSG_HEADER *)alloc_simcom_msg(CMD_DEFEND_OFF, sizeof(MSG_HEADER));
+    if (!req)
+    {
+        LOG_FATAL("insufficient memory");
+        app_sendCmdRsp2App(APP_CMD_FENCE_OFF, CODE_INTERNAL_ERR, obj->IMEI);
+        return -1;
+    }
+
+    app_sendCmdRsp2App(APP_CMD_FENCE_OFF, CODE_WAITING, obj->IMEI);
+    app_sendMsg2Device(req, sizeof(MSG_HEADER), obj);
+    return 0;
+}
+
+static int app_sendFenceGetMsg2Device(cJSON* appMsg, OBJECT* obj)
+{
+    appMsg = appMsg;
+
+    MSG_HEADER *req = (MSG_HEADER *)alloc_simcom_msg(CMD_DEFEND_GET, sizeof(MSG_HEADER));
+    if (!req)
+    {
+        LOG_FATAL("insufficient memory");
+        app_sendCmdRsp2App(APP_CMD_FENCE_GET, CODE_INTERNAL_ERR, obj->IMEI);
+        return -1;
+    }
+
+    app_sendCmdRsp2App(APP_CMD_FENCE_GET, CODE_WAITING, obj->IMEI);
+    app_sendMsg2Device(req, sizeof(MSG_HEADER), obj);
     return 0;
 }
 
@@ -303,9 +337,9 @@ typedef struct
 APP_MSG_PROC_MAP msg_proc_map[] = 
 {
     {APP_CMD_WILD,              app_sendWildMsg2Device},
-    {APP_CMD_FENCE_ON,          app_sendFenceMsg2Device},
-    {APP_CMD_FENCE_OFF,         app_sendFenceMsg2Device},
-    {APP_CMD_FENCE_GET,         app_sendFenceMsg2Device},
+    {APP_CMD_FENCE_ON,          app_sendFenceOnMsg2Device},
+    {APP_CMD_FENCE_OFF,         app_sendFenceOffMsg2Device},
+    {APP_CMD_FENCE_GET,         app_sendFenceGetMsg2Device},
     {APP_CMD_SEEK_ON,           app_sendSeekMsg2Device},
     {APP_CMD_SEEK_OFF,          app_sendSeekMsg2Device},
     {APP_CMD_LOCATION,          app_sendLocationMsg2Device},

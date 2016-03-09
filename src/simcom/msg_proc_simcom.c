@@ -201,7 +201,7 @@ static int simcom_gps(const void *msg, SESSION *session)
         LOG_ERROR("msg handle empty");
         return -1;
     }
-    if (req->header.length < sizeof(MSG_GPS) - MSG_HEADER_LEN)
+    if (ntohs(req->header.length) < sizeof(MSG_GPS) - MSG_HEADER_LEN)
     {
         LOG_ERROR("gps message length not enough");
         return -1;
@@ -539,7 +539,7 @@ static int simcom_locate(const void *msg, SESSION *session)
         obj->speed = gps->speed;
         obj->course = ntohs(gps->course);
 
-        app_sendGpsMsg2App(session);
+        app_sendLocationRsp2App(CODE_SUCCESS, obj);
     }
     else if(*isGPS == 0x00)
     {
@@ -592,7 +592,7 @@ static int simcom_locate(const void *msg, SESSION *session)
         obj->speed = 0;
         obj->course = 0;
 
-        app_sendLocationRsp2App(CODE_SUCCESS, session);
+        app_sendLocationRsp2App(CODE_SUCCESS, obj);
     }
 
     return 0;
@@ -857,8 +857,7 @@ static int simcom_DefendNotify(const void *msg, SESSION *session)
 
     if(rsp->status == 0 || rsp->status == 1)
     {
-        app_sendFenceGetRsp2App(APP_CMD_AUTOLOCK_NOTIFY, CODE_SUCCESS, rsp->status, session);
-        //app_sendNotifyMsg2App(NOTIFY_AUTOLOCK, int timestamp, rsp->status, session);
+        app_sendNotifyMsg2App(NOTIFY_AUTOLOCK, get_time(), rsp->status, session);
     }
     else
     {

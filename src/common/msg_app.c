@@ -100,7 +100,6 @@ void app_sendLocationRsp2App(int code, OBJECT *obj)
     cJSON_AddNumberToObject(result, "isGPSlocated", obj->isGPSlocated);
     cJSON_AddNumberToObject(result, "lat", obj->lat);
     cJSON_AddNumberToObject(result, "lng", obj->lon);
-//    cJSON_AddNumberToObject(result, "altitude", obj->altitude);
     cJSON_AddNumberToObject(result, "speed", obj->speed);
     cJSON_AddNumberToObject(result, "course", obj->course);
     cJSON_AddItemToObject(root, "result", result);
