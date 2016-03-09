@@ -69,7 +69,7 @@ static int simcom_wild(const void *m, SESSION *session)
     const char *msg_log = (const char *)(msg + 1);
 
     LOG_DEBUG("DBG:%s", msg_log);
-	app_sendDebugMsg2App(msg_log, msg->length, session);
+	app_sendDebugMsg2App(msg_log, ntohs(msg->length), session);
 
 	return 0;
 }
@@ -196,12 +196,12 @@ static int simcom_ping(const void *msg, SESSION *session)
 static int simcom_gps(const void *msg, SESSION *session)
 {
     const MSG_GPS *req = (const MSG_GPS *)msg;
-    if (!req)
+    if(!req)
     {
         LOG_ERROR("msg handle empty");
         return -1;
     }
-    if (ntohs(req->header.length) < sizeof(MSG_GPS) - MSG_HEADER_LEN)
+    if(ntohs(req->header.length) < sizeof(MSG_GPS) - MSG_HEADER_LEN)
     {
         LOG_ERROR("gps message length not enough");
         return -1;
@@ -250,7 +250,7 @@ static int simcom_cell(const void *msg, SESSION *session)
         LOG_ERROR("msg handle empty");
         return -1;
     }
-    if(req->length < sizeof(CGI))
+    if(ntohs(req->length) < sizeof(CGI))
     {
         LOG_ERROR("cell message length not enough");
         return -1;
@@ -328,7 +328,7 @@ static int simcom_alarm(const void *msg, SESSION *session)
         LOG_ERROR("msg handle empty");
         return -1;
     }
-    if(req->header.length < sizeof(MSG_ALARM_REQ) - MSG_HEADER_LEN)
+    if(ntohs(req->header.length) < sizeof(MSG_ALARM_REQ) - MSG_HEADER_LEN)
     {
         LOG_ERROR("alarm message length not enough");
         return -1;
@@ -737,8 +737,6 @@ static int simcom_GetPeriod(const void *msg, SESSION *session)
 
 static int simcom_itinerary(const void *msg, SESSION *session)
 {
-    //TODO: to be complted
-
     const MSG_ITINERARY_REQ *req = (const MSG_ITINERARY_REQ *)msg;
     if(!req)
     {
@@ -751,7 +749,7 @@ static int simcom_itinerary(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("itinerary: strat(%d), end(%d), miles(%d)", ntohl(req->start), ntohl(req->end), ntohl(req->miles));
+    LOG_INFO("itinerary: start(%d), end(%d), miles(%d)", ntohl(req->start), ntohl(req->end), ntohl(req->miles));
 
     OBJECT *obj = session->obj;
     if(!obj)
@@ -760,8 +758,7 @@ static int simcom_itinerary(const void *msg, SESSION *session)
         return -1;
     }
 
-    //TO DO:
-    //app_sendItineraryMsg2App(get_time(), ntohl(req->intensity), session);
+    sync_itinerary(ntohl(req->start), ntohl(req->end), ntohl(req->miles));
 
     return 0;
 }
@@ -776,8 +773,7 @@ static int simcom_battery(const void *msg, SESSION *session)
     }
     else
     {
-        //TO DO: when to use CODE_BATTERY_LEARNING
-        LOG_ERROR("response get period cmd not exist");
+        LOG_INFO("battery percent = 0, it's learning now");
         app_sendBatteryRsp2App(APP_CMD_BATTERY, CODE_BATTERY_LEARNING, rsp->percent, rsp->miles, session);
 
         return -1;

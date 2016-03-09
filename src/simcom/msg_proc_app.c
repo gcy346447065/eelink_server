@@ -297,7 +297,7 @@ static int app_sendBatteryMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
     int cmd = getMsgCmd(appMsg);
 
-    MSG_HEADER *req = (MSG_HEADER *)alloc_simcom_msg(cmd, sizeof(MSG_HEADER));
+    MSG_HEADER *req = (MSG_HEADER *)alloc_simcom_msg(CMD_BATTERY, sizeof(MSG_HEADER));
     if (!req)
     {
         LOG_FATAL("insufficient memory");

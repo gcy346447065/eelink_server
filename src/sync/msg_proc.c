@@ -37,12 +37,30 @@ static void msg_saveGPS(cJSON* json)
         return;
     }
 
-    leancloud_saveGPS(timestamp->valuestring,
+    leancloud_saveGPS(timestamp->valueint,
                       imei->valuestring,
                       lat->valuedouble,
                       lng->valuedouble,
-                      speed->valuedouble,
-                      course->valuedouble);
+                      speed->valueint,
+                      course->valueint);
+
+    return;
+}
+
+static void msg_saveItinerary(cJSON* json)
+{
+    cJSON* start = cJSON_GetObjectItem(json, TAG_START);
+    cJSON* end = cJSON_GetObjectItem(json, TAG_END);
+    cJSON* miles = cJSON_GetObjectItem(json, TAG_MILES);
+    if (!start || !end || !miles)
+    {
+        LOG_ERROR("save Itinerary failed");
+        return;
+    }
+
+    leancloud_saveItinerary(start->valueint,
+                            end->valueint,
+                            miles->valueint);
 
     return;
 }
@@ -66,6 +84,10 @@ int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
 
         case CMD_SYNC_NEW_GPS:
             msg_saveGPS(root);
+            break;
+
+        case CMD_SYNC_NEW_ITINERARY:
+            msg_saveItinerary(root);
             break;
 
         default:

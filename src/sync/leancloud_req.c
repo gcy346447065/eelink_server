@@ -107,7 +107,7 @@ static int leancloud_get(CURL *curl, const char* class)
     return 0;
 }
 
-int leancloud_saveGPS(int timestamp, const char* imei, double lat, double lng, double speed, double course)
+int leancloud_saveGPS(int timestamp, const char* imei, double lat, double lng, int speed, int course)
 {
 	ENVIRONMENT* env = env_get();
 	CURL* curl = env->curl_leancloud;
@@ -128,6 +128,28 @@ int leancloud_saveGPS(int timestamp, const char* imei, double lat, double lng, d
 
 	cJSON_Delete(root);
 	free(data);
+
+    return ret;
+}
+
+int leancloud_saveItinerary(int start, int end, int miles)
+{
+    ENVIRONMENT* env = env_get();
+    CURL* curl = env->curl_leancloud;
+
+    cJSON *root = cJSON_CreateObject();
+
+    cJSON_AddNumberToObject(root, "start",  start);
+    cJSON_AddNumberToObject(root, "end",  end);
+    cJSON_AddNumberToObject(root, "miles",  miles);
+    char* data = cJSON_PrintUnformatted(root);
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveItinerary);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, env);
+    int ret = leancloud_post(curl, "Itinerary", data, strlen(data));
+
+    cJSON_Delete(root);
+    free(data);
 
     return ret;
 }
