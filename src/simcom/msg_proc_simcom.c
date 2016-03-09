@@ -858,6 +858,7 @@ static int simcom_DefendNotify(const void *msg, SESSION *session)
     if(rsp->status == 0 || rsp->status == 1)
     {
         app_sendFenceGetRsp2App(APP_CMD_AUTOLOCK_NOTIFY, CODE_SUCCESS, rsp->status, session);
+        //app_sendNotifyMsg2App(NOTIFY_AUTOLOCK, int timestamp, rsp->status, session);
     }
     else
     {

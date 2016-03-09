@@ -203,7 +203,8 @@ static int app_sendAutoPeriodSetMsg2Device(cJSON* appMsg, OBJECT* obj)
     int cmd = getMsgCmd(appMsg);
 
     cJSON *periodItem = cJSON_GetObjectItem(appMsg, "period");
-    if (!periodItem) {
+    if (!periodItem) 
+    {
         LOG_ERROR("period format error:no period item");
         return -1;
     }
@@ -258,6 +259,23 @@ static int app_sendAutoLockGetMsg2Device(cJSON* appMsg, OBJECT* obj)
     return 0;
 }
 
+static int app_sendBatteryMsg2Device(cJSON* appMsg, OBJECT* obj)
+{
+    int cmd = getMsgCmd(appMsg);
+
+    MSG_HEADER *req = (MSG_HEADER *)alloc_simcom_msg(cmd, sizeof(MSG_HEADER));
+    if (!req)
+    {
+        LOG_FATAL("insufficient memory");
+        app_sendCmdRsp2App(cmd, CODE_INTERNAL_ERR, obj->IMEI);
+        return -1;
+    }
+
+    app_sendCmdRsp2App(cmd, CODE_WAITING, obj->IMEI);
+    app_sendMsg2Device(req, sizeof(MSG_HEADER), obj);
+
+    return 0;
+}
 
 static void getImeiFromTopic(const char* topic, char* IMEI)
 {
@@ -295,7 +313,8 @@ APP_MSG_PROC_MAP msg_proc_map[] =
     {APP_CMD_AUTOLOCK_OFF,      app_sendAutoLockSetMsg2Device},
     {APP_CMD_AUTOPERIOD_SET,    app_sendAutoPeriodSetMsg2Device},
     {APP_CMD_AUTOPERIOD_GET,    app_sendAutoPeriodGetMsg2Device},
-    {APP_CMD_AUTOLOCK_GET,      app_sendAutoLockGetMsg2Device}
+    {APP_CMD_AUTOLOCK_GET,      app_sendAutoLockGetMsg2Device},
+    {APP_CMD_BATTERY,           app_sendBatteryMsg2Device}
 };
 
 int app_handleApp2devMsg(const char* topic, const char* data, const int len __attribute__((unused)))
