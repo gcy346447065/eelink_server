@@ -147,7 +147,7 @@ int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveItinerary);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, env);
 
-    const char* class;
+    char* class = malloc(11 + IMEI_LENGTH);
     sprintf(class, "Itinerary_%s", imei);
     int ret = leancloud_post(curl, class, data, strlen(data));
 
