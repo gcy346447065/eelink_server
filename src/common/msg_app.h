@@ -46,6 +46,12 @@ enum ALARM
     ALM_FENCE_OUT_TK115 = 0x84
 };
 
+enum NOTIFY
+{
+    NOTIFY_AUTOLOCK     = 0,
+    NOTIFY_STATUS       = 1
+};
+
 //Message definition
 typedef struct
 {
@@ -82,11 +88,9 @@ void app_sendBatteryRsp2App(int cmd, int code, int percent, int miles, void *ses
 void app_sendAutoLockNotifyRsp2App(int cmd, int code, int timestamp, int lock, void *session);
 
 void app_sendGpsMsg2App(void* session);
-
 void app_send433Msg2App(int timestamp, int intensity, void * session);
-
 void app_sendAlarmMsg2App(int type, const char *msg, void *session);
-
 void app_sendDebugMsg2App(const char *msg, size_t length, void *session);
+void app_sendNotifyMsg2App(int notify, int timestamp, int lock_status, void *session);
 
 #endif /* SRC_MSG_APP_H_ */

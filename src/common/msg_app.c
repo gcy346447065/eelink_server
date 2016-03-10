@@ -100,7 +100,6 @@ void app_sendLocationRsp2App(int code, OBJECT *obj)
     cJSON_AddNumberToObject(result, "isGPSlocated", obj->isGPSlocated);
     cJSON_AddNumberToObject(result, "lat", obj->lat);
     cJSON_AddNumberToObject(result, "lng", obj->lon);
-//    cJSON_AddNumberToObject(result, "altitude", obj->altitude);
     cJSON_AddNumberToObject(result, "speed", obj->speed);
     cJSON_AddNumberToObject(result, "course", obj->course);
     cJSON_AddItemToObject(root, "result", result);
@@ -262,7 +261,6 @@ void app_sendGpsMsg2App(void* session)
     cJSON_AddNumberToObject(root, "isGPSlocated", obj->isGPSlocated);
     cJSON_AddNumberToObject(root, "lat", obj->lat);
     cJSON_AddNumberToObject(root, "lng", obj->lon);
-//    cJSON_AddNumberToObject(root, "altitude", obj->altitude);
     cJSON_AddNumberToObject(root, "speed", obj->speed);
     cJSON_AddNumberToObject(root, "course", obj->course);
 
@@ -348,3 +346,38 @@ void app_sendDebugMsg2App(const char *msg, size_t length, void *session)
     return;
 }
 
+/* dev2app/<imei>/notify */
+void app_sendNotifyMsg2App(int notify, int timestamp, int lock_status, void *session)
+{
+    OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
+    if (!obj)
+    {
+        LOG_ERROR("object null,internal error");
+        return;
+    }
+    char topic[IMEI_LENGTH + 16];
+    memset(topic, 0, sizeof(topic));
+    snprintf(topic, IMEI_LENGTH + 16, "dev2app/%s/notify", obj->IMEI);
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, "notify", notify);
+
+    cJSON *data = cJSON_CreateObject();
+    cJSON_AddNumberToObject(data, "timestamp", timestamp);
+    if(notify == NOTIFY_AUTOLOCK)
+    {
+        cJSON_AddNumberToObject(data, "lock", lock_status);
+    }
+    else if(notify == NOTIFY_STATUS)
+    {
+        cJSON_AddNumberToObject(data, "status", lock_status);
+    }
+    cJSON_AddItemToObject(root, "data", data);
+
+    char *json = cJSON_PrintUnformatted(root);
+
+    app_sendMsg2App(topic, json, strlen(json));
+    LOG_INFO("send notify msg to APP");
+
+    return;
+}

@@ -199,12 +199,36 @@ void sync_gps(const char* imei, int timestamp, float lat, float lng, char speed,
     }
 
     sendMsg2Sync(data, strlen(data));
-    LOG_INFO("send gps(imei(%s), lat(%f), lng(%f), speed(%u), course(%d)) to sync",
-            imei, lat, lng, speed, course);
+    LOG_INFO("send gps(timestamp(%d), imei(%s), lat(%f), lng(%f), speed(%d), course(%d)) to sync",
+            timestamp, imei, lat, lng, speed, course);
 
     free(data);
     cJSON_Delete(root);
-
     return;
 }
 
+void sync_itinerary(const char *imei, int start, int end, int miles)
+{
+    cJSON* root = cJSON_CreateObject();
+
+    cJSON_AddNumberToObject(root, TAG_CMD, CMD_SYNC_NEW_ITINERARY);
+    cJSON_AddStringToObject(root, TAG_IMEI, imei);
+    cJSON_AddNumberToObject(root, TAG_START, start);
+    cJSON_AddNumberToObject(root, TAG_END, end);
+    cJSON_AddNumberToObject(root, TAG_MILES, miles);
+
+    char *data = cJSON_PrintUnformatted(root);
+    if (!data)
+    {
+        LOG_ERROR("internal error");
+        cJSON_Delete(root);
+        return;
+    }
+
+    sendMsg2Sync(data, strlen(data));
+    LOG_INFO("send itinerary(start(%d), end(%d), miles(%d) to sync", start, end, miles);
+
+    free(data);
+    cJSON_Delete(root);
+    return;
+}

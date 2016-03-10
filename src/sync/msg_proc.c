@@ -24,23 +24,45 @@ static void msg_saveDid(cJSON* json)
 
 static void msg_saveGPS(cJSON* json)
 {
+    cJSON* timestamp = cJSON_GetObjectItem(json, TAG_TIMESTAMP);
     cJSON* imei = cJSON_GetObjectItem(json, TAG_IMEI);
     cJSON* lat = cJSON_GetObjectItem(json, TAG_LAT);
     cJSON* lng = cJSON_GetObjectItem(json, TAG_LNG);
     cJSON* speed = cJSON_GetObjectItem(json, TAG_SPEED);
     cJSON* course = cJSON_GetObjectItem(json, TAG_COURSE);
 
-    if (!imei || !lat || !lng || !speed || !course)
+    if (!timestamp || !imei || !lat || !lng || !speed || !course)
     {
         LOG_ERROR("save GPS failed");
         return;
     }
 
-    leancloud_saveGPS(imei->valuestring,
+    leancloud_saveGPS(timestamp->valueint,
+                      imei->valuestring,
                       lat->valuedouble,
                       lng->valuedouble,
-                      speed->valuedouble,
-                      course->valuedouble);
+                      speed->valueint,
+                      course->valueint);
+
+    return;
+}
+
+static void msg_saveItinerary(cJSON* json)
+{
+    cJSON* imei = cJSON_GetObjectItem(json, TAG_IMEI);
+    cJSON* start = cJSON_GetObjectItem(json, TAG_START);
+    cJSON* end = cJSON_GetObjectItem(json, TAG_END);
+    cJSON* miles = cJSON_GetObjectItem(json, TAG_MILES);
+    if (!start || !end || !miles)
+    {
+        LOG_ERROR("save Itinerary failed");
+        return;
+    }
+
+    leancloud_saveItinerary(imei->valuestring,
+                            start->valueint,
+                            end->valueint,
+                            miles->valueint);
 
     return;
 }
@@ -64,6 +86,10 @@ int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
 
         case CMD_SYNC_NEW_GPS:
             msg_saveGPS(root);
+            break;
+
+        case CMD_SYNC_NEW_ITINERARY:
+            msg_saveItinerary(root);
             break;
 
         default:
