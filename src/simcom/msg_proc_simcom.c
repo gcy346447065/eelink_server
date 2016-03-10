@@ -758,7 +758,7 @@ static int simcom_itinerary(const void *msg, SESSION *session)
         return -1;
     }
 
-    sync_itinerary(ntohl(req->start), ntohl(req->end), ntohl(req->miles));
+    sync_itinerary(obj->IMEI, ntohl(req->start), ntohl(req->end), ntohl(req->miles));
 
     return 0;
 }

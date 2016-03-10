@@ -207,11 +207,12 @@ void sync_gps(const char* imei, int timestamp, float lat, float lng, char speed,
     return;
 }
 
-void sync_itinerary(int start, int end, int miles)
+void sync_itinerary(const char *imei, int start, int end, int miles)
 {
     cJSON* root = cJSON_CreateObject();
 
     cJSON_AddNumberToObject(root, TAG_CMD, CMD_SYNC_NEW_ITINERARY);
+    cJSON_AddStringToObject(root, TAG_IMEI, imei);
     cJSON_AddNumberToObject(root, TAG_START, start);
     cJSON_AddNumberToObject(root, TAG_END, end);
     cJSON_AddNumberToObject(root, TAG_MILES, miles);

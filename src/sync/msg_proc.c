@@ -49,6 +49,7 @@ static void msg_saveGPS(cJSON* json)
 
 static void msg_saveItinerary(cJSON* json)
 {
+    cJSON* imei = cJSON_GetObjectItem(json, TAG_IMEI);
     cJSON* start = cJSON_GetObjectItem(json, TAG_START);
     cJSON* end = cJSON_GetObjectItem(json, TAG_END);
     cJSON* miles = cJSON_GetObjectItem(json, TAG_MILES);
@@ -58,7 +59,8 @@ static void msg_saveItinerary(cJSON* json)
         return;
     }
 
-    leancloud_saveItinerary(start->valueint,
+    leancloud_saveItinerary(imei->valuestring,
+                            start->valueint,
                             end->valueint,
                             miles->valueint);
 
