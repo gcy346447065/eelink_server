@@ -219,9 +219,7 @@ int leancloud_onGetOBJ(MemroyBuf *chunk)
 		}
 
 		LOG_DEBUG("initil IMEI(%s)", imei->valuestring);
-
 	}
-
 
     cJSON_Delete(root);
     return ret;

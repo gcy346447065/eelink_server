@@ -171,9 +171,8 @@ static int simcom_login(const void *msg, SESSION *session)
 
 static int simcom_ping(const void *msg, SESSION *session)
 {
-    //TO DO: unused
+    //TO DO: unused status, ntohs(req->status);
     //const MSG_PING_REQ *req = (const MSG_PING_REQ *)msg;
-    //ntohs(req->status);
 
     if (!session)
     {
@@ -600,30 +599,9 @@ static int simcom_locate(const void *msg, SESSION *session)
 
 static int simcom_SetTimer(const void *msg, SESSION *session)
 {
-    const MSG_GPSTIMER_RSP *rsp = (const MSG_GPSTIMER_RSP *)msg;
-
-    OBJECT* obj = session->obj;
-    if (!obj)
-    {
-        LOG_FATAL("internal error: obj null");
-        return -1;
-    }
-
-    //TO DO: add set timer in APP first
-    if(ntohl(rsp->result) == 0)
-    {
-        //APP_CMD_SET_TIMER, CODE_SUCCESS
-        //app_sendCmdRsp2App(APP_CMD_SEEK_ON, CODE_SUCCESS, strIMEI);
-    }
-    else if(ntohl(rsp->result) >= 10)
-    {
-        //APP_CMD_GET_TIMER, CODE_SUCCESS
-    }
-    else
-    {
-        //APP_CMD_SET_TIMER, CODE_INTERNAL_ERR?
-        return -1;
-    }
+    //unused
+    msg = msg;
+    session = session;
 
     return 0;
 }
@@ -960,8 +938,33 @@ static int simcom_UpgradeEnd(const void *msg, SESSION *session)
 
 static int simcom_SimInfo(const void *msg, SESSION *session)
 {
-    //get CMD_SIM_INFO req
-    //remember CCID and IMSI
+    const MSG_SIM_INFO_REQ *req = (const MSG_SIM_INFO_REQ *)msg;
+
+    char ccid[MAX_CCID_LENGTH + 1];
+    memcpy(ccid, req->CCID, MAX_CCID_LENGTH);
+
+    char imsi[MAX_IMSI_LENGTH + 1];
+    memcpy(imsi, req->IMSI, MAX_IMSI_LENGTH);
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT * obj = (OBJECT *)session->obj;
+    if (!obj)
+    {
+        LOG_WARN("MC must first login");
+        return -1;
+    }
+
+    if(strlen(req->CCID) == MAX_CCID_LENGTH && strlen(req->IMSI) == MAX_IMSI_LENGTH)
+    {
+        memcpy(obj->CCID, req->CCID, MAX_CCID_LENGTH);
+        memcpy(obj->IMSI, req->IMSI, MAX_IMSI_LENGTH);
+    }
+
     
     return 0;
 }
