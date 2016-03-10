@@ -13,6 +13,7 @@
 #include "log.h"
 #include "env.h"
 #include "db.h"
+#include "object.h"
 
 size_t leancloud_onSaveGPS(void *contents, size_t size, size_t nmemb, void *userdata)
 {
@@ -57,6 +58,21 @@ size_t leancloud_onSaveDID(void *contents, size_t size, size_t nmemb, void *user
 	{
 		LOG_INFO("get save DID(%s) response: %s", imei, rsp);
 
+		cJSON* objectId = cJSON_GetObjectItem(json, "objectId");
+		if(!objectId)
+		{
+			LOG_ERROR("can't get objectId in leancloud_onSaveDID");
+			return 0;
+		}
+
+		OBJECT *obj = obj_get(imei);
+		if(!obj)
+		{
+			LOG_ERROR("can't get obj from imei in leancloud_onSaveDID");
+			return 0;
+		}
+
+		memcpy(obj->objectID, objectId->valuestring, strlen(objectId->valuestring));
 		db_updateOBJIsPosted(imei);
 	}
 

@@ -38,6 +38,7 @@ typedef struct
     char IMEI[IMEI_LENGTH + 1];
     char CCID[CCID_LENGTH + 1];
     char IMSI[IMSI_LENGTH + 1];
+    char objectID[OBJECT_ID_LENGTH + 1];
     char language;
     char locale;
 

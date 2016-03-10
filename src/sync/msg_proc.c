@@ -47,6 +47,25 @@ static void msg_saveGPS(cJSON* json)
     return;
 }
 
+static void msg_saveSimInfo(cJSON* json)
+{
+    cJSON* imei = cJSON_GetObjectItem(json, TAG_IMEI);
+    cJSON* ccid = cJSON_GetObjectItem(json, TAG_CCID);
+    cJSON* imsi = cJSON_GetObjectItem(json, TAG_IMSI);
+
+    if (!imei || !ccid || !imsi)
+    {
+        LOG_ERROR("save SimInfo failed");
+        return;
+    }
+
+    leancloud_saveSimInfo(imei->valuestring,
+                          ccid->valuestring,
+                          imsi->valuestring);
+
+    return;
+}
+
 int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
 {
     cJSON* root = cJSON_Parse(m);
@@ -66,6 +85,10 @@ int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
 
         case CMD_SYNC_NEW_GPS:
             msg_saveGPS(root);
+            break;
+
+        case CMD_SYNC_NEW_SIM_INFO:
+            msg_saveSimInfo(root);
             break;
 
         default:

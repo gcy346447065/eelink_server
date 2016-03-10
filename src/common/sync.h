@@ -14,5 +14,6 @@ int sync_exit();
 
 void sync_newIMEI(const char *imei);
 void sync_gps(const char* imei, int timestamp, float lat, float lng, char speed, short course);
+void sync_SimInfo(const char* imei, const char* ccid, const char* imsi);
 
 #endif /* SRC_COMMON_SYNC_H_ */

@@ -42,6 +42,27 @@ static int leancloud_post(CURL *curl, const char* class, const void* data, int l
     return 0;
 }
 
+static int leancloud_update(CURL *curl, const char* class, const char* objectID, const void* data, int len)
+{
+    char url[256] = {0};
+
+    snprintf(url, 256, "%s/classes/%s/%s", LEANCLOUD_URL_BASE, class, objectID);
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_PUT, 1L);
+
+    /* Perform the request, res will get the return code */
+    CURLcode res = curl_easy_perform(curl);
+    //curl_easy_cleanup(curl);
+    if(CURLE_OK != res)
+    {
+        LOG_ERROR("leancloud_update failed: %s", curl_easy_strerror(res));
+        return -1;
+    }
+
+    return 0;
+}
+
 static int leancloud_sms(CURL *curl, const void *data, int len)
 {
     char url[256] = {0};
@@ -148,6 +169,26 @@ int leancloud_saveDid(const char* imei)
 
 	cJSON_Delete(root);
 	free(data);
+
+    return ret;
+}
+
+int leancloud_saveSimInfo(const char* imei, const char* ccid, const char* imsi)
+{
+    ENVIRONMENT* env = env_get();
+    CURL* curl = env->curl_leancloud;
+
+    cJSON *root = cJSON_CreateObject();
+
+    cJSON_AddStringToObject(root, "IMEI", imei);
+    char* data = cJSON_PrintUnformatted(root);
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveDID);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, imei);
+    int ret = leancloud_post(curl, "SimInfo", data, strlen(data));
+
+    cJSON_Delete(root);
+    free(data);
 
     return ret;
 }

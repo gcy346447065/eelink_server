@@ -208,11 +208,12 @@ void sync_gps(const char* imei, int timestamp, float lat, float lng, char speed,
     return;
 }
 
-void sync_sim_info(const char* ccid, const char* imsi)
+void sync_SimInfo(const char* imei, const char* ccid, const char* imsi)
 {
     cJSON* root = cJSON_CreateObject();
 
-    cJSON_AddNumberToObject(root, TAG_CMD, CMD_SYNC_NEW_GPS);
+    cJSON_AddNumberToObject(root, TAG_CMD, CMD_SYNC_NEW_SIM_INFO);
+    cJSON_AddStringToObject(root, TAG_IMEI, imei);
     cJSON_AddStringToObject(root, TAG_CCID, ccid);
     cJSON_AddStringToObject(root, TAG_IMSI, imsi);
 
@@ -225,7 +226,7 @@ void sync_sim_info(const char* ccid, const char* imsi)
     }
 
     sendMsg2Sync(data, strlen(data));
-    LOG_INFO("send sim_info(ccid(%s), imsi(%s) to sync", ccid, imsi);
+    LOG_INFO("send sim_info(imei(%s), ccid(%s), imsi(%s) to sync", imei, ccid, imsi);
 
     free(data);
     cJSON_Delete(root);

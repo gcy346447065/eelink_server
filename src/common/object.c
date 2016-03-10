@@ -196,3 +196,4 @@ int isYeelinkDeviceCreated(OBJECT * obj)
 {
 	return obj->device_id != 0 && obj->sensor_id != 0 ;
 }
+
