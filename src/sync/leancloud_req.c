@@ -42,14 +42,22 @@ static int leancloud_post(CURL *curl, const char* class, const void* data, int l
     return 0;
 }
 
+size_t update_callback(void* buff, size_t size, size_t nmemb, void* userp) 
+{ 
+    size_t sizes = fread(buff, size, nmemb, (FILE *)userp); 
+    return sizes; 
+}
+
 static int leancloud_update(CURL *curl, const char* class, const char* objectID, const void* data, int len)
 {
     char url[256] = {0};
 
     snprintf(url, 256, "%s/classes/%s/%s", LEANCLOUD_URL_BASE, class, objectID);
-
     curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_PUT, 1L);
+    curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);//new version or CURLOPT_PUT
+    curl_easy_setopt(curl, CURLOPT_READFUNCTION, &update_callback);
+    //curl_easy_setopt(curl, CURLOPT_READDATA, hd_src);
+    //curl_easy_setopt(curl, CURLOPT_INFILESIZE, fsize);
 
     /* Perform the request, res will get the return code */
     CURLcode res = curl_easy_perform(curl);
@@ -180,12 +188,16 @@ int leancloud_saveSimInfo(const char* imei, const char* ccid, const char* imsi)
 
     cJSON *root = cJSON_CreateObject();
 
-    cJSON_AddStringToObject(root, "IMEI", imei);
+    cJSON_AddStringToObject(root, "CCID", ccid);
+    cJSON_AddStringToObject(root, "IMSI", imsi);
     char* data = cJSON_PrintUnformatted(root);
 
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveDID);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveSimInfo);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, imei);
-    int ret = leancloud_post(curl, "SimInfo", data, strlen(data));
+
+    //get objectID with imei from hash table
+    const char* objectID;
+    int ret = leancloud_update(curl, "DID", objectID, data, strlen(data));
 
     cJSON_Delete(root);
     free(data);

@@ -154,7 +154,7 @@ int getLastFileChecksum(void)
     int checksum = adler32(data, readSize);
 
     LOG_INFO("readSize is %d, LastFileSize is %d, checksum is %d", readSize, LastFileSize, checksum);
-    LOG_HEX(data, readSize);
+    //LOG_HEX(data, readSize);
 
     return checksum;
 }

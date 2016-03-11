@@ -13,7 +13,6 @@
 #include "log.h"
 #include "env.h"
 #include "db.h"
-#include "object.h"
 
 size_t leancloud_onSaveGPS(void *contents, size_t size, size_t nmemb, void *userdata)
 {
@@ -32,6 +31,31 @@ size_t leancloud_onSaveGPS(void *contents, size_t size, size_t nmemb, void *user
 	else
 	{
 		LOG_INFO("get save GPS response: %s", rsp);
+	}
+
+	cJSON_Delete(json);
+	free(rsp);
+
+	return size * nmemb;
+}
+
+size_t leancloud_onSaveSimInfo(void *contents, size_t size, size_t nmemb, void *userdata)
+{
+	userdata = userdata;
+
+	char* rsp = malloc(size * nmemb + 1);
+	memcpy(rsp, contents, size * nmemb);
+	rsp[size * nmemb] = 0;
+
+	cJSON* json = cJSON_Parse(rsp);
+
+	if (!json)
+	{
+		LOG_ERROR("error parse response: %s", rsp);
+	}
+	else
+	{
+		LOG_INFO("get save SinInfo response: %s", rsp);
 	}
 
 	cJSON_Delete(json);
@@ -65,14 +89,8 @@ size_t leancloud_onSaveDID(void *contents, size_t size, size_t nmemb, void *user
 			return 0;
 		}
 
-		OBJECT *obj = obj_get(imei);
-		if(!obj)
-		{
-			LOG_ERROR("can't get obj from imei in leancloud_onSaveDID");
-			return 0;
-		}
+		//build relationships between imei and objectId->valuestring
 
-		memcpy(obj->objectID, objectId->valuestring, strlen(objectId->valuestring));
 		db_updateOBJIsPosted(imei);
 	}
 

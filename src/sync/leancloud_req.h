@@ -12,6 +12,8 @@ int leancloud_saveDid(const char* imei);
 
 int leancloud_saveGPS(int timestamp, const char* imei, double lat, double lng, double speed, double course);
 
+int leancloud_saveSimInfo(const char* objectID, const char* ccid, const char* imsi);
+
 int leancloud_getOBJ(void);
 
 int leancloud_sendSms2Tel(const char *SmsTemplate, const char *TelNumber);

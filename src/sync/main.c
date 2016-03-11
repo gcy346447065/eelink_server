@@ -13,6 +13,7 @@
 #include "env.h"
 #include "db.h"
 #include "timer.h"
+#include "objectIDLeancloud.h"
 
 struct event_base *base = NULL;
 
