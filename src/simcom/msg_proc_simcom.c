@@ -657,7 +657,7 @@ static int simcom_SetAutoswitch(const void *msg, SESSION *session)
     }
     else
     {
-        LOG_ERROR("response autolock cmd not exist");
+        LOG_ERROR("response SetAutoswitch cmd not exist");
         return -1;
     }
 
@@ -708,7 +708,7 @@ static int simcom_SetPeriod(const void *msg, SESSION *session)
     }
     else
     {
-        LOG_ERROR("response seek cmd not exist");
+        LOG_ERROR("response SetPeriod cmd not exist");
         return -1;
     }
     return 0;
@@ -728,7 +728,7 @@ static int simcom_GetPeriod(const void *msg, SESSION *session)
     }
     else
     {
-        LOG_ERROR("response get period cmd not exist");
+        LOG_ERROR("response GetPeriod cmd not exist");
         return -1;
     }
 
@@ -840,7 +840,7 @@ static int simcom_DefendGet(const void *msg, SESSION *session)
     }
     else
     {
-        LOG_ERROR("response get period cmd not exist");
+        LOG_ERROR("response DefendGet cmd not exist");
         return -1;
     }
 
@@ -857,7 +857,7 @@ static int simcom_DefendNotify(const void *msg, SESSION *session)
     }
     else
     {
-        LOG_ERROR("response get period cmd not exist");
+        LOG_ERROR("response DefendNotify cmd not exist");
         return -1;
     }
 

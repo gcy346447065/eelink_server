@@ -139,7 +139,6 @@ int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
 
     cJSON *root = cJSON_CreateObject();
 
-    cJSON_AddStringToObject(root, "IMEI", imei);
     cJSON_AddNumberToObject(root, "start",  start);
     cJSON_AddNumberToObject(root, "end",  end);
     cJSON_AddNumberToObject(root, "miles",  miles);
@@ -147,7 +146,10 @@ int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
 
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveItinerary);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, env);
-    int ret = leancloud_post(curl, "Itinerary", data, strlen(data));
+
+    char class[12 + IMEI_LENGTH];
+    sprintf(class, "Itinerary_%s", imei);
+    int ret = leancloud_post(curl, class, data, strlen(data));
 
     cJSON_Delete(root);
     free(data);
