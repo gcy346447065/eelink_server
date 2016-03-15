@@ -217,22 +217,12 @@ static int simcom_gps(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (fabs(obj->lat - req->gps.latitude) < FLT_EPSILON
-        && fabs(obj->lon - req->gps.longitude) < FLT_EPSILON)
-    {
-        LOG_INFO("No need to save data to leancloud");
-    }
-    else
-    {
-        //update local object
-        obj->isGPSlocated = 0x01;
-        obj->lat = req->gps.latitude;
-        obj->lon = req->gps.longitude;
-    }
-
     obj->timestamp = ntohl(req->gps.timestamp);
+    obj->lat = req->gps.latitude;
+    obj->lon = req->gps.longitude;
     obj->speed = req->gps.speed;
     obj->course = ntohs(req->gps.course);
+    obj->isGPSlocated = 0x01;
 
     app_sendGpsMsg2App(session);
 
