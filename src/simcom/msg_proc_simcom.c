@@ -962,6 +962,57 @@ static int simcom_SimInfo(const void *msg, SESSION *session)
     return 0;
 }
 
+static int simcom_gps_pack(const void *msg, SESSION *session)
+{
+    const MSG_HEADER *req = (const MSG_HEADER *)msg;
+    if(!req)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(req->length) < sizeof(GPS))
+    {
+        LOG_ERROR("gps message length not enough");
+        return -1;
+    }
+
+    const GPS *gps = (const GPS *)(req + 1);
+    if (!gps)
+    {
+        LOG_ERROR("gps handle empty");
+        return -1;
+    }
+
+    OBJECT * obj = (OBJECT *)session->obj;
+    if (!obj)
+    {
+        LOG_WARN("MC must first login");
+        return -1;
+    }
+
+    int num = ntohs(req->length) / sizeof(GPS);
+    for(int i = 0; i < num; ++i)
+    {
+        obj->timestamp = ntohl(gps[i].timestamp);
+        obj->lat = gps[i].latitude;
+        obj->lon = gps[i].longitude;
+        obj->speed = gps[i].speed;
+        obj->course = ntohs(gps[i].course);
+
+        LOG_INFO("GPS_PACK(%d/%d): timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
+                i+1, num, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
+
+        db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
+        sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
+    }
+    obj->isGPSlocated = 0x01;
+
+    //send the last gps in GPS_PACK to app
+    app_sendGpsMsg2App(session);
+
+    return 0;
+}
+
 static MSG_PROC_MAP msgProcs[] =
 {
     {CMD_WILD,              simcom_wild},
@@ -989,7 +1040,8 @@ static MSG_PROC_MAP msgProcs[] =
     {CMD_UPGRADE_START,     simcom_UpgradeStart},
     {CMD_UPGRADE_DATA,      simcom_UpgradeData},
     {CMD_UPGRADE_END,       simcom_UpgradeEnd},
-    {CMD_SIM_INFO,          simcom_SimInfo}
+    {CMD_SIM_INFO,          simcom_SimInfo},
+    {CMD_GPS_PACK,          simcom_gps_pack}
 };
 
 int handle_one_msg(const void *m, SESSION *ctx)
