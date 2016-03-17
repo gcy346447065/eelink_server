@@ -150,7 +150,7 @@ static int simcom_login(const void *msg, SESSION *session)
         theSize = getLastFileSize();
         LOG_INFO("req->version is %d, theLastVersion is %d, theSize is %d", ntohl(req->version), theLastVersion, theSize);
         
-        if(ntohl(req->version) != theLastVersion)
+        if(ntohl(req->version) < theLastVersion)
         {
             MSG_UPGRADE_START_REQ *req4upgrade = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, theSize);
             if (!req4upgrade)
