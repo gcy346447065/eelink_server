@@ -759,11 +759,12 @@ static int simcom_battery(const void *msg, SESSION *session)
 
     if(rsp->percent != 0)
     {
+        LOG_INFO("battery: percent(%d), miles(%d)", p->percent, rsp->miles);
         app_sendBatteryRsp2App(APP_CMD_BATTERY, CODE_SUCCESS, rsp->percent, rsp->miles, session);
     }
     else
     {
-        LOG_INFO("battery percent = 0, it's learning now");
+        LOG_INFO("battery: percent(%d), miles(%d), it's learning now", p->percent, rsp->miles);
         app_sendBatteryRsp2App(APP_CMD_BATTERY, CODE_BATTERY_LEARNING, rsp->percent, rsp->miles, session);
 
         return -1;
