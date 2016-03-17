@@ -953,7 +953,109 @@ static int simcom_SimInfo(const void *msg, SESSION *session)
     return 0;
 }
 
-static int simcom_gps_pack(const void *msg, SESSION *session)
+static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
+{
+    const MSG_HEADER *req = (const MSG_HEADER *)msg;
+    if(!req)
+    {
+        LOG_ERROR("req handle empty");
+        return -1;
+    }
+    if(ntohs(req->length) < sizeof(CGI) + 6 && ntohs(req->length) < sizeof(GPS) + 6)
+    {
+        LOG_ERROR("device info message length not enough");
+        return -1;
+    }
+
+    const char *isGPS = (const char *)(req + 1);
+
+    if(*isGPS == 0x01)
+    {
+        //location with gps
+        const GPS *gps = (const GPS *)(isGPS + 1);
+        if (!gps)
+        {
+            LOG_ERROR("gps handle empty");
+            return -1;
+        }
+
+        LOG_INFO("LOCATION GPS: timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
+            ntohl(gps->timestamp), gps->latitude, gps->longitude, gps->speed, ntohs(gps->course));
+
+        OBJECT * obj = (OBJECT *) session->obj;
+        if (!obj)
+        {
+            LOG_WARN("MC must first login");
+            return -1;
+        }
+
+        obj->timestamp = ntohl(gps->timestamp);
+        obj->isGPSlocated = 0x01;
+        obj->lat = gps->latitude;
+        obj->lon = gps->longitude;
+        obj->speed = gps->speed;
+        obj->course = ntohs(gps->course);
+
+        app_sendLocationRsp2App(CODE_SUCCESS, obj);
+    }
+    else if(*isGPS == 0x00)
+    {
+        //location with cell
+        const CGI *cgi = (const CGI *)(isGPS + 1);
+        if (!cgi)
+        {
+            LOG_ERROR("cgi handle empty");
+            return -1;
+        }
+
+        LOG_INFO("LOCATION CGI: mcc(%d), mnc(%d)", ntohs(cgi->mcc), ntohs(cgi->mnc));
+        OBJECT *obj = session->obj;
+        if(!obj)
+        {
+            LOG_WARN("MC must first login");
+            return -1;
+        }
+
+        obj->timestamp = get_time();
+        obj->isGPSlocated = 0x00;
+
+        int num = cgi->cellNo;
+        if(num > CELL_NUM)
+        {
+            LOG_ERROR("Number:%d of cell is over", num);
+            return -1;
+        }
+
+        const CELL *cell = (const CELL *)(cgi + 1);
+
+        for(int i = 0; i < num; ++i)
+        {
+            (obj->cell[i]).mcc = ntohs(cgi->mcc);
+            (obj->cell[i]).mnc = ntohs(cgi->mnc);
+            (obj->cell[i]).lac = ntohs((cell[i]).lac);
+            (obj->cell[i]).ci  = ntohs((cell[i]).cellid);
+            (obj->cell[i]).rxl = ntohs((cell[i]).rxl);
+        }
+
+        float lat, lon;
+        int rc = cgi2gps(obj->cell, num, &lat, &lon);
+        if(rc != 0)
+        {
+            //LOG_ERROR("cgi2gps error");
+            return 1;
+        }
+        obj->lat = lat;
+        obj->lon = lon;
+        obj->speed = 0;
+        obj->course = 0;
+
+        app_sendLocationRsp2App(CODE_SUCCESS, obj);
+    }
+
+    return 0;
+}
+
+static int simcom_gpsPack(const void *msg, SESSION *session)
 {
     const MSG_HEADER *req = (const MSG_HEADER *)msg;
     if(!req)
@@ -1032,7 +1134,8 @@ static MSG_PROC_MAP msgProcs[] =
     {CMD_UPGRADE_DATA,      simcom_UpgradeData},
     {CMD_UPGRADE_END,       simcom_UpgradeEnd},
     {CMD_SIM_INFO,          simcom_SimInfo},
-    {CMD_GPS_PACK,          simcom_gps_pack}
+    {CMD_DEVICE_INFO_GET,   simcom_DeviceInfoGet},
+    {CMD_GPS_PACK,          simcom_gpsPack}
 };
 
 int handle_one_msg(const void *m, SESSION *ctx)
