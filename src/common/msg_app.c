@@ -216,7 +216,7 @@ void app_sendStatusGetRsp2App(int cmd, int code, OBJECT *obj, char autolock, cha
     cJSON_AddNumberToObject(root, "code", code);
 
     cJSON *result = cJSON_CreateObject();
-    cJSON_AddNumberToObject(result, "isGPSlocated", obj->isGPSlocated);
+    cJSON_AddBoolToObject(result, "isGPSlocated", obj->isGPSlocated);
 
     cJSON *gps = cJSON_CreateObject();
     cJSON_AddNumberToObject(gps, "timestamp", obj->timestamp);
@@ -226,7 +226,7 @@ void app_sendStatusGetRsp2App(int cmd, int code, OBJECT *obj, char autolock, cha
     cJSON_AddNumberToObject(gps, "course", obj->course);
     cJSON_AddItemToObject(result, "gps", gps);
 
-    cJSON_AddNumberToObject(result, "lock", status);
+    cJSON_AddBoolToObject(result, "lock", status);
 
     cJSON *J_autolock = cJSON_CreateObject();
     cJSON_AddBoolToObject(J_autolock, "isOn", autolock);
