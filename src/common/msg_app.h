@@ -85,7 +85,7 @@ void app_sendLocationRsp2App(int code, OBJECT *obj);
 void app_sendAutoPeriodGetRsp2App(int cmd, int code, int period, void *session);
 void app_sendAutoLockGetRsp2App(int cmd, int code, int state, void *session);
 void app_sendBatteryRsp2App(int cmd, int code, int percent, int miles, void *session);
-void app_sendAutoLockNotifyRsp2App(int cmd, int code, int timestamp, int lock, void *session);
+void app_sendStatusGetRsp2App(int cmd, int code, OBJECT *obj, char autolock, char autoperiod, char percent, char miles, char status);
 
 void app_sendGpsMsg2App(void* session);
 void app_send433Msg2App(int timestamp, int intensity, void * session);

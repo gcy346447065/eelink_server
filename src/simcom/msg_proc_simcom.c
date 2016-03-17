@@ -967,11 +967,19 @@ static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
         return -1;
     }
 
-    const char *isGPS = (const char *)(req + 1);
+    OBJECT * obj = (OBJECT *) session->obj;
+    if (!obj)
+    {
+        LOG_WARN("MC must first login");
+        return -1;
+    }
 
+    //parse for gps or cell
+    const char *isGPS = (const char *)(req + 1);
+    const char *autolock;
     if(*isGPS == 0x01)
     {
-        //location with gps
+        //gps
         const GPS *gps = (const GPS *)(isGPS + 1);
         if (!gps)
         {
@@ -979,15 +987,8 @@ static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
             return -1;
         }
 
-        LOG_INFO("LOCATION GPS: timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
+        LOG_INFO("Device Info GPS: timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
             ntohl(gps->timestamp), gps->latitude, gps->longitude, gps->speed, ntohs(gps->course));
-
-        OBJECT * obj = (OBJECT *) session->obj;
-        if (!obj)
-        {
-            LOG_WARN("MC must first login");
-            return -1;
-        }
 
         obj->timestamp = ntohl(gps->timestamp);
         obj->isGPSlocated = 0x01;
@@ -996,61 +997,37 @@ static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
         obj->speed = gps->speed;
         obj->course = ntohs(gps->course);
 
-        app_sendLocationRsp2App(CODE_SUCCESS, obj);
+        autolock = (const char *)(gps + 1);
     }
     else if(*isGPS == 0x00)
     {
-        //location with cell
-        const CGI *cgi = (const CGI *)(isGPS + 1);
-        if (!cgi)
+        //one cell
+        const short *mcc = (const short *)(isGPS + 1);
+        if (!mcc)
         {
-            LOG_ERROR("cgi handle empty");
+            LOG_ERROR("mcc handle empty");
             return -1;
         }
 
-        LOG_INFO("LOCATION CGI: mcc(%d), mnc(%d)", ntohs(cgi->mcc), ntohs(cgi->mnc));
-        OBJECT *obj = session->obj;
-        if(!obj)
-        {
-            LOG_WARN("MC must first login");
-            return -1;
-        }
+        LOG_INFO("Device Info Cell: mcc(%d), mnc(%d), lac(%d), cid(%d)", ntohs(*mcc), ntohs(*(mcc+1)), ntohs(*(mcc+2)), ntohs(*(mcc+3)));
 
-        obj->timestamp = get_time();
         obj->isGPSlocated = 0x00;
+        /* unused
+        obj->mcc = ntohs(*mcc);
+        obj->mnc = ntohs(*(mcc+1));
+        obj->lac = ntohs(*(mcc+2));
+        obj->cid = ntohs(*(mcc+4));
+        */
 
-        int num = cgi->cellNo;
-        if(num > CELL_NUM)
-        {
-            LOG_ERROR("Number:%d of cell is over", num);
-            return -1;
-        }
-
-        const CELL *cell = (const CELL *)(cgi + 1);
-
-        for(int i = 0; i < num; ++i)
-        {
-            (obj->cell[i]).mcc = ntohs(cgi->mcc);
-            (obj->cell[i]).mnc = ntohs(cgi->mnc);
-            (obj->cell[i]).lac = ntohs((cell[i]).lac);
-            (obj->cell[i]).ci  = ntohs((cell[i]).cellid);
-            (obj->cell[i]).rxl = ntohs((cell[i]).rxl);
-        }
-
-        float lat, lon;
-        int rc = cgi2gps(obj->cell, num, &lat, &lon);
-        if(rc != 0)
-        {
-            //LOG_ERROR("cgi2gps error");
-            return 1;
-        }
-        obj->lat = lat;
-        obj->lon = lon;
-        obj->speed = 0;
-        obj->course = 0;
-
-        app_sendLocationRsp2App(CODE_SUCCESS, obj);
+        autolock = (const char *)(mcc + 4);
     }
+
+    //parse for autolock, autoperiod, percent, miles, status
+    LOG_INFO("Device Info Others: autolock(%d), autoperiod(%d), percent(%d), miles(%d), status(%d)",
+            *autolock, *(autolock+1), *(autolock+2), *(autolock+3), *(autolock+4));
+
+    app_sendStatusGetRsp2App(APP_CMD_STATUS_GET, CODE_SUCCESS, obj, 
+        *autolock, *(autolock+1), *(autolock+2), *(autolock+3), *(autolock+4));
 
     return 0;
 }
