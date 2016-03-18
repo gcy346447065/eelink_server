@@ -42,7 +42,7 @@ int getLastVersionWithFileNameAndSizeStored(void)
 
             if(NowVersion > LastVersion)
             {
-                LOG_INFO("a is %d, b is %d, c is %d", a, b, c);
+                //LOG_INFO("a is %d, b is %d, c is %d", a, b, c);
 
                 LastVersion = NowVersion;
 

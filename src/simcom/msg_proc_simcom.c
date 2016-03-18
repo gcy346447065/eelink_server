@@ -150,7 +150,7 @@ static int simcom_login(const void *msg, SESSION *session)
         theSize = getLastFileSize();
         LOG_INFO("req->version is %d, theLastVersion is %d, theSize is %d", ntohl(req->version), theLastVersion, theSize);
         
-        if(ntohl(req->version) != theLastVersion)
+        if(ntohl(req->version) < theLastVersion)
         {
             MSG_UPGRADE_START_REQ *req4upgrade = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, theSize);
             if (!req4upgrade)
@@ -953,7 +953,86 @@ static int simcom_SimInfo(const void *msg, SESSION *session)
     return 0;
 }
 
-static int simcom_gps_pack(const void *msg, SESSION *session)
+static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
+{
+    const MSG_HEADER *req = (const MSG_HEADER *)msg;
+    if(!req)
+    {
+        LOG_ERROR("req handle empty");
+        return -1;
+    }
+    if(ntohs(req->length) < sizeof(CGI) + 6 && ntohs(req->length) < sizeof(GPS) + 6)
+    {
+        LOG_ERROR("device info message length not enough");
+        return -1;
+    }
+
+    OBJECT * obj = (OBJECT *) session->obj;
+    if (!obj)
+    {
+        LOG_WARN("MC must first login");
+        return -1;
+    }
+
+    //parse for gps or cell
+    const char *isGPS = (const char *)(req + 1);
+    const char *autolock;
+    if(*isGPS == 0x01)
+    {
+        //gps
+        const GPS *gps = (const GPS *)(isGPS + 1);
+        if (!gps)
+        {
+            LOG_ERROR("gps handle empty");
+            return -1;
+        }
+
+        LOG_INFO("Device Info GPS: timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
+            ntohl(gps->timestamp), gps->latitude, gps->longitude, gps->speed, ntohs(gps->course));
+
+        obj->timestamp = ntohl(gps->timestamp);
+        obj->isGPSlocated = 0x01;
+        obj->lat = gps->latitude;
+        obj->lon = gps->longitude;
+        obj->speed = gps->speed;
+        obj->course = ntohs(gps->course);
+
+        autolock = (const char *)(gps + 1);
+    }
+    else if(*isGPS == 0x00)
+    {
+        //one cell
+        const short *mcc = (const short *)(isGPS + 1);
+        if (!mcc)
+        {
+            LOG_ERROR("mcc handle empty");
+            return -1;
+        }
+
+        LOG_INFO("Device Info Cell: mcc(%d), mnc(%d), lac(%d), cid(%d)", ntohs(*mcc), ntohs(*(mcc+1)), ntohs(*(mcc+2)), ntohs(*(mcc+3)));
+
+        obj->isGPSlocated = 0x00;
+        /* unused
+        obj->mcc = ntohs(*mcc);
+        obj->mnc = ntohs(*(mcc+1));
+        obj->lac = ntohs(*(mcc+2));
+        obj->cid = ntohs(*(mcc+4));
+        */
+
+        autolock = (const char *)(mcc + 4);
+    }
+
+    //parse for autolock, autoperiod, percent, miles, status
+    LOG_INFO("Device Info Others: autolock(%d), autoperiod(%d), percent(%d), miles(%d), status(%d)",
+            *autolock, *(autolock+1), *(autolock+2), *(autolock+3), *(autolock+4));
+
+    app_sendStatusGetRsp2App(APP_CMD_STATUS_GET, CODE_SUCCESS, obj, 
+        *autolock, *(autolock+1), *(autolock+2), *(autolock+3), *(autolock+4));
+
+    return 0;
+}
+
+static int simcom_gpsPack(const void *msg, SESSION *session)
 {
     const MSG_HEADER *req = (const MSG_HEADER *)msg;
     if(!req)
@@ -1032,7 +1111,8 @@ static MSG_PROC_MAP msgProcs[] =
     {CMD_UPGRADE_DATA,      simcom_UpgradeData},
     {CMD_UPGRADE_END,       simcom_UpgradeEnd},
     {CMD_SIM_INFO,          simcom_SimInfo},
-    {CMD_GPS_PACK,          simcom_gps_pack}
+    {CMD_DEVICE_INFO_GET,   simcom_DeviceInfoGet},
+    {CMD_GPS_PACK,          simcom_gpsPack}
 };
 
 int handle_one_msg(const void *m, SESSION *ctx)
