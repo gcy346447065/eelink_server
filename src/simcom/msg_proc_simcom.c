@@ -77,9 +77,8 @@ static int simcom_wild(const void *m, SESSION *session)
 static int simcom_login(const void *msg, SESSION *session)
 {
     const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg; //TO DO: Version, CCID
-    char imei[IMEI_LENGTH + 1];
+    char imei[IMEI_LENGTH];
     memcpy(imei, req->IMEI, IMEI_LENGTH);
-    imei[IMEI_LENGTH] = 0;
 
     if (!session)
     {
@@ -102,8 +101,8 @@ static int simcom_login(const void *msg, SESSION *session)
 
             obj = obj_new();
 
-            memcpy(obj->IMEI, imei, IMEI_LENGTH + 1);
-            memcpy(obj->DID,  imei, IMEI_LENGTH + 1);//IMEI and DID mean the same now
+            memcpy(obj->IMEI, imei, IMEI_LENGTH);
+            memcpy(obj->DID,  imei, IMEI_LENGTH);//IMEI and DID mean the same now
             obj->ObjectType = ObjectType_simcom;
 
             obj_add(obj);
