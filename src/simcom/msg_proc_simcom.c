@@ -973,9 +973,18 @@ static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
         return -1;
     }
 
+    //parse for autolock, autoperiod, percent, miles, status
+    const char *autolock = (const char *)(req + 1);
+
+    LOG_INFO("Device Info Others: autolock(%d), autoperiod(%d), percent(%d), miles(%d), status(%d)",
+            *autolock, *(autolock+1), *(autolock+2), *(autolock+3), *(autolock+4));
+
+    app_sendStatusGetRsp2App(APP_CMD_STATUS_GET, CODE_SUCCESS, obj, 
+        *autolock, *(autolock+1), *(autolock+2), *(autolock+3), *(autolock+4));
+
     //parse for gps or cell
-    const char *isGPS = (const char *)(req + 1);
-    const char *autolock;
+    const char *isGPS = (const char *)(autolock + 5);
+    
     if(*isGPS == 0x01)
     {
         //gps
@@ -995,8 +1004,6 @@ static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
         obj->lon = gps->longitude;
         obj->speed = gps->speed;
         obj->course = ntohs(gps->course);
-
-        autolock = (const char *)(gps + 1);
     }
     else if(*isGPS == 0x00)
     {
@@ -1017,16 +1024,7 @@ static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
         obj->lac = ntohs(*(mcc+2));
         obj->cid = ntohs(*(mcc+4));
         */
-
-        autolock = (const char *)(mcc + 4);
     }
-
-    //parse for autolock, autoperiod, percent, miles, status
-    LOG_INFO("Device Info Others: autolock(%d), autoperiod(%d), percent(%d), miles(%d), status(%d)",
-            *autolock, *(autolock+1), *(autolock+2), *(autolock+3), *(autolock+4));
-
-    app_sendStatusGetRsp2App(APP_CMD_STATUS_GET, CODE_SUCCESS, obj, 
-        *autolock, *(autolock+1), *(autolock+2), *(autolock+3), *(autolock+4));
 
     return 0;
 }
