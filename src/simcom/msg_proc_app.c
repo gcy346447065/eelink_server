@@ -199,17 +199,17 @@ static int app_sendSeekMsg2Device(cJSON* appMsg, OBJECT* obj)
 
 static int app_sendLocationMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
-    int cmd = getMsgCmd(appMsg);
+    appMsg = appMsg;
 
     MSG_HEADER *req = (MSG_HEADER *)alloc_simcom_msg(CMD_LOCATE, sizeof(MSG_HEADER));
     if (!req)
     {
         LOG_FATAL("insufficient memory");
-        app_sendCmdRsp2App(cmd, CODE_INTERNAL_ERR, obj->IMEI);
+        app_sendLocationRsp2App(CODE_INTERNAL_ERR, obj);
         return -1;
     }
 
-    app_sendCmdRsp2App(cmd, CODE_WAITING, obj->IMEI);
+    app_sendLocationRsp2App(CODE_WAITING, obj);
     app_sendMsg2Device(req, sizeof(MSG_HEADER), obj);
     return 0;
 }
