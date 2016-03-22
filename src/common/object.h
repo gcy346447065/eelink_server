@@ -35,7 +35,7 @@ typedef struct
 
     int ObjectType;
 
-    char IMEI[IMEI_LENGTH + 1];
+    char IMEI[IMEI_LENGTH];
     char language;
     char locale;
 
