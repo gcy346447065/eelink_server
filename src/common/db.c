@@ -240,7 +240,7 @@ static int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[],
 Names of the table and columns need modifing*/
 static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *))
 {
-    char query[] = "select imei from object";
+    char query[] = "select imei from object where length(imei)=15";
 
     if(mysql_ping(conn))
     {
