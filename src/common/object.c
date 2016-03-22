@@ -33,8 +33,6 @@ static void obj_add_db(OBJECT *obj)
 /* it is a callback to initialize object_table.Func db_doWithOBJ needs it to handle with every result(imei, lastlogintime).*/
 static void obj_initial(const char *imei)
 {
-    if()
-
 	OBJECT *obj = obj_new();
 	memcpy(obj->IMEI, imei, IMEI_LENGTH);
 	obj_add_hash(obj);
