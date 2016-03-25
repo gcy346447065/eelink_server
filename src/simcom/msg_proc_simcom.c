@@ -76,8 +76,15 @@ static int simcom_wild(const void *m, SESSION *session)
 
 static int simcom_login(const void *msg, SESSION *session)
 {
-    const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg; //TO DO: Version, CCID
-    char imei[IMEI_LENGTH];
+    const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg;
+    char imei[IMEI_LENGTH + 1];
+    
+    if(ntohs(req->header.length) < sizeof(MSG_LOGIN_REQ) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("login message length not enough");
+        return -1;
+    }
+
     memcpy(imei, req->IMEI, IMEI_LENGTH);
 
     if (!session)
