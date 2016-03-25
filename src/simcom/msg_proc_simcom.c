@@ -576,6 +576,7 @@ static int simcom_locate(const void *msg, SESSION *session)
             (obj->cell[i]).rxl = ntohs((cell[i]).rxl);
         }
 
+#if 0
         float lat, lon;
         int rc = cgi2gps(obj->cell, num, &lat, &lon);
         if(rc != 0)
@@ -585,6 +586,11 @@ static int simcom_locate(const void *msg, SESSION *session)
         }
         obj->lat = lat;
         obj->lon = lon;
+#else
+        obj->lat = 0;
+        obj->lon = 0;
+#endif
+
         obj->speed = 0;
         obj->course = 0;
 
