@@ -118,11 +118,6 @@ int main(int argc, char **argv)
     struct timeval one_day = { 86400, 0 };
     (void)timer_newLoop(base, &one_day, ResaveUnpostedImei_cb, leancloud_saveDid);
 
-    #if 1
-    LOG_INFO("test for leancloud_sendSms2Tel");
-    leancloud_sendSms2Tel("SmsAlarm", "15871413731");
-    #endif
-
     env_initial();
 
     //start the event loop
