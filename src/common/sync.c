@@ -32,9 +32,18 @@ void sync_reconnect_fn(evutil_socket_t fd, short a, void * arg)
     sync_init(base);
 }
 
-static void sendMsg2Sync(void* data, size_t len)
+static void sendMsg2Sync(void *data, size_t len)
 {
-    bufferevent_write(bev, data, len);
+    if(bev)
+    {
+        bufferevent_write(bev, data, len);
+    }
+    else
+    {
+        LOG_INFO("sync server connection dev null, wait to reconnect");
+    }
+    
+    return;
 }
 
 static void event_cb(struct bufferevent *bev, short events, void *arg)

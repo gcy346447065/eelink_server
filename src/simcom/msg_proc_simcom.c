@@ -86,6 +86,7 @@ static int simcom_login(const void *msg, SESSION *session)
     }
 
     memcpy(imei, req->IMEI, IMEI_LENGTH);
+    imei[IMEI_LENGTH] = '\0'; //add '\0' for string operaton
 
     if (!session)
     {
@@ -108,8 +109,8 @@ static int simcom_login(const void *msg, SESSION *session)
 
             obj = obj_new();
 
-            memcpy(obj->IMEI, imei, IMEI_LENGTH);
-            memcpy(obj->DID,  imei, IMEI_LENGTH);//IMEI and DID mean the same now
+            memcpy(obj->IMEI, imei, IMEI_LENGTH + 1);
+            memcpy(obj->DID,  imei, IMEI_LENGTH + 1);//IMEI and DID mean the same now
             obj->ObjectType = ObjectType_simcom;
 
             obj_add(obj);

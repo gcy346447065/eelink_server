@@ -148,6 +148,7 @@ const char* getMacFromIMEI(const unsigned char* IMEI)
 
 #endif
 
+/***** when IMEI_LENGTH changed to 15, this function becomes bad, do not use it! *****/
 //imei of 8 bits to imei of 16 bits, the result ends by '\0'
 const char* get_IMEI_STRING(const unsigned char* IMEI)
 {
@@ -167,6 +168,7 @@ const char* get_IMEI_STRING(const unsigned char* IMEI)
 	return strIMEI;
 }
 
+/***** when IMEI_LENGTH changed to 15, this function becomes bad, do not use it! *****/
 //imei of 16 bits to imei of 8 bits, the result ends by '\0'
 const unsigned char* get_IMEI(const char* strIMEI)
 {
