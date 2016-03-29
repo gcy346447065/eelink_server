@@ -188,20 +188,15 @@ int leancloud_saveSimInfo(const char* imei, const char* ccid, const char* imsi)
 
     LOG_INFO("sim info data:\n%s", data);
 
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveSimInfo);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, env);
-
-    
-
     int ret = 0;
-
-#if 0
     char url[256] = {0};
     snprintf(url, 256, "%s/batch", LEANCLOUD_URL_BASE);
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data); /* pass in a pointer to the data - libcurl will not copy */
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, len); /* size of the POST data */
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(data)); /* size of the POST data */
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveSimInfo);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, env);
 
     /* Perform the request, res will get the return code */
     CURLcode res = curl_easy_perform(curl);
@@ -214,7 +209,6 @@ int leancloud_saveSimInfo(const char* imei, const char* ccid, const char* imsi)
     {
         ret = 0;
     }
-#endif
 
     cJSON_Delete(root);
     free(data);
