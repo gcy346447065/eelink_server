@@ -163,7 +163,7 @@ int leancloud_saveSimInfo(const char* imei, const char* ccid, const char* imsi)
     CURL* curl = env->curl_leancloud;
 
     //get objectID from imei
-    char *objectID = "56f930cac4c971005bc2b18c";
+    char *objectID = "56dfdc8a7db2a200598d3171";
 
     //creat cjson
     cJSON *put = cJSON_CreateObject();
@@ -202,7 +202,7 @@ int leancloud_saveSimInfo(const char* imei, const char* ccid, const char* imsi)
     CURLcode res = curl_easy_perform(curl);
     if(CURLE_OK != res)
     {
-        LOG_ERROR("leancloud_post failed: %s", curl_easy_strerror(res));
+        LOG_ERROR("leancloud_SimInfo failed: %s", curl_easy_strerror(res));
         ret = -1;
     }
     else
