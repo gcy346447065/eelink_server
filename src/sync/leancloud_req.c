@@ -170,7 +170,7 @@ int leancloud_saveSimInfo(const char* imei, const char* ccid, const char* imsi)
     cJSON_AddStringToObject(put, "method", "PUT");
 
     char path[256] = {0};
-    snprintf(path, 256, "/1.1/classes/Post/%s", objectID);
+    snprintf(path, 256, "/1.1/classes/DID/%s", objectID);
     cJSON_AddStringToObject(put, "path", path);
 
     cJSON *body = cJSON_CreateObject();
