@@ -52,7 +52,7 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
     if (events & BEV_EVENT_CONNECTED)
     {
          /* We're connected to the server.   Ordinarily we'd do
-            something here, like start reading or writing. */
+            something heGre, like start reading or writing. */
         LOG_INFO("connect to the sync server successful");
         if (evTimerReconnect)
         {
@@ -239,5 +239,31 @@ void sync_itinerary(const char *imei, int start, int end, int miles)
 
     free(data);
     cJSON_Delete(root);
+    return;
+}
+
+void sync_SimInfo(const char* imei, const char* ccid, const char* imsi)
+{
+    cJSON* root = cJSON_CreateObject();
+
+    cJSON_AddNumberToObject(root, TAG_CMD, CMD_SYNC_NEW_SIM_INFO);
+    cJSON_AddStringToObject(root, TAG_IMEI, imei);
+    cJSON_AddStringToObject(root, TAG_CCID, ccid);
+    cJSON_AddStringToObject(root, TAG_IMSI, imsi);
+
+    char *data = cJSON_PrintUnformatted(root);
+    if (!data)
+    {
+        LOG_ERROR("internal error");
+        cJSON_Delete(root);
+        return;
+    }
+
+    sendMsg2Sync(data, strlen(data));
+    LOG_INFO("send sim_info(imei(%s), ccid(%s), imsi(%s) to sync", imei, ccid, imsi);
+
+    free(data);
+    cJSON_Delete(root);
+
     return;
 }

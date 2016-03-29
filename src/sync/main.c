@@ -120,6 +120,11 @@ int main(int argc, char **argv)
 
     env_initial();
 
+#if 1      
+    LOG_INFO("test for leancloud_saveSimInfo");       
+    leancloud_saveSimInfo("123", "456", "789");     
+#endif
+
     //start the event loop
     LOG_INFO("start the event loop");
     event_base_dispatch(base);

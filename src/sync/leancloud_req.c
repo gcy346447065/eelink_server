@@ -147,9 +147,74 @@ int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveItinerary);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, env);
 
-    char class[12 + IMEI_LENGTH];
+    char class[IMEI_LENGTH + 11];
     sprintf(class, "Itinerary_%s", imei);
     int ret = leancloud_post(curl, class, data, strlen(data));
+
+    cJSON_Delete(root);
+    free(data);
+
+    return ret;
+}
+
+int leancloud_saveSimInfo(const char* imei, const char* ccid, const char* imsi)
+{
+    ENVIRONMENT* env = env_get();
+    CURL* curl = env->curl_leancloud;
+
+    //get objectID from imei
+    char *objectID = "56f930cac4c971005bc2b18c";
+
+    //creat cjson
+    cJSON *put = cJSON_CreateObject();
+    cJSON_AddStringToObject(put, "method", "PUT");
+
+    char path[256] = {0};
+    snprintf(path, 256, "/1.1/classes/Post/%s", objectID);
+    cJSON_AddStringToObject(put, "path", path);
+
+    cJSON *body = cJSON_CreateObject();
+    cJSON_AddStringToObject(body, "CCID", ccid);
+    cJSON_AddStringToObject(body, "IMSI", imsi);
+    cJSON_AddItemToObject(put, "body", body);
+
+    cJSON *requests = cJSON_CreateArray();
+    cJSON_AddItemToArray(requests, put);
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddItemToObject(root, "requests", requests);
+    
+    char* data = cJSON_PrintUnformatted(root);
+
+    LOG_INFO("sim info data:\n%s", data);
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveSimInfo);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, env);
+
+    
+
+    int ret = 0;
+
+#if 0
+    char url[256] = {0};
+    snprintf(url, 256, "%s/batch", LEANCLOUD_URL_BASE);
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data); /* pass in a pointer to the data - libcurl will not copy */
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, len); /* size of the POST data */
+
+    /* Perform the request, res will get the return code */
+    CURLcode res = curl_easy_perform(curl);
+    if(CURLE_OK != res)
+    {
+        LOG_ERROR("leancloud_post failed: %s", curl_easy_strerror(res));
+        ret = -1;
+    }
+    else
+    {
+        ret = 0;
+    }
+#endif
 
     cJSON_Delete(root);
     free(data);
