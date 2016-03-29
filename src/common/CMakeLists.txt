@@ -1,4 +1,7 @@
 SET(SOURCE_FILE
+    objectID_leancloud.c
+    objectID_leancloud.h
+
     adler32.c
     adler32.h
 
