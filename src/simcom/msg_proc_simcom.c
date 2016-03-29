@@ -76,9 +76,17 @@ static int simcom_wild(const void *m, SESSION *session)
 
 static int simcom_login(const void *msg, SESSION *session)
 {
-    const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg; //TO DO: Version, CCID
-    char imei[IMEI_LENGTH];
+    const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg;
+    char imei[IMEI_LENGTH + 1];
+    
+    if(ntohs(req->header.length) < sizeof(MSG_LOGIN_REQ) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("login message length not enough");
+        return -1;
+    }
+
     memcpy(imei, req->IMEI, IMEI_LENGTH);
+    imei[IMEI_LENGTH] = '\0'; //add '\0' for string operaton
 
     if (!session)
     {
@@ -101,8 +109,8 @@ static int simcom_login(const void *msg, SESSION *session)
 
             obj = obj_new();
 
-            memcpy(obj->IMEI, imei, IMEI_LENGTH);
-            memcpy(obj->DID,  imei, IMEI_LENGTH);//IMEI and DID mean the same now
+            memcpy(obj->IMEI, imei, IMEI_LENGTH + 1);
+            memcpy(obj->DID,  imei, IMEI_LENGTH + 1);//IMEI and DID mean the same now
             obj->ObjectType = ObjectType_simcom;
 
             obj_add(obj);
@@ -569,6 +577,7 @@ static int simcom_locate(const void *msg, SESSION *session)
             (obj->cell[i]).rxl = ntohs((cell[i]).rxl);
         }
 
+#if 0
         float lat, lon;
         int rc = cgi2gps(obj->cell, num, &lat, &lon);
         if(rc != 0)
@@ -578,6 +587,11 @@ static int simcom_locate(const void *msg, SESSION *session)
         }
         obj->lat = lat;
         obj->lon = lon;
+#else
+        obj->lat = 0;
+        obj->lon = 0;
+#endif
+
         obj->speed = 0;
         obj->course = 0;
 
