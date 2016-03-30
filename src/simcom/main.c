@@ -129,11 +129,6 @@ int main(int argc, char **argv)
         LOG_ERROR("connect to sync server failed, try later");
     }
 
-#if 1
-    LOG_INFO("test for sim info");
-    sync_SimInfo("123", "456", "7890");
-#endif
-
     //start the event loop
     LOG_INFO("start the event loop");
     event_base_dispatch(base);
