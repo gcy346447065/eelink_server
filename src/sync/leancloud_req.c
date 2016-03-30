@@ -16,6 +16,7 @@
 #include "env.h"
 #include "db.h"
 #include "macro.h"
+#include "objectID_leancloud.h"
 
 #define LEANCLOUD_URL_BASE "https://api.leancloud.cn/1.1"
 
@@ -163,7 +164,12 @@ int leancloud_saveSimInfo(const char* imei, const char* ccid, const char* imsi)
     CURL* curl = env->curl_leancloud;
 
     //get objectID from imei
-    char *objectID = "56dfdc8a7db2a200598d3171";
+    char *objectID = objectID_get_hash(imei);
+    if(objectID == NULL)
+    {
+        LOG_ERROR("can't get objectId hash, imei(%s)", imei);
+        return -1;
+    }
 
     //creat cjson
     cJSON *put = cJSON_CreateObject();
@@ -186,8 +192,7 @@ int leancloud_saveSimInfo(const char* imei, const char* ccid, const char* imsi)
     
     char* data = cJSON_PrintUnformatted(root);
 
-    LOG_INFO("sim info data:\n%s", data);
-
+    //set curl
     int ret = 0;
     char url[256] = {0};
     snprintf(url, 256, "%s/batch", LEANCLOUD_URL_BASE);

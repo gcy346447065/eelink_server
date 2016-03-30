@@ -13,6 +13,7 @@
 #include "env.h"
 #include "db.h"
 #include "timer.h"
+#include "objectID_leancloud.h"
 
 struct event_base *base = NULL;
 
@@ -95,6 +96,13 @@ int main(int argc, char **argv)
     	LOG_FATAL("curl lib initial failed:%d", rc);
     }
 
+    rc = objectID_table_initial();
+    if(rc)
+    {
+        LOG_FATAL("objectID_table_initial failed");
+        return -1;
+    }
+
     rc = db_initial();
     if(rc)
     {
@@ -114,7 +122,6 @@ int main(int argc, char **argv)
     }
 
     //start a one-day timer to resave multiple unsaved DIDs
-    //struct timeval one_day = { 30, 0 };
     struct timeval one_day = { 86400, 0 };
     (void)timer_newLoop(base, &one_day, ResaveUnpostedImei_cb, leancloud_saveDid);
 
@@ -132,6 +139,7 @@ int main(int argc, char **argv)
 
     event_base_free(base);
 
+    objectID_table_destruct();
     db_destruct();
     curl_global_cleanup();
     zlog_fini();
