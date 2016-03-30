@@ -133,6 +133,7 @@ int leancloud_saveGPS(int timestamp, const char* imei, double lat, double lng, i
     return ret;
 }
 
+#if 0
 int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
 {
     ENVIRONMENT* env = env_get();
@@ -151,6 +152,89 @@ int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
     char class[IMEI_LENGTH + 11];
     sprintf(class, "Itinerary_%s", imei);
     int ret = leancloud_post(curl, class, data, strlen(data));
+
+    cJSON_Delete(root);
+    free(data);
+
+    return ret;
+}
+#endif
+
+int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
+{
+    ENVIRONMENT* env = env_get();
+    CURL* curl = env->curl_leancloud;
+
+    //get objectID from imei
+    char *objectID = objectID_get_hash(imei);
+    if(objectID == NULL)
+    {
+        LOG_ERROR("can't get objectId hash, imei(%s)", imei);
+        return -1;
+    }
+
+    //creat cjson put
+    cJSON *put = cJSON_CreateObject();
+    cJSON_AddStringToObject(put, "method", "PUT");
+
+    char path[256] = {0};
+    snprintf(path, 256, "/1.1/classes/DID/%s", objectID);
+    cJSON_AddStringToObject(put, "path", path);
+
+    cJSON *itinerary = cJSON_CreateObject();
+    cJSON_AddStringToObject(itinerary, "__op", "Increment");
+    cJSON_AddNumberToObject(itinerary, "amount", miles);
+
+    cJSON *body = cJSON_CreateObject();
+    cJSON_AddItemToObject(body, "itinerary", itinerary);
+    cJSON_AddItemToObject(put, "body", body);
+
+    //creat cjson post
+    cJSON *post = cJSON_CreateObject();
+    cJSON_AddStringToObject(post, "method", "POST");
+
+    memset(path, 0, 256);
+    snprintf(path, 256, "/1.1/classes/Itinerary_%s", imei);
+    cJSON_AddStringToObject(post, "path", path);
+
+    cJSON *body2 = cJSON_CreateObject();
+    cJSON_AddNumberToObject(body2, "start", start);
+    cJSON_AddNumberToObject(body2, "end", end);
+    cJSON_AddNumberToObject(body2, "miles", miles);
+    cJSON_AddItemToObject(post, "body", body2);
+
+    //add put and post in cjson
+    cJSON *requests = cJSON_CreateArray();
+    cJSON_AddItemToArray(requests, put);
+    cJSON_AddItemToArray(requests, post);
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddItemToObject(root, "requests", requests);
+    
+    char* data = cJSON_PrintUnformatted(root);
+
+    //set curl
+    int ret = 0;
+    char url[256] = {0};
+    snprintf(url, 256, "%s/batch", LEANCLOUD_URL_BASE);
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data); /* pass in a pointer to the data - libcurl will not copy */
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(data)); /* size of the POST data */
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveItinerary);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, env);
+
+    /* Perform the request, res will get the return code */
+    CURLcode res = curl_easy_perform(curl);
+    if(CURLE_OK != res)
+    {
+        LOG_ERROR("leancloud_SaveItinerary failed: %s", curl_easy_strerror(res));
+        ret = -1;
+    }
+    else
+    {
+        ret = 0;
+    }
 
     cJSON_Delete(root);
     free(data);
