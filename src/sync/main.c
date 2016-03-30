@@ -96,17 +96,17 @@ int main(int argc, char **argv)
     	LOG_FATAL("curl lib initial failed:%d", rc);
     }
 
-    rc = objectID_table_initial();
-    if(rc)
-    {
-        LOG_FATAL("objectID_table_initial failed");
-        return -1;
-    }
-
     rc = db_initial();
     if(rc)
     {
         LOG_FATAL("connect to mysql failed");
+        return -1;
+    }
+
+    rc = objectID_table_initial();
+    if(rc)
+    {
+        LOG_FATAL("objectID_table_initial failed");
         return -1;
     }
 
