@@ -66,7 +66,7 @@ size_t leancloud_onSaveDID(void *contents, size_t size, size_t nmemb, void *user
 			return 0;
 		}
 
-		int rc = objectID_add_hash(imei, objectID->valuestring);
+		int rc = objectID_add_HashAndDb(imei, objectID->valuestring);
 		if(rc)
 		{
 			LOG_ERROR("can't add objectId hash");

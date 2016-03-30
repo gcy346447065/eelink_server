@@ -16,7 +16,7 @@
 /* global hash table */
 static GHashTable *objectID_table = NULL;
 
-int objectID_add_hash(const char *imei, const char *objectID)
+static int objectID_add_hash(const char *imei, const char *objectID)
 {
     if(strlen(imei) != IMEI_LENGTH || strlen(objectID) != OBJECT_ID_LENGTH)
     {
@@ -30,7 +30,7 @@ int objectID_add_hash(const char *imei, const char *objectID)
     return 0;
 }
 
-int objectID_add_db(const char *imei, const char *objectID)
+static int objectID_add_db(const char *imei, const char *objectID)
 {
     if(strlen(imei) != IMEI_LENGTH || strlen(objectID) != OBJECT_ID_LENGTH)
     {
@@ -40,6 +40,17 @@ int objectID_add_db(const char *imei, const char *objectID)
 
     db_add_ObjectID(imei, objectID);
     LOG_INFO("add db imei(%s)->objectID(%s)", imei, objectID);
+
+    return 0;
+}
+
+int objectID_add_HashAndDb(const char *imei, const char *objectID)
+{
+    int rc = 0;
+    rc |= objectID_add_hash(imei, objectID);
+    rc |= objectID_add_db(imei, objectID);
+
+    return;
 }
 
 char *objectID_get_hash(const char *imei)
