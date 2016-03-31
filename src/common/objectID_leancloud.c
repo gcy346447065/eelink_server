@@ -61,6 +61,8 @@ char *objectID_get_hash(const char *imei)
         return -1;
     }
 
+    LOG_INFO("imei(%s)", imei);
+
     char *objectID = g_hash_table_lookup(objectID_table, imei);
     if(strlen(objectID) != OBJECT_ID_LENGTH)
     {
