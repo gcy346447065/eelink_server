@@ -127,14 +127,6 @@ int main(int argc, char **argv)
 
     env_initial();
 
-    #if 1
-    LOG_INFO("test for leancloud_saveItinerary");
-    leancloud_saveItinerary("865067022405354", 1, 2, 6);
-
-    LOG_INFO("test for leancloud_saveSimInfo");
-    leancloud_saveSimInfo("865067022405354", "test", "test");
-    #endif
-
     //start the event loop
     LOG_INFO("start the event loop");
     event_base_dispatch(base);
