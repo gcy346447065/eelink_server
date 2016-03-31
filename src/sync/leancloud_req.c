@@ -278,6 +278,7 @@ int leancloud_saveSimInfo(const char* imei, const char* ccid, const char* imsi)
     cJSON_AddItemToObject(root, "requests", requests);
     
     char* data = cJSON_PrintUnformatted(root);
+    LOG_INFO("%s", data);
 
     //set curl
     int ret = 0;
