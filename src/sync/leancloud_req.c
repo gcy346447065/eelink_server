@@ -165,6 +165,8 @@ int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
     ENVIRONMENT* env = env_get();
     CURL* curl = env->curl_leancloud;
 
+    LOG_INFO("leancloud_saveItinerary imei(%s), start(%d), end(%d), miles(%d)", imei, start, end, miles);
+
     //get objectID from imei
     char *objectID = objectID_get_hash(imei);
     if(objectID == NULL)
@@ -193,7 +195,6 @@ int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
     cJSON *post = cJSON_CreateObject();
     cJSON_AddStringToObject(post, "method", "POST");
 
-    memset(path, 0, 256);
     snprintf(path, 256, "/1.1/classes/Itinerary_%s", imei);
     cJSON_AddStringToObject(post, "path", path);
 
