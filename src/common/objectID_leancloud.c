@@ -50,7 +50,7 @@ int objectID_add_HashAndDb(const char *imei, const char *objectID)
     rc |= objectID_add_hash(imei, objectID);
     rc |= objectID_add_db(imei, objectID);
 
-    return;
+    return rc;
 }
 
 char *objectID_get_hash(const char *imei)
@@ -58,7 +58,7 @@ char *objectID_get_hash(const char *imei)
     if(strlen(imei) != IMEI_LENGTH)
     {
         LOG_ERROR("imei string length error");
-        return -1;
+        return NULL;
     }
 
     LOG_INFO("imei(%s)", imei);
