@@ -76,7 +76,7 @@ char *objectID_get_hash(const char *imei)
 
     objectID_table_display();
 
-    char *objectID = g_hash_table_lookup(objectID_table, imei);
+    char *objectID = g_hash_table_lookup(objectID_table, g_strdup(imei));
     if(objectID)
     {
         LOG_ERROR("get objectID string length error");
