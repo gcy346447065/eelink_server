@@ -52,7 +52,7 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
     if (events & BEV_EVENT_CONNECTED)
     {
          /* We're connected to the server.   Ordinarily we'd do
-            something heGre, like start reading or writing. */
+            something here, like start reading or writing. */
         LOG_INFO("connect to the sync server successful");
         if (evTimerReconnect)
         {

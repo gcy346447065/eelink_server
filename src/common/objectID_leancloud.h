@@ -15,3 +15,4 @@ int objectID_add_HashAndDb(const char *imei, const char *objectID);
 char *objectID_get_hash(const char *imei);
 
 #endif //OBJECT_ID_LEANCLOUD_H
+

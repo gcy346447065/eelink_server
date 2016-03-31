@@ -133,33 +133,6 @@ int leancloud_saveGPS(int timestamp, const char* imei, double lat, double lng, i
     return ret;
 }
 
-#if 0
-int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
-{
-    ENVIRONMENT* env = env_get();
-    CURL* curl = env->curl_leancloud;
-
-    cJSON *root = cJSON_CreateObject();
-
-    cJSON_AddNumberToObject(root, "start",  start);
-    cJSON_AddNumberToObject(root, "end",  end);
-    cJSON_AddNumberToObject(root, "miles",  miles);
-    char* data = cJSON_PrintUnformatted(root);
-
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onSaveItinerary);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, env);
-
-    char class[IMEI_LENGTH + 11];
-    sprintf(class, "Itinerary_%s", imei);
-    int ret = leancloud_post(curl, class, data, strlen(data));
-
-    cJSON_Delete(root);
-    free(data);
-
-    return ret;
-}
-#endif
-
 int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
 {
     ENVIRONMENT* env = env_get();
