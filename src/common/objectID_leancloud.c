@@ -18,11 +18,15 @@ static GHashTable *objectID_table = NULL;
 
 static int objectID_add_hash(const char *imei, const char *objectID)
 {
+    #if 0
     if(strlen(imei) != IMEI_LENGTH || strlen(objectID) != OBJECT_ID_LENGTH)
     {
-        LOG_ERROR("imei or objectID string length error");
+        LOG_ERROR("imei(%s) or objectID(%s) string length error", imei, objectID);
         return -1;
     }
+    #endif
+
+    LOG_INFO("imei(%s), objectID(%s)", imei, objectID);
 
     g_hash_table_insert(objectID_table, imei, objectID);
     LOG_INFO("add hash imei(%s)->objectID(%s)", imei, objectID);
@@ -32,11 +36,15 @@ static int objectID_add_hash(const char *imei, const char *objectID)
 
 static int objectID_add_db(const char *imei, const char *objectID)
 {
+    #if 0
     if(strlen(imei) != IMEI_LENGTH || strlen(objectID) != OBJECT_ID_LENGTH)
     {
-        LOG_ERROR("imei or objectID string length error");
+        LOG_ERROR("imei(%s) or objectID(%s) string length error", imei, objectID);
         return -1;
     }
+    #endif
+
+    LOG_INFO("imei(%s), objectID(%s)", imei, objectID);
 
     db_add_ObjectID(imei, objectID);
     LOG_INFO("add db imei(%s)->objectID(%s)", imei, objectID);

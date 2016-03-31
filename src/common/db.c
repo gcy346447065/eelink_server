@@ -113,6 +113,41 @@ static int _db_initial()
     else
     {
         LOG_INFO("connect database: %s", DB_NAME);
+
+        /* creat table object if not exists */
+        snprintf(query, MAX_QUERY, "create table if not exists object(imei char(16) not null primary key, \
+                                    RegisterTime timestamp default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP, \
+                                    IsPosted tinyint default '0', \
+                                    ObjectType int(4) not null)");
+        
+        if(mysql_ping(conn))
+        {
+            LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+            return 1;
+        }
+
+        if(mysql_query(conn, query))
+        {
+            LOG_ERROR("can't creat table object(%u, %s)", mysql_errno(conn), mysql_error(conn));
+            return 2;
+        }
+
+        /* creat table imei2objectID if not exists */
+        snprintf(query, MAX_QUERY, "create table  if not exists imei2objectID(imei char(15) not null primary key, \
+                                    objectID char(24) not null)");
+        
+        if(mysql_ping(conn))
+        {
+            LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+            return 1;
+        }
+
+        if(mysql_query(conn, query))
+        {
+            LOG_ERROR("can't creat table imei2objectID(%u, %s)", mysql_errno(conn), mysql_error(conn));
+            return 2;
+        }
+
         return 0;
     }
 }
