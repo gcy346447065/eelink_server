@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 
     #if 1
     LOG_INFO("test for leancloud_saveItinerary");
-    leancloud_saveItinerary("865067022405354", -1, -1, 6);
+    leancloud_saveItinerary("865067022405354", 1, 2, 6);
     #endif
 
     //start a one-day timer to resave multiple unsaved DIDs

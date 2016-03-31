@@ -72,10 +72,6 @@ char *objectID_get_hash(const char *imei)
         return NULL;
     }
 
-    LOG_INFO("imei(%s)", imei);
-
-    objectID_table_display();
-
     char *objectID = g_hash_table_lookup(objectID_table, imei);
     if(!objectID)
     {
