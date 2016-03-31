@@ -212,7 +212,8 @@ int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
     cJSON *root = cJSON_CreateObject();
     cJSON_AddItemToObject(root, "requests", requests);
     
-    char* data = cJSON_PrintUnformatted(root);
+    char *data = cJSON_PrintUnformatted(root);
+    LOG_INFO("%s", data);
 
     //set curl
     int ret = 0;
@@ -234,6 +235,7 @@ int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
     }
     else
     {
+        LOG_INFO("leancloud_SaveItinerary ok");
         ret = 0;
     }
 

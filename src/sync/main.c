@@ -121,6 +121,11 @@ int main(int argc, char **argv)
         return 2;
     }
 
+    #if 1
+    LOG_INFO("test for leancloud_saveItinerary");
+    leancloud_saveItinerary("865067022405354", -1, -1, 6);
+    #endif
+
     //start a one-day timer to resave multiple unsaved DIDs
     struct timeval one_day = { 86400, 0 };
     (void)timer_newLoop(base, &one_day, ResaveUnpostedImei_cb, leancloud_saveDid);
