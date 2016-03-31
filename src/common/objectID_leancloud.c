@@ -24,7 +24,7 @@ void print_key_value(gpointer key, gpointer value, gpointer user_data)
 void objectID_table_display(void)
 {
     LOG_INFO("objectID_table_display:");
-    g_hash_table_foreach(objectID_table, print_key_value, NULL);
+    g_hash_table_foreach(objectID_table, print_key_value, NULL);
 }
 
 static int objectID_add_hash(const char *imei, const char *objectID)
