@@ -17,7 +17,7 @@
 /* global hash table */
 static GHashTable *objectID_table = NULL;
 
-void print_key_value(gpointer key, gpointer value, gpointer user_data)
+static void print_key_value(gpointer key, gpointer value, gpointer user_data)
 {
     LOG_INFO("%s----->%s", (char *)key, (char *)value);
 }

@@ -8,6 +8,7 @@
 #ifndef OBJECT_ID_LEANCLOUD_H
 #define OBJECT_ID_LEANCLOUD_H
 
+void objectID_table_display(void);
 int objectID_table_initial(void);
 void objectID_table_destruct(void);
 int objectID_add_HashAndDb(const char *imei, const char *objectID);
