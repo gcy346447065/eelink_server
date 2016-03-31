@@ -387,7 +387,7 @@ static int _db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*))
     return 0;
 }
 
-static int _db_doWithObjectID(void (*func1)(const char*, const char*))
+static int _db_doWithObjectID(int (*func1)(const char*, const char*))
 {
     char query[] = "select * from imei2objectID where length(imei)=15";
 
@@ -531,7 +531,7 @@ int db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*))
 #endif
 }
 
-int db_doWithObjectID(void (*func1)(const char*, const char*))
+int db_doWithObjectID(int (*func1)(const char*, const char*))
 {
 #ifdef WITH_DB
     return _db_doWithObjectID(func1);

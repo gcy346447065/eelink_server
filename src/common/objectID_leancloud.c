@@ -9,6 +9,7 @@
 #include <string.h>
 #include <glib.h>
 
+#include "db.h"
 #include "log.h"
 #include "macro.h"
 #include "objectID_leancloud.h"
@@ -18,7 +19,7 @@ static GHashTable *objectID_table = NULL;
 
 void print_key_value(gpointer key, gpointer value, gpointer user_data)
 {
-    LOG_DEBUG("%s----->%s", key, value);
+    LOG_INFO("%s----->%s", (char *)key, (char *)value);
 }
 
 void objectID_table_display(void)
@@ -26,7 +27,7 @@ void objectID_table_display(void)
     g_hash_table_foreach(objectID_table, print_key_value, NULL);
 }
 
-static int objectID_add_hash(const char *imei, const char *objectID)
+int objectID_add_hash(const char *imei, const char *objectID)
 {
     if(strlen(imei) != IMEI_LENGTH || strlen(objectID) != OBJECT_ID_LENGTH)
     {
@@ -34,13 +35,13 @@ static int objectID_add_hash(const char *imei, const char *objectID)
         return -1;
     }
 
-    g_hash_table_insert(objectID_table, g_strdup(imei), g_strdup(objectID));
-    LOG_INFO("add hash imei(%s)->objectID(%s)", imei, objectID);
+    int rc = g_hash_table_insert(objectID_table, g_strdup(imei), g_strdup(objectID));
+    LOG_INFO("rc(%d), add hash imei(%s)->objectID(%s)",rc , imei, objectID);
 
     return 0;
 }
 
-static int objectID_add_db(const char *imei, const char *objectID)
+int objectID_add_db(const char *imei, const char *objectID)
 {
     if(strlen(imei) != IMEI_LENGTH || strlen(objectID) != OBJECT_ID_LENGTH)
     {
