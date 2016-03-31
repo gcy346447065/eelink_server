@@ -8,7 +8,8 @@ enum
 {
     CMD_SYNC_NEW_DID,
     CMD_SYNC_NEW_GPS,
-    CMD_SYNC_NEW_ITINERARY
+    CMD_SYNC_NEW_ITINERARY,
+    CMD_SYNC_NEW_SIM_INFO
 };
 
 #define TAG_CMD "CMD"
@@ -18,6 +19,9 @@ enum
 #define TAG_LNG "LNG"
 #define TAG_SPEED "SPEED"
 #define TAG_COURSE "COURSE"
+
+#define TAG_CCID "CCID"
+#define TAG_IMSI "IMSI"
 
 #define TAG_START "START"
 #define TAG_END "END"

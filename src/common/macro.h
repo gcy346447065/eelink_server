@@ -9,6 +9,9 @@
 #define SRC_MACRO_H_
 
 #define IMEI_LENGTH (15)
+#define CCID_LENGTH (20)
+#define IMSI_LENGTH (16)
+#define OBJECT_ID_LENGTH (24)
 #define MAX_DID_LEN (24)
 #define MAX_PWD_LEN (16)
 

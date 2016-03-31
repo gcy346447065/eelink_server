@@ -94,7 +94,7 @@ static int simcom_login(const void *msg, SESSION *session)
         return -1;
     }
 
-    OBJECT * obj = session->obj;
+    OBJECT *obj = session->obj;
     if(!obj)
     {
         LOG_DEBUG("mc IMEI(%s) login", imei);
@@ -960,8 +960,38 @@ static int simcom_UpgradeEnd(const void *msg, SESSION *session)
 
 static int simcom_SimInfo(const void *msg, SESSION *session)
 {
-    //get CMD_SIM_INFO req
-    //remember CCID and IMSI
+    const MSG_SIM_INFO_REQ *req = (const MSG_SIM_INFO_REQ *)msg;
+    if(!req)
+    {
+        LOG_ERROR("req handle empty");
+        return -1;
+    }
+    if(ntohs(req->header.length) < sizeof(MSG_SIM_INFO_REQ) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("device info message length not enough");
+        return -1;
+    }
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT * obj = (OBJECT *)session->obj;
+    if (!obj)
+    {
+        LOG_WARN("MC must first login");
+        return -1;
+    }
+
+    if(strlen(req->CCID) == MAX_CCID_LENGTH && strlen(req->IMSI) == MAX_IMSI_LENGTH)
+    {
+        memcpy(obj->CCID, req->CCID, MAX_CCID_LENGTH);
+        memcpy(obj->IMSI, req->IMSI, MAX_IMSI_LENGTH);
+
+        sync_SimInfo(obj->IMEI, obj->CCID, obj->IMSI);
+    }
     
     return 0;
 }

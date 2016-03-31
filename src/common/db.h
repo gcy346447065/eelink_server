@@ -32,5 +32,8 @@ int db_insertOBJ(const char *imeiName, int ObjectType);
 int db_updateOBJIsPosted(const char *imeiName);
 int db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*));
 
+int db_doWithObjectID(int (*func1)(const char*, const char*));
+int db_add_ObjectID(const char *imei, const char *objectID);
+
 #endif	/* DB_H */
 
