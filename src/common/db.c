@@ -115,6 +115,7 @@ static int _db_initial()
         LOG_INFO("connect database: %s", DB_NAME);
 
         /* creat table object if not exists */
+        char query[MAX_QUERY];
         snprintf(query, MAX_QUERY, "create table if not exists object(imei char(16) not null primary key, \
                                     RegisterTime timestamp default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP, \
                                     IsPosted tinyint default '0', \
