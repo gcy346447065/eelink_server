@@ -18,12 +18,11 @@ static GHashTable *objectID_table = NULL;
 
 void print_key_value(gpointer key, gpointer value, gpointer user_data)
 {
-    LOG_INFO("%s----->%s", key, value);
+    LOG_DEBUG("%s----->%s", key, value);
 }
 
 void objectID_table_display(void)
 {
-    LOG_INFO("objectID_table_display:");
     g_hash_table_foreach(objectID_table, print_key_value, NULL);
 }
 
@@ -35,7 +34,7 @@ static int objectID_add_hash(const char *imei, const char *objectID)
         return -1;
     }
 
-    g_hash_table_insert(objectID_table, imei, objectID);
+    g_hash_table_insert(objectID_table, g_strdup(imei), g_strdup(objectID));
     LOG_INFO("add hash imei(%s)->objectID(%s)", imei, objectID);
 
     return 0;
@@ -89,10 +88,22 @@ char *objectID_get_hash(const char *imei)
     }
 }
 
+void objectID_freeKey(gpointer key)
+{
+    LOG_DEBUG("free key IMEI(%s) of objectID_table", (char *)key);
+    g_free(key);
+}
+
+void objectID_freeValue(gpointer value)
+{
+    LOG_DEBUG("free value objectID(%s) of objectID_table", (char *)value);
+    g_free(value);
+}
+
 int objectID_table_initial(void)
 {
     /* create hash table */
-    objectID_table = g_hash_table_new(g_str_hash, g_str_equal);
+    objectID_table = g_hash_table_new_full(g_str_hash, g_str_equal, objectID_freeKey, objectID_freeValue);
     if(objectID_table == NULL)
     {
         LOG_ERROR("create imei->objectID hash table failed");
