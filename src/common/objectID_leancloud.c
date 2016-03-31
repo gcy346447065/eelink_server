@@ -16,6 +16,17 @@
 /* global hash table */
 static GHashTable *objectID_table = NULL;
 
+void print_key_value(gpointer key, gpointer value, gpointer user_data)
+{
+    LOG_INFO("%s----->%s", key, value);
+}
+
+void objectID_table_display(void)
+{
+    LOG_INFO("objectID_table_display:");
+    g_hash_table_foreach(objectID_table, print_key_value, NULL);
+}
+
 static int objectID_add_hash(const char *imei, const char *objectID)
 {
     if(strlen(imei) != IMEI_LENGTH || strlen(objectID) != OBJECT_ID_LENGTH)
@@ -63,6 +74,8 @@ char *objectID_get_hash(const char *imei)
 
     LOG_INFO("imei(%s)", imei);
 
+    objectID_table_display();
+
     char *objectID = g_hash_table_lookup(objectID_table, imei);
     if(objectID)
     {
@@ -98,4 +111,6 @@ void objectID_table_destruct(void)
 
     return;
 }
+
+
 
