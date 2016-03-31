@@ -389,7 +389,7 @@ static int _db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*))
 
 static int _db_doWithObjectID(void (*func1)(const char*, const char*))
 {
-    char query[] = "select imei from imei2objectID where length(imei)=15";
+    char query[] = "select * from imei2objectID where length(imei)=15";
 
     if(mysql_ping(conn))
     {
