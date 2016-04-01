@@ -68,7 +68,20 @@ static int simcom_wild(const void *m, SESSION *session)
 	const MSG_HEADER *msg = m;
     const char *msg_log = (const char *)(msg + 1);
 
-    LOG_DEBUG("DBG:%s", msg_log);
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT * obj = (OBJECT *)session->obj;
+    if (!obj)
+    {
+        LOG_WARN("MC must first login");
+        return -1;
+    }
+
+    LOG_DEBUG("imei(%s) DBG:%s", obj->IMEI, msg_log);
 	app_sendDebugMsg2App(msg_log, ntohs(msg->length), session);
 
 	return 0;
@@ -151,8 +164,9 @@ static int simcom_login(const void *msg, SESSION *session)
     }
 
     //get version, compare the version number; if not, send upgrade start message
-    int theLastVersion = 0, theSize = 0;
-    if(theLastVersion = getLastVersionWithFileNameAndSizeStored())
+    unsigned int theLastVersion = getLastVersionWithFileNameAndSizeStored();
+    int theSize = 0;
+    if(theLastVersion)
     {
         theSize = getLastFileSize();
         LOG_INFO("req->version is %d, theLastVersion is %d, theSize is %d", ntohl(req->version), theLastVersion, theSize);
@@ -178,9 +192,18 @@ static int simcom_login(const void *msg, SESSION *session)
 
 static int simcom_ping(const void *msg, SESSION *session)
 {
-    //TO DO: unused
-    //const MSG_PING_REQ *req = (const MSG_PING_REQ *)msg;
-    //ntohs(req->status);
+    //TO DO: unused ntohs(req->status);
+    const MSG_PING_REQ *req = (const MSG_PING_REQ *)msg;
+    if(!req)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(req->header.length) < sizeof(MSG_PING_REQ) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("ping message length not enough");
+        return -1;
+    }
 
     if (!session)
     {
@@ -214,8 +237,11 @@ static int simcom_gps(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("GPS: timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
-        ntohl(req->gps.timestamp), req->gps.latitude, req->gps.longitude, req->gps.speed, ntohs(req->gps.course));
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
 
     OBJECT * obj = (OBJECT *)session->obj;
     if (!obj)
@@ -223,6 +249,9 @@ static int simcom_gps(const void *msg, SESSION *session)
         LOG_WARN("MC must first login");
         return -1;
     }
+
+    LOG_INFO("imei(%s) GPS: timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
+        obj->IMEI, ntohl(req->gps.timestamp), req->gps.latitude, req->gps.longitude, req->gps.speed, ntohs(req->gps.course));
 
     obj->timestamp = ntohl(req->gps.timestamp);
     obj->lat = req->gps.latitude;
@@ -260,14 +289,20 @@ static int simcom_cell(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("CGI: mcc(%d), mnc(%d)", ntohs(cgi->mcc), ntohs(cgi->mnc));
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
 
-    OBJECT *obj = session->obj;
-    if(!obj)
+    OBJECT *obj = (OBJECT *)session->obj;
+    if (!obj)
     {
         LOG_WARN("MC must first login");
         return -1;
     }
+
+    LOG_INFO("imei(%s) CGI: mcc(%d), mnc(%d)", obj->IMEI, ntohs(cgi->mcc), ntohs(cgi->mnc));
 
     obj->timestamp = get_time();
     obj->isGPSlocated = 0x00;
@@ -331,7 +366,12 @@ static int simcom_alarm(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("ALARM: %d", req->alarmType);
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
     OBJECT *obj = session->obj;
     if(!obj)
     {
@@ -354,7 +394,7 @@ static int simcom_alarm(const void *msg, SESSION *session)
     char* json = cJSON_PrintUnformatted(root);
 
     yunba_publish(topic, json, strlen(json));
-    LOG_INFO("send alarm: %s", topic);
+    LOG_INFO("imei(%s) send alarm(%d)", obj->IMEI, req->alarmType);
 
     free(json);
     cJSON_Delete(root);
@@ -376,7 +416,20 @@ static int simcom_sms(const void *msg , SESSION *session)
         return -1;
     }
 
-    LOG_INFO("SMS: %s", req->telphone);
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+        LOG_WARN("MC must first login");
+        return -1;
+    }
+
+    LOG_INFO("imei(%s) SMS telphone(%s)", obj->IMEI, req->telphone);
 
     //TO DO: sms
 
@@ -397,7 +450,11 @@ static int simcom_433(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("433: %d", ntohl(req->intensity));
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
 
     OBJECT *obj = session->obj;
     if(!obj)
@@ -406,6 +463,8 @@ static int simcom_433(const void *msg, SESSION *session)
         return -1;
     }
 
+    LOG_INFO("imei(%s) 433 intensity(%d)", obj->IMEI, ntohl(req->intensity));
+
     app_send433Msg2App(get_time(), ntohl(req->intensity), session);
     return 0;
 }
@@ -413,15 +472,34 @@ static int simcom_433(const void *msg, SESSION *session)
 static int simcom_defend(const void *msg, SESSION *session)
 {
     const MSG_DEFEND_RSP *rsp = (const MSG_DEFEND_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_DEFEND_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("defend message length not enough");
+        return -1;
+    }
+
     int defend = ntohl(rsp->token);
 
-    OBJECT* obj = session->obj;
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = session->obj;
     if (!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
     }
     const char *strIMEI = obj->IMEI;
+
+    LOG_INFO("imei(%s) defend(%d) send to app", obj->IMEI, defend);
 
     if(defend == APP_CMD_FENCE_ON)
     {
@@ -460,7 +538,24 @@ static int simcom_defend(const void *msg, SESSION *session)
 static int simcom_seek(const void *msg, SESSION *session)
 {
     const MSG_SEEK_RSP *rsp = (const MSG_SEEK_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_SEEK_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("seek message length not enough");
+        return -1;
+    }
+
     int seek = ntohl(rsp->token);
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
 
     OBJECT* obj = session->obj;
     if (!obj)
@@ -469,6 +564,8 @@ static int simcom_seek(const void *msg, SESSION *session)
         return -1;
     }
     const char *strIMEI = obj->IMEI;
+
+    LOG_INFO("imei(%s) seek(%d) send to app", obj->IMEI, seek);
 
     if(seek == APP_CMD_SEEK_ON)
     {
@@ -507,6 +604,19 @@ static int simcom_locate(const void *msg, SESSION *session)
         return -1;
     }
 
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = session->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+
     const char *isGPS = (const char *)(req + 1);
 
     if(*isGPS == 0x01)
@@ -519,15 +629,8 @@ static int simcom_locate(const void *msg, SESSION *session)
             return -1;
         }
 
-        LOG_INFO("LOCATION GPS: timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
-            ntohl(gps->timestamp), gps->latitude, gps->longitude, gps->speed, ntohs(gps->course));
-
-        OBJECT * obj = (OBJECT *) session->obj;
-        if (!obj)
-        {
-            LOG_WARN("MC must first login");
-            return -1;
-        }
+        LOG_INFO("imei(%s) LOCATION GPS: timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
+            obj->IMEI, ntohl(gps->timestamp), gps->latitude, gps->longitude, gps->speed, ntohs(gps->course));
 
         obj->timestamp = ntohl(gps->timestamp);
         obj->isGPSlocated = 0x01;
@@ -548,13 +651,7 @@ static int simcom_locate(const void *msg, SESSION *session)
             return -1;
         }
 
-        LOG_INFO("LOCATION CGI: mcc(%d), mnc(%d)", ntohs(cgi->mcc), ntohs(cgi->mnc));
-        OBJECT *obj = session->obj;
-        if(!obj)
-        {
-            LOG_WARN("MC must first login");
-            return -1;
-        }
+        LOG_INFO("imei(%s) LOCATION CGI: mcc(%d), mnc(%d)", obj->IMEI, ntohs(cgi->mcc), ntohs(cgi->mnc));
 
         obj->timestamp = get_time();
         obj->isGPSlocated = 0x00;
@@ -577,21 +674,8 @@ static int simcom_locate(const void *msg, SESSION *session)
             (obj->cell[i]).rxl = ntohs((cell[i]).rxl);
         }
 
-#if 0
-        float lat, lon;
-        int rc = cgi2gps(obj->cell, num, &lat, &lon);
-        if(rc != 0)
-        {
-            //LOG_ERROR("cgi2gps error");
-            return 1;
-        }
-        obj->lat = lat;
-        obj->lon = lon;
-#else
         obj->lat = 0;
         obj->lon = 0;
-#endif
-
         obj->speed = 0;
         obj->course = 0;
 
@@ -604,6 +688,22 @@ static int simcom_locate(const void *msg, SESSION *session)
 static int simcom_SetTimer(const void *msg, SESSION *session)
 {
     const MSG_GPSTIMER_RSP *rsp = (const MSG_GPSTIMER_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_GPSTIMER_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("SetTimer message length not enough");
+        return -1;
+    }
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
 
     OBJECT* obj = session->obj;
     if (!obj)
@@ -611,6 +711,8 @@ static int simcom_SetTimer(const void *msg, SESSION *session)
         LOG_FATAL("internal error: obj null");
         return -1;
     }
+
+    LOG_INFO("imei(%s) SetTimer", obj->IMEI);
 
     //TO DO: add set timer in APP first
     if(ntohl(rsp->result) == 0)
@@ -634,7 +736,24 @@ static int simcom_SetTimer(const void *msg, SESSION *session)
 static int simcom_SetAutoswitch(const void *msg, SESSION *session)
 {
     const MSG_AUTOLOCK_SET_RSP *rsp = (const MSG_AUTOLOCK_SET_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_AUTOLOCK_SET_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("SetAutoswitch message length not enough");
+        return -1;
+    }
+
     int autolock = ntohl(rsp->token);
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
 
     OBJECT* obj = session->obj;
     if (!obj)
@@ -643,6 +762,8 @@ static int simcom_SetAutoswitch(const void *msg, SESSION *session)
         return -1;
     }
     const char *strIMEI = obj->IMEI;
+
+    LOG_INFO("imei(%s) SetAutoswitch(%d) send to app", obj->IMEI, autolock);
 
     if(autolock == APP_CMD_AUTOLOCK_ON)
     {
@@ -670,6 +791,22 @@ static int simcom_SetAutoswitch(const void *msg, SESSION *session)
 static int simcom_GetAutoswitch(const void *msg, SESSION *session)
 {
     const MSG_AUTOLOCK_GET_RSP *rsp = (const MSG_AUTOLOCK_GET_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_AUTOLOCK_SET_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("GetAutoswitch message length not enough");
+        return -1;
+    }
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
 
     OBJECT* obj = session->obj;
     if (!obj)
@@ -677,7 +814,8 @@ static int simcom_GetAutoswitch(const void *msg, SESSION *session)
         LOG_FATAL("internal error: obj null");
         return -1;
     }
-    const char *strIMEI = obj->IMEI;
+
+    LOG_INFO("imei(%s) GetAutoswitch(%d) send to app", obj->IMEI, rsp->result);
 
     if(ntohl(rsp->token) == APP_CMD_AUTOLOCK_GET)
     {
@@ -693,6 +831,22 @@ static int simcom_GetAutoswitch(const void *msg, SESSION *session)
 static int simcom_SetPeriod(const void *msg, SESSION *session)
 {
     const MSG_AUTOPERIOD_SET_RSP *rsp = (const MSG_AUTOPERIOD_SET_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_AUTOPERIOD_SET_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("SetPeriod message length not enough");
+        return -1;
+    }
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
 
     OBJECT *obj = session->obj;
     if (!obj)
@@ -701,6 +855,8 @@ static int simcom_SetPeriod(const void *msg, SESSION *session)
         return -1;
     }
     const char *strIMEI = obj->IMEI;
+
+    LOG_INFO("imei(%s) SetPeriod(%d) send to app", obj->IMEI, rsp->result);
 
     if(ntohl(rsp->token) == APP_CMD_AUTOPERIOD_SET)
     {
@@ -714,13 +870,40 @@ static int simcom_SetPeriod(const void *msg, SESSION *session)
         LOG_ERROR("response SetPeriod cmd not exist");
         return -1;
     }
+
     return 0;
 }
 
 static int simcom_GetPeriod(const void *msg, SESSION *session)
 {
     const MSG_AUTOPERIOD_GET_RSP *rsp = (const MSG_AUTOPERIOD_GET_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_AUTOPERIOD_GET_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("GetPeriod message length not enough");
+        return -1;
+    }
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = session->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+
     int period = rsp->result;
+
+    LOG_INFO("imei(%s) GetPeriod(%d) send to app", obj->IMEI, period);
 
     if(ntohl(rsp->token) == APP_CMD_AUTOPERIOD_GET)
     {
@@ -752,14 +935,21 @@ static int simcom_itinerary(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("itinerary: start(%d), end(%d), miles(%d)", ntohl(req->start), ntohl(req->end), ntohl(req->miles));
-
-    OBJECT *obj = session->obj;
-    if(!obj)
+    if (!session)
     {
-        LOG_WARN("MC must first login");
+        LOG_FATAL("session ptr null");
         return -1;
     }
+
+    OBJECT *obj = session->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+
+    LOG_INFO("imei(%s) itinerary: start(%d), end(%d), miles(%d)",
+         obj->IMEI, ntohl(req->start), ntohl(req->end), ntohl(req->miles));
 
     sync_itinerary(obj->IMEI, ntohl(req->start), ntohl(req->end), ntohl(req->miles));
 
@@ -769,15 +959,38 @@ static int simcom_itinerary(const void *msg, SESSION *session)
 static int simcom_battery(const void *msg, SESSION *session)
 {
     const MSG_BATTERY_RSP *rsp = (const MSG_BATTERY_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_AUTOPERIOD_GET_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("GetPeriod message length not enough");
+        return -1;
+    }
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = session->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
 
     if(rsp->percent != 0)
     {
-        LOG_INFO("battery: percent(%d), miles(%d)", rsp->percent, rsp->miles);
+        LOG_INFO("imei(%s) battery: percent(%d), miles(%d)", obj->IMEI, rsp->percent, rsp->miles);
         app_sendBatteryRsp2App(APP_CMD_BATTERY, CODE_SUCCESS, rsp->percent, rsp->miles, session);
     }
     else
     {
-        LOG_INFO("battery: percent(%d), miles(%d), it's learning now", rsp->percent, rsp->miles);
+        LOG_INFO("imei(%s) battery: percent(%d), miles(%d), it's learning now", obj->IMEI, rsp->percent, rsp->miles);
         app_sendBatteryRsp2App(APP_CMD_BATTERY, CODE_BATTERY_LEARNING, rsp->percent, rsp->miles, session);
 
         return -1;
@@ -789,6 +1002,22 @@ static int simcom_battery(const void *msg, SESSION *session)
 static int simcom_DefendOn(const void *msg, SESSION *session)
 {
     const MSG_DEFEND_ON_RSP *rsp = (const MSG_DEFEND_ON_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_DEFEND_ON_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("DefendOn message length not enough");
+        return -1;
+    }
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
 
     OBJECT *obj = session->obj;
     if (!obj)
@@ -797,6 +1026,8 @@ static int simcom_DefendOn(const void *msg, SESSION *session)
         return -1;
     }
     const char *strIMEI = obj->IMEI;
+
+    LOG_INFO("imei(%s) DefendOn result(%d)", obj->IMEI, rsp->result);
 
     if(rsp->result == 0)
     {
@@ -813,6 +1044,22 @@ static int simcom_DefendOn(const void *msg, SESSION *session)
 static int simcom_DefendOff(const void *msg, SESSION *session)
 {
     const MSG_DEFEND_OFF_RSP *rsp = (const MSG_DEFEND_OFF_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_DEFEND_OFF_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("DefendOff message length not enough");
+        return -1;
+    }
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
 
     OBJECT *obj = session->obj;
     if (!obj)
@@ -821,6 +1068,8 @@ static int simcom_DefendOff(const void *msg, SESSION *session)
         return -1;
     }
     const char *strIMEI = obj->IMEI;
+
+    LOG_INFO("imei(%s) DefendOff result(%d)", obj->IMEI, rsp->result);
 
     if(rsp->result == 0)
     {
@@ -837,6 +1086,31 @@ static int simcom_DefendOff(const void *msg, SESSION *session)
 static int simcom_DefendGet(const void *msg, SESSION *session)
 {
     const MSG_DEFEND_GET_RSP *rsp = (const MSG_DEFEND_GET_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_DEFEND_GET_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("DefendGet message length not enough");
+        return -1;
+    }
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = session->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+
+    LOG_INFO("imei(%s) DefendGet status(%d)", obj->IMEI, rsp->status);
 
     if(rsp->status == 0 || rsp->status == 1)
     {
@@ -854,6 +1128,31 @@ static int simcom_DefendGet(const void *msg, SESSION *session)
 static int simcom_DefendNotify(const void *msg, SESSION *session)
 {
     const MSG_DEFEND_NOTIFY_RSP *rsp = (const MSG_DEFEND_NOTIFY_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_DEFEND_NOTIFY_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("DefendNotify message length not enough");
+        return -1;
+    }
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = session->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+
+    LOG_INFO("imei(%s) DefendNotify status(%d)", obj->IMEI, rsp->status);
 
     if(rsp->status == 0 || rsp->status == 1)
     {
@@ -871,6 +1170,31 @@ static int simcom_DefendNotify(const void *msg, SESSION *session)
 static int simcom_UpgradeStart(const void *msg, SESSION *session)
 {
     const MSG_UPGRADE_START_RSP *rsp = (const MSG_UPGRADE_START_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_DEFEND_NOTIFY_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("UpgradeStart message length not enough");
+        return -1;
+    }
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = session->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+
+    LOG_INFO("imei(%s) UpgradeStart code(%d)", obj->IMEI, rsp->code);
 
     if(rsp->code == 0)
     {
@@ -899,10 +1223,35 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
 static int simcom_UpgradeData(const void *msg, SESSION *session)
 {
     const MSG_UPGRADE_DATA_RSP *rsp = (const MSG_UPGRADE_DATA_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_UPGRADE_DATA_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("UpgradeData message length not enough");
+        return -1;
+    }
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = session->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+
+    LOG_INFO("imei(%s) UpgradeData size(%d)", obj->IMEI, ntohl(rsp->size));
 
     if(ntohl(rsp->size) > 0)
     {
-        int LastSize = getLastFileSize();
+        unsigned int LastSize = getLastFileSize();
         LOG_INFO("rsp->size is %d, LastSize is %d", ntohl(rsp->size), LastSize);
 
         if(ntohl(rsp->size) < LastSize)
@@ -945,6 +1294,31 @@ static int simcom_UpgradeData(const void *msg, SESSION *session)
 static int simcom_UpgradeEnd(const void *msg, SESSION *session)
 {
     const MSG_UPGRADE_END_RSP *rsp = (const MSG_UPGRADE_END_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_UPGRADE_END_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("UpgradeEnd message length not enough");
+        return -1;
+    }
+
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = session->obj;
+    if (!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+
+    LOG_INFO("imei(%s) UpgradeEnd code(%d)", obj->IMEI, rsp->code);
 
     if(rsp->code == 0)
     {
@@ -985,6 +1359,8 @@ static int simcom_SimInfo(const void *msg, SESSION *session)
         return -1;
     }
 
+    LOG_INFO("imei(%s) SimInfo: ccid(%s), imsi(%s)", obj->IMEI, req->CCID, req->IMSI);
+
     if(strlen(req->CCID) == MAX_CCID_LENGTH && strlen(req->IMSI) == MAX_IMSI_LENGTH)
     {
         memcpy(obj->CCID, req->CCID, MAX_CCID_LENGTH);
@@ -1010,6 +1386,12 @@ static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
         return -1;
     }
 
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
     OBJECT * obj = (OBJECT *) session->obj;
     if (!obj)
     {
@@ -1020,8 +1402,8 @@ static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
     //parse for autolock, autoperiod, percent, miles, status
     const char *autolock = (const char *)(req + 1);
 
-    LOG_INFO("Device Info Others: autolock(%d), autoperiod(%d), percent(%d), miles(%d), status(%d)",
-            *autolock, *(autolock+1), *(autolock+2), *(autolock+3), *(autolock+4));
+    LOG_INFO("imei(%s) Device Info Others: autolock(%d), autoperiod(%d), percent(%d), miles(%d), status(%d)",
+            obj->IMEI, *autolock, *(autolock+1), *(autolock+2), *(autolock+3), *(autolock+4));
 
     app_sendStatusGetRsp2App(APP_CMD_STATUS_GET, CODE_SUCCESS, obj, 
         *autolock, *(autolock+1), *(autolock+2), *(autolock+3), *(autolock+4));
@@ -1039,8 +1421,8 @@ static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
             return -1;
         }
 
-        LOG_INFO("Device Info GPS: timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
-            ntohl(gps->timestamp), gps->latitude, gps->longitude, gps->speed, ntohs(gps->course));
+        LOG_INFO("imei(%s) Device Info GPS: timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
+            obj->IMEI, ntohl(gps->timestamp), gps->latitude, gps->longitude, gps->speed, ntohs(gps->course));
 
         obj->timestamp = ntohl(gps->timestamp);
         obj->isGPSlocated = 0x01;
@@ -1059,15 +1441,9 @@ static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
             return -1;
         }
 
-        LOG_INFO("Device Info Cell: mcc(%d), mnc(%d), lac(%d), cid(%d)", ntohs(*mcc), ntohs(*(mcc+1)), ntohs(*(mcc+2)), ntohs(*(mcc+3)));
+        LOG_INFO("imei(%s) Device Info Cell: mcc(%d), mnc(%d), lac(%d), cid(%d)", obj->IMEI, ntohs(*mcc), ntohs(*(mcc+1)), ntohs(*(mcc+2)), ntohs(*(mcc+3)));
 
         obj->isGPSlocated = 0x00;
-        /* unused
-        obj->mcc = ntohs(*mcc);
-        obj->mnc = ntohs(*(mcc+1));
-        obj->lac = ntohs(*(mcc+2));
-        obj->cid = ntohs(*(mcc+4));
-        */
     }
 
     return 0;
@@ -1094,6 +1470,12 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
         return -1;
     }
 
+    if (!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
     OBJECT * obj = (OBJECT *)session->obj;
     if (!obj)
     {
@@ -1110,8 +1492,8 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
         obj->speed = gps[i].speed;
         obj->course = ntohs(gps[i].course);
 
-        LOG_INFO("GPS_PACK(%d/%d): timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
-                i+1, num, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
+        LOG_INFO("imei(%s) GPS_PACK(%d/%d): timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
+                obj->IMEI, i+1, num, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
 
         db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
         sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
