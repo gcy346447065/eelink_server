@@ -68,14 +68,14 @@ static int simcom_wild(const void *m, SESSION *session)
 	const MSG_HEADER *msg = m;
     const char *msg_log = (const char *)(msg + 1);
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
-    OBJECT * obj = (OBJECT *)session->obj;
-    if (!obj)
+    OBJECT *obj = (OBJECT *)session->obj;
+    if(!obj)
     {
         LOG_WARN("MC must first login");
         return -1;
@@ -90,18 +90,17 @@ static int simcom_wild(const void *m, SESSION *session)
 static int simcom_login(const void *msg, SESSION *session)
 {
     const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg;
-    char imei[IMEI_LENGTH + 1];
-    
     if(ntohs(req->header.length) < sizeof(MSG_LOGIN_REQ) - MSG_HEADER_LEN)
     {
         LOG_ERROR("login message length not enough");
         return -1;
     }
 
+    char imei[IMEI_LENGTH + 1];
     memcpy(imei, req->IMEI, IMEI_LENGTH);
     imei[IMEI_LENGTH] = '\0'; //add '\0' for string operaton
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
@@ -113,7 +112,7 @@ static int simcom_login(const void *msg, SESSION *session)
         LOG_DEBUG("mc IMEI(%s) login", imei);
 
         obj = obj_get(imei);
-        if (!obj)
+        if(!obj)
         {
             LOG_INFO("the first time of simcom IMEI(%s)'s login", imei);
 
@@ -174,7 +173,7 @@ static int simcom_login(const void *msg, SESSION *session)
         if(ntohl(req->version) < theLastVersion)
         {
             MSG_UPGRADE_START_REQ *req4upgrade = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, theSize);
-            if (!req4upgrade)
+            if(!req4upgrade)
             {
                 LOG_FATAL("insufficient memory");
             }
@@ -205,14 +204,14 @@ static int simcom_ping(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
-    OBJECT * obj = (OBJECT *)session->obj;
-    if (!obj)
+    OBJECT *obj = (OBJECT *)session->obj;
+    if(!obj)
     {
         LOG_WARN("MC must first login");
         return -1;
@@ -237,14 +236,14 @@ static int simcom_gps(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
-    OBJECT * obj = (OBJECT *)session->obj;
-    if (!obj)
+    OBJECT *obj = (OBJECT *)session->obj;
+    if(!obj)
     {
         LOG_WARN("MC must first login");
         return -1;
@@ -283,20 +282,20 @@ static int simcom_cell(const void *msg, SESSION *session)
     }
 
     const CGI *cgi = (const CGI *)(req + 1);
-    if (!cgi)
+    if(!cgi)
     {
         LOG_ERROR("cgi handle empty");
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT *obj = (OBJECT *)session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_WARN("MC must first login");
         return -1;
@@ -315,7 +314,7 @@ static int simcom_cell(const void *msg, SESSION *session)
     }
 
     const CELL *cell = (const CELL *)(cgi + 1);
-    if (!cell)
+    if(!cell)
     {
         LOG_ERROR("cell handle empty");
         return -1;
@@ -366,7 +365,7 @@ static int simcom_alarm(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
@@ -416,7 +415,7 @@ static int simcom_sms(const void *msg , SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
@@ -450,7 +449,7 @@ static int simcom_433(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
@@ -485,14 +484,14 @@ static int simcom_defend(const void *msg, SESSION *session)
 
     int defend = ntohl(rsp->token);
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT *obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -551,14 +550,14 @@ static int simcom_seek(const void *msg, SESSION *session)
 
     int seek = ntohl(rsp->token);
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT* obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -604,14 +603,14 @@ static int simcom_locate(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT *obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -699,14 +698,14 @@ static int simcom_SetTimer(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT* obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -749,14 +748,14 @@ static int simcom_SetAutoswitch(const void *msg, SESSION *session)
 
     int autolock = ntohl(rsp->token);
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT* obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -796,20 +795,20 @@ static int simcom_GetAutoswitch(const void *msg, SESSION *session)
         LOG_ERROR("msg handle empty");
         return -1;
     }
-    if(ntohs(rsp->header.length) < sizeof(MSG_AUTOLOCK_SET_RSP) - MSG_HEADER_LEN)
+    if(ntohs(rsp->header.length) < sizeof(MSG_AUTOLOCK_GET_RSP) - MSG_HEADER_LEN)
     {
         LOG_ERROR("GetAutoswitch message length not enough");
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
-    OBJECT* obj = session->obj;
-    if (!obj)
+    OBJECT *obj = session->obj;
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -842,14 +841,14 @@ static int simcom_SetPeriod(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT *obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -888,14 +887,14 @@ static int simcom_GetPeriod(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT *obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -935,14 +934,14 @@ static int simcom_itinerary(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT *obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -964,20 +963,20 @@ static int simcom_battery(const void *msg, SESSION *session)
         LOG_ERROR("msg handle empty");
         return -1;
     }
-    if(ntohs(rsp->header.length) < sizeof(MSG_AUTOPERIOD_GET_RSP) - MSG_HEADER_LEN)
+    if(ntohs(rsp->header.length) < sizeof(MSG_BATTERY_RSP) - MSG_HEADER_LEN)
     {
         LOG_ERROR("GetPeriod message length not enough");
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT *obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -1013,14 +1012,14 @@ static int simcom_DefendOn(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT *obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -1055,14 +1054,14 @@ static int simcom_DefendOff(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT *obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -1097,14 +1096,14 @@ static int simcom_DefendGet(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT *obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -1139,14 +1138,14 @@ static int simcom_DefendNotify(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT *obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -1175,20 +1174,20 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
         LOG_ERROR("msg handle empty");
         return -1;
     }
-    if(ntohs(rsp->header.length) < sizeof(MSG_DEFEND_NOTIFY_RSP) - MSG_HEADER_LEN)
+    if(ntohs(rsp->header.length) < sizeof(MSG_UPGRADE_START_RSP) - MSG_HEADER_LEN)
     {
         LOG_ERROR("UpgradeStart message length not enough");
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT *obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -1234,14 +1233,14 @@ static int simcom_UpgradeData(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT *obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -1305,14 +1304,14 @@ static int simcom_UpgradeEnd(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
     OBJECT *obj = session->obj;
-    if (!obj)
+    if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
@@ -1346,14 +1345,14 @@ static int simcom_SimInfo(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
-    OBJECT * obj = (OBJECT *)session->obj;
-    if (!obj)
+    OBJECT *obj = (OBJECT *)session->obj;
+    if(!obj)
     {
         LOG_WARN("MC must first login");
         return -1;
@@ -1386,14 +1385,14 @@ static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
-    OBJECT * obj = (OBJECT *) session->obj;
-    if (!obj)
+    OBJECT *obj = (OBJECT *)session->obj;
+    if(!obj)
     {
         LOG_WARN("MC must first login");
         return -1;
@@ -1464,20 +1463,20 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
     }
 
     const GPS *gps = (const GPS *)(req + 1);
-    if (!gps)
+    if(!gps)
     {
         LOG_ERROR("gps handle empty");
         return -1;
     }
 
-    if (!session)
+    if(!session)
     {
         LOG_FATAL("session ptr null");
         return -1;
     }
 
-    OBJECT * obj = (OBJECT *)session->obj;
-    if (!obj)
+    OBJECT *obj = (OBJECT *)session->obj;
+    if(!obj)
     {
         LOG_WARN("MC must first login");
         return -1;
