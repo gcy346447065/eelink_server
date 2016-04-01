@@ -844,7 +844,7 @@ static int simcom_DefendGet(const void *msg, SESSION *session)
     }
     else
     {
-        LOG_ERROR("response DefendGet cmd not exist");
+        LOG_ERROR("simcom_DefendGet response error, rsp->status(%d)", rsp->status);
         return -1;
     }
 
