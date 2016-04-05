@@ -31,7 +31,7 @@ size_t leancloud_onSaveGPS(void *contents, size_t size, size_t nmemb, void *user
 	}
 	else
 	{
-		LOG_INFO("get save GPS response: %s", rsp);
+		LOG_DEBUG("get save GPS response: %s", rsp);
 	}
 
 	cJSON_Delete(json);
@@ -69,7 +69,7 @@ size_t leancloud_onSaveDID(void *contents, size_t size, size_t nmemb, void *user
 		int rc = objectID_add_HashAndDb(imei, objectID->valuestring);
 		if(rc)
 		{
-			LOG_ERROR("can't add objectId hash");
+			LOG_ERROR("can't add objectId into hash and db");
 			return 0;
 		}
 	}
@@ -96,7 +96,7 @@ size_t leancloud_onSaveItinerary(void *contents, size_t size, size_t nmemb, void
 	}
 	else
 	{
-		LOG_INFO("get save Itinerary response: %s", rsp);
+		LOG_DEBUG("get save Itinerary response: %s", rsp);
 	}
 
 	cJSON_Delete(json);
@@ -121,7 +121,7 @@ size_t leancloud_onSaveSimInfo(void *contents, size_t size, size_t nmemb, void *
 	}
 	else
 	{
-		LOG_INFO("get save SimInfo response: %s", rsp);
+		LOG_DEBUG("get save SimInfo response: %s", rsp);
 	}
 
 	cJSON_Delete(json);
