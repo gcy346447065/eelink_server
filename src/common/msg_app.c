@@ -253,9 +253,9 @@ void app_sendStatusGetRsp2App(int cmd, int code, OBJECT *obj, char autolock, cha
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send status get response to APP, imei(%s), code(%d), 
-              isGPSlocated(%d), timestamp(%d), lat(%f), lng(%f), speed(%d), course(%d),
-              lock(%d), isOn(%d), period(%d), percent(%d), miles(%d)",
+    LOG_INFO("send status get response to APP, imei(%s), code(%d)," 
+             "isGPSlocated(%d), timestamp(%d), lat(%f), lng(%f), speed(%d), course(%d),"
+             "lock(%d), isOn(%d), period(%d), percent(%d), miles(%d)",
               obj->IMEI, code, obj->isGPSlocated, obj->timestamp, obj->lat, obj->lon, 
               obj->speed, obj->course, status, autolock, autoperiod, percent, miles);
 
