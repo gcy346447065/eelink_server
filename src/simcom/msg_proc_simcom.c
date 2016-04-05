@@ -390,13 +390,13 @@ static int simcom_alarm(const void *msg, SESSION *session)
     cJSON *alarm = cJSON_CreateObject();
     cJSON_AddNumberToObject(alarm, "type", req->alarmType);
     cJSON_AddItemToObject(root, "alarm", alarm);
-    char* json = cJSON_PrintUnformatted(root);
+    char *json = cJSON_PrintUnformatted(root);
 
     yunba_publish(topic, json, strlen(json));
-    LOG_INFO("imei(%s) send alarm(%d)", obj->IMEI, req->alarmType);
-
     free(json);
     cJSON_Delete(root);
+
+    LOG_INFO("imei(%s) send alarm(%d)", obj->IMEI, req->alarmType);
 
     return 0;
 }

@@ -113,6 +113,9 @@ int leancloud_saveGPS(int timestamp, const char* imei, double lat, double lng, i
 	ENVIRONMENT* env = env_get();
 	CURL* curl = env->curl_leancloud;
 
+    LOG_INFO("leancloud_saveGPS imei(%s), timestamp(%d), lat(%lf), lng(%lf), speed(%d), course(%d)",
+             imei, timestamp, lat, lng, speed, course);
+
 	cJSON *root = cJSON_CreateObject();
 
 	cJSON_AddStringToObject(root, "IMEI", imei);
@@ -138,7 +141,8 @@ int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
     ENVIRONMENT* env = env_get();
     CURL* curl = env->curl_leancloud;
 
-    LOG_INFO("leancloud_saveItinerary imei(%s), start(%d), end(%d), miles(%d)", imei, start, end, miles);
+    LOG_INFO("leancloud_saveItinerary imei(%s), start(%d), end(%d), miles(%d)",
+             imei, start, end, miles);
 
     //get objectID from imei
     char *objectID = objectID_get_hash(imei);
@@ -223,6 +227,9 @@ int leancloud_saveSimInfo(const char* imei, const char* ccid, const char* imsi)
     ENVIRONMENT* env = env_get();
     CURL* curl = env->curl_leancloud;
 
+    LOG_INFO("leancloud_saveSimInfo imei(%s), ccid(%s), imsi(%s)",
+             imei, ccid, imsi);
+
     //get objectID from imei
     char *objectID = objectID_get_hash(imei);
     if(objectID == NULL)
@@ -286,6 +293,8 @@ int leancloud_saveDid(const char* imei)
 {
 	ENVIRONMENT* env = env_get();
 	CURL* curl = env->curl_leancloud;
+
+    LOG_INFO("leancloud_saveDid imei(%s)", imei);
 
 	cJSON *root = cJSON_CreateObject();
 
