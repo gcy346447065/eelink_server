@@ -308,7 +308,7 @@ int tk115_alarm(const void *msg, SESSION *ctx)
 
 	char* json = cJSON_PrintUnformatted(root);
 
-	yunba_publish(topic, json, strlen(json));
+	yunba_publish_old(topic, json, strlen(json));
 	LOG_INFO("send alarm: %s", topic);
 
 	free(json);

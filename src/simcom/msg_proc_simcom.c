@@ -381,20 +381,8 @@ static int simcom_alarm(const void *msg, SESSION *session)
     //send to APP by MQTT
     app_sendAlarmMsg2App(req->alarmType, NULL, session);
 
-    //send to APP by yunba
-    char topic[128];
-    memset(topic, 0, sizeof(topic));
-    snprintf(topic, 128, "simcom_%s", obj->IMEI);
-
-    cJSON *root = cJSON_CreateObject();
-    cJSON *alarm = cJSON_CreateObject();
-    cJSON_AddNumberToObject(alarm, "type", req->alarmType);
-    cJSON_AddItemToObject(root, "alarm", alarm);
-    char *json = cJSON_PrintUnformatted(root);
-
-    yunba_publish(topic, json, strlen(json));
-    free(json);
-    cJSON_Delete(root);
+    //send to ios APP by yunba
+    yunba_publish(obj->IMEI, YUNBA_CMD_ALARM, 0);
 
     LOG_INFO("imei(%s) send alarm(%d)", obj->IMEI, req->alarmType);
 
@@ -1156,6 +1144,9 @@ static int simcom_DefendNotify(const void *msg, SESSION *session)
     if(rsp->status == 0 || rsp->status == 1)
     {
         app_sendNotifyMsg2App(NOTIFY_AUTOLOCK, get_time(), rsp->status, session);
+
+        //send to ios APP by yunba
+        yunba_publish(obj->IMEI, YUNBA_CMD_AUTOLOCK_NOTIFY, rsp->status);
     }
     else
     {
