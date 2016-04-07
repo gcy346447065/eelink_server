@@ -303,7 +303,6 @@ static int simcom_cell(const void *msg, SESSION *session)
 
     LOG_INFO("imei(%s) CGI: mcc(%d), mnc(%d)", obj->IMEI, ntohs(cgi->mcc), ntohs(cgi->mnc));
 
-    obj->timestamp = get_time();
     obj->isGPSlocated = 0x00;
 
     int num = (int)cgi->cellNo;
@@ -328,7 +327,7 @@ static int simcom_cell(const void *msg, SESSION *session)
         (obj->cell[i]).ci  = ntohs((cell[i]).cellid);
         (obj->cell[i]).rxl = ntohs((cell[i]).rxl);
     }
-    db_saveCGI(obj->IMEI, obj->timestamp, obj->cell, num);
+    db_saveCGI(obj->IMEI, get_time(), obj->cell, num);
 
 #if 0
     float lat, lon;
@@ -640,7 +639,6 @@ static int simcom_locate(const void *msg, SESSION *session)
 
         LOG_INFO("imei(%s) LOCATION CGI: mcc(%d), mnc(%d)", obj->IMEI, ntohs(cgi->mcc), ntohs(cgi->mnc));
 
-        obj->timestamp = get_time();
         obj->isGPSlocated = 0x00;
 
         int num = cgi->cellNo;
@@ -660,11 +658,6 @@ static int simcom_locate(const void *msg, SESSION *session)
             (obj->cell[i]).ci  = ntohs((cell[i]).cellid);
             (obj->cell[i]).rxl = ntohs((cell[i]).rxl);
         }
-
-        obj->lat = 0;
-        obj->lon = 0;
-        obj->speed = 0;
-        obj->course = 0;
 
         app_sendLocationRsp2App(CODE_SUCCESS, obj);
     }
