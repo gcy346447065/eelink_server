@@ -1136,9 +1136,10 @@ static int simcom_DefendNotify(const void *msg, SESSION *session)
 
     if(rsp->status == 0 || rsp->status == 1)
     {
+        //send to Android APP
         app_sendNotifyMsg2App(NOTIFY_AUTOLOCK, get_time(), rsp->status, session);
 
-        //send to ios APP by yunba
+        //send to IOS APP by yunba
         yunba_publish(obj->IMEI, YUNBA_CMD_AUTOLOCK_NOTIFY, rsp->status);
     }
     else
