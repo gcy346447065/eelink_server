@@ -34,6 +34,7 @@ int db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*));
 
 int db_doWithObjectID(int (*func1)(const char*, const char*));
 int db_add_ObjectID(const char *imei, const char *objectID);
+int db_add_log(const char *imei, const char *event);
 
 #endif	/* DB_H */
 

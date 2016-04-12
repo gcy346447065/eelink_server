@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 
 #include "log.h"
+#include "object.h"
 #include "session.h"
 #include "server_simcom.h"
 #include "msg_proc_simcom.h"
@@ -54,15 +55,32 @@ static void write_cb(struct bufferevent* bev __attribute__((unused)), void *arg 
 
 static void event_cb(struct bufferevent *bev, short events, void *arg)
 {
+    SESSION *session = (SESSION *)arg;
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return;
+    }
+
+    OBJECT *obj = (OBJECT *)session->obj;
+    if(!obj)
+    {
+        LOG_WARN("obj ptr null");
+        return;
+    }
+
     if (events & BEV_EVENT_CONNECTED)
     {
         LOG_DEBUG("Connect okay.\n");
     }
     else if (events & BEV_EVENT_TIMEOUT)
     {
-        LOG_INFO("simcom connection timeout!");
+        LOG_INFO("imei(%s), simcom connection timeout!", obj->IMEI);
 
-        session_del((SESSION *) arg);
+        //add timeout log in db
+        db_add_log(obj->IMEI, "timeout");
+
+        session_del(session);
         evutil_socket_t socket = bufferevent_getfd(bev);
         EVUTIL_CLOSESOCKET(socket);
         bufferevent_free(bev);
@@ -79,9 +97,12 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
             LOG_ERROR("BEV_EVENT_ERROR:%s", evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
         }
 
-        LOG_INFO("Closing the simcom connection");
+        LOG_INFO("imei(%s), closing the simcom connection", obj->IMEI);
 
-        session_del((SESSION *) arg);
+        //add logout log in db
+        db_add_log(obj->IMEI, "logout");
+
+        session_del(session);
         evutil_socket_t socket = bufferevent_getfd(bev);
         EVUTIL_CLOSESOCKET(socket);
         bufferevent_free(bev);

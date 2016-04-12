@@ -48,8 +48,9 @@ enum ALARM
 
 enum NOTIFY
 {
-    NOTIFY_AUTOLOCK     = 0,
-    NOTIFY_STATUS       = 1
+    NOTIFY_AUTOLOCK     = 1,
+    NOTIFY_STATUS       = 2,
+    NOTIFY_BATTERY      = 3
 };
 
 //Message definition

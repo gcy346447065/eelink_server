@@ -154,6 +154,9 @@ static int simcom_login(const void *msg, SESSION *session)
         return -1;
     }
 
+    //add login log in db
+    db_add_log(obj->IMEI, "login");
+
     int ret = 0;
     if(!db_isTableCreated(obj->IMEI, &ret) && !ret)
     {
@@ -384,6 +387,9 @@ static int simcom_alarm(const void *msg, SESSION *session)
     yunba_publish(obj->IMEI, YUNBA_CMD_ALARM, 0);
 
     LOG_INFO("imei(%s) send alarm(%d)", obj->IMEI, req->alarmType);
+
+    //add alarm log in db
+    db_add_log(obj->IMEI, "alarm");
 
     return 0;
 }
@@ -1133,6 +1139,9 @@ static int simcom_DefendNotify(const void *msg, SESSION *session)
     }
 
     LOG_INFO("imei(%s) DefendNotify status(%d)", obj->IMEI, rsp->status);
+
+    //add autolock log in db
+    db_add_log(obj->IMEI, "autolock");
 
     if(rsp->status == 0 || rsp->status == 1)
     {
