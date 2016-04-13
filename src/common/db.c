@@ -425,31 +425,6 @@ static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *)
     {
         memcpy(imei, row[0], IMEI_LENGTH);
 
-        //fetch the last gps data from gps_imei db into object hash
-        char query2[256];
-        snprintf(query2, 256, "select timestamp,lat,lon,speed,course from gps_%s order by timestamp desc limit 1", imei);
-
-        if(mysql_ping(conn))
-        {
-            LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
-            return 1;
-        }
-
-        if(mysql_query(conn, query))
-        {
-            LOG_FATAL("can't get gps from gps_%s(%u, %s)", imei, mysql_errno(conn), mysql_error(conn));
-            return 2;
-        }
-
-        MYSQL_RES *result2;
-        MYSQL_ROW row2;
-        result2 = mysql_store_result(conn);
-        while(row2 = mysql_fetch_row(result2))
-        {
-            LOG_INFO("%s,%s,%s,%s,%s", row2[0], row2[1], row2[2], row2[3], row2[4]);
-        }
-        mysql_free_result(result2);
-
         func1(imei); //obj_initial
         func2(imei); //mqtt_subscribe
     }
