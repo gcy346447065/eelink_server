@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <arpa/inet.h>
 
+#include "db.h"
 #include "log.h"
 #include "object.h"
 #include "session.h"
