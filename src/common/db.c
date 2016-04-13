@@ -401,10 +401,11 @@ static int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[],
     return 0;
 }
 
-/*Object db
-Names of the table and columns need modifing*/
 static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *))
 {
+    //imei for fetching the last gps data from gps_imei db into object hash
+    char imei[IMEI_LENGTH + 1];
+
     char query[] = "select imei from object where length(imei)=15";
 
     if(mysql_ping(conn))
@@ -424,6 +425,11 @@ static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *)
     result = mysql_store_result(conn);
     while(row = mysql_fetch_row(result))
     {
+        memcpy(imei, row[0], IMEI_LENGTH);
+        imei[IMEI_LENGTH] = '\0'; //add '\0' for string operaton
+
+        LOG_INFO("row[0]=%s, imei=%s", row[0], imei);
+
         func1(row[0]); //obj_initial
         func2(row[0]); //mqtt_subscribe
     }

@@ -406,7 +406,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len __at
     int cmd = cmdItem->valueint;
 
     /* if offline, send CODE_DEVICE_OFFLINE;
-       if offline with APP_CMD_LOCATION, send CODE_DEVICE_OFFLINE with GPS;
+     * if offline with APP_CMD_LOCATION, send CODE_DEVICE_OFFLINE with GPS;
      */
     if(!(obj->session))
     {
