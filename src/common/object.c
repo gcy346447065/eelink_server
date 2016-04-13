@@ -34,9 +34,8 @@ static void obj_add_db(OBJECT *obj)
 static void obj_initial(const char *imei)
 {
 	OBJECT *obj = obj_new();
-	memcpy(obj->IMEI, imei, IMEI_LENGTH + 1);
-    
-    
+	memcpy(obj->IMEI, imei, IMEI_LENGTH);
+
 	obj_add_hash(obj);
 }
 

@@ -403,9 +403,7 @@ static int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[],
 
 static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *))
 {
-    //imei for fetching the last gps data from gps_imei db into object hash
-    char imei[IMEI_LENGTH + 1];
-
+    char imei[IMEI_LENGTH];
     char query[] = "select imei from object where length(imei)=15";
 
     if(mysql_ping(conn))
@@ -426,12 +424,33 @@ static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *)
     while(row = mysql_fetch_row(result))
     {
         memcpy(imei, row[0], IMEI_LENGTH);
-        imei[IMEI_LENGTH] = '\0'; //add '\0' for string operaton
 
-        LOG_INFO("row[0]=%s, imei=%s", row[0], imei);
+        //fetch the last gps data from gps_imei db into object hash
+        char query2[256];
+        snprintf(query2, 256, "select timestamp,lat,lon,speed,course from gps_%s order by timestamp desc limit 1", imei);
 
-        func1(row[0]); //obj_initial
-        func2(row[0]); //mqtt_subscribe
+        if(mysql_ping(conn))
+        {
+            LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+            return 1;
+        }
+
+        if(mysql_query(conn, query))
+        {
+            LOG_FATAL("can't get gps from gps_%s(%u, %s)", imei, mysql_errno(conn), mysql_error(conn));
+            return 2;
+        }
+
+        MYSQL_RES *result2;
+        MYSQL_ROW row2;
+        result2 = mysql_store_result(conn);
+        while(row2 = mysql_fetch_row(result2))
+        {
+            LOG_INFO("%d,%f,%f,%d,%d", row2[0], row2[1], row2[2], row2[3], row2[4]);
+        }
+
+        func1(imei); //obj_initial
+        func2(imei); //mqtt_subscribe
     }
     mysql_free_result(result);
     return 0;
