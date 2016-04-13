@@ -446,8 +446,9 @@ static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *)
         result2 = mysql_store_result(conn);
         while(row2 = mysql_fetch_row(result2))
         {
-            LOG_INFO("%d,%f,%f,%d,%d", row2[0], row2[1], row2[2], row2[3], row2[4]);
+            LOG_INFO("%s,%s,%s,%s,%s", row2[0], row2[1], row2[2], row2[3], row2[4]);
         }
+        mysql_free_result(result2);
 
         func1(imei); //obj_initial
         func2(imei); //mqtt_subscribe
