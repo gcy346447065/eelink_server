@@ -305,7 +305,7 @@ static int _db_createGPS(const char* tableName)
 {
     char query[MAX_QUERY];
     
-    snprintf(query, MAX_QUERY, "create table gps_%s(timestamp INT,lat DOUBLE(9,6),lon DOUBLE(9,6),altitude DOUBLE(9,6),speed DOUBLE(9,6),course DOUBLE(9,6),primary key(timestamp))", tableName);
+    snprintf(query, MAX_QUERY, "create table gps_%s(timestamp INT,lat DOUBLE(9,6),lon DOUBLE(9,6),speed TINYINT,course SMALLINT,primary key(timestamp))", tableName);
     
     if(mysql_ping(conn))
     {
@@ -347,7 +347,7 @@ static int _db_createCGI(const char* tableName)
 
 static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, short course)
 {
-    //timestamp INT, lat DOUBLE, lon DOUBLE, speed DOUBLE, course DOUBLE
+    //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
     char query[MAX_QUERY];
     snprintf(query, MAX_QUERY, "insert into gps_%s(timestamp,lat,lon,speed,course) values(%d,%f,%f,%d,%d)",imeiName, timestamp, lat, lon, speed, course);
     

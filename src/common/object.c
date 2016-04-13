@@ -71,7 +71,7 @@ void obj_table_initial(void (*mqtt_sub)(const char *))
     /* create hash table */
     object_table = g_hash_table_new_full(g_str_hash, g_str_equal, obj_freeKey, obj_freeValue);
 
-    /* read imei data from db*/
+    /* read imei data from db */
 	db_doWithOBJ(obj_initial, mqtt_sub);
 }
 
