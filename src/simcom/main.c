@@ -8,6 +8,7 @@
 #include "log.h"
 #include "version.h"
 #include "server_simcom.h"
+#include "server_manager.h"
 #include "yunba_push.h"
 #include "object.h"
 #include "mqtt.h"
@@ -28,7 +29,7 @@ static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __a
 int main(int argc, char **argv)
 {
     int simcom_port = PORT_SIMCOM;
-    //int simcom_port = 8888;
+    int manager_port = PORT_MANAGER;
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -40,6 +41,16 @@ int main(int argc, char **argv)
     	{
     		simcom_port = num;
     	}
+    }
+
+    if (argc >= 3)
+    {
+        char* strPort = argv[2];
+        int num = atoi(strPort);
+        if (num)
+        {
+            manager_port = num;
+        }
     }
 
     /* log haven't work now, it will be writen into nohup file */
@@ -112,7 +123,7 @@ int main(int argc, char **argv)
     obj_table_initial(mqtt_subscribe);
     session_table_initial();
 
-    struct evconnlistener* listener_simcom = server_simcom(base, simcom_port);
+    struct evconnlistener *listener_simcom = server_simcom(base, simcom_port);
     if (listener_simcom)
     {
         LOG_INFO("start simcom server successfully at port:%d", simcom_port);
@@ -120,6 +131,17 @@ int main(int argc, char **argv)
     else
     {
         LOG_FATAL("start simcom server failed at port:%d", simcom_port);
+        return 2;
+    }
+
+    struct evconnlistener *listener_manager = server_manager(base, manager_port);
+    if (listener_manager)
+    {
+        LOG_INFO("start manager server successfully at port:%d", manager_port);
+    }
+    else
+    {
+        LOG_FATAL("start manager server failed at port:%d", manager_port);
         return 2;
     }
 

@@ -1531,7 +1531,7 @@ static MSG_PROC_MAP msgProcs[] =
     {CMD_GPS_PACK,          simcom_gpsPack}
 };
 
-int handle_one_msg(const void *m, SESSION *ctx)
+static int handle_one_msg(const void *m, SESSION *ctx)
 {
     const MSG_HEADER *msg = (const MSG_HEADER *)m;
 
