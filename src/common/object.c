@@ -69,14 +69,19 @@ static void obj_sendImeiData2Manager(gpointer key, gpointer value, gpointer user
     OBJECT *obj = (OBJECT *)value;
     MANAGER_SEND_S *pstManagerSend = (MANAGER_SEND_S *)user_data;
 
+    LOG_INFO("obj_sendImeiData2Manager imei(%s)", obj->IMEI);
+
     pstManagerSend->proc(pstManagerSend->msg, pstManagerSend->session, obj->IMEI, obj->session, obj->timestamp, obj->lon, obj->lat, obj->speed, obj->course);
 
+    free(pstManagerSend);
     return;
 }
 
 void obj_sendImeiData2ManagerLoop(const void *msg, SESSION *session, MANAGER_SEND_PROC proc)
 {
-    MANAGER_SEND_S *pstManagerSend;
+    MANAGER_SEND_S *pstManagerSend = malloc(sizeof(MANAGER_SEND_S));
+
+    LOG_INFO("obj_sendImeiData2ManagerLoop");
 
     pstManagerSend->msg = msg;
     pstManagerSend->session = session;
