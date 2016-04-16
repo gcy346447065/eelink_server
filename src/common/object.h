@@ -67,6 +67,10 @@ typedef struct
     void* session;
 } OBJECT;
 
+
+typedef int (*MANAGER_SEND_PROC)(const void *msg, SESSION *ManagerSession, const char *imei, SESSION *deviceSession, int timestamp, float lon, float lat, char speed, short course);
+void obj_sendImeiData2ManagerLoop(const void *msg, SESSION *session, MANAGER_SEND_PROC proc);
+
 void obj_table_initial(void (*func)(const char *));
 void obj_table_destruct();
 
@@ -74,7 +78,6 @@ OBJECT *obj_new();
 void obj_add(OBJECT *obj);
 void obj_del(OBJECT *obj);
 OBJECT *obj_get(const char IMEI[]);
-
 
 int obj_did_got(OBJECT *obj);
 const char* get_IMEI_STRING(const unsigned char* IMEI);

@@ -10,9 +10,9 @@
 #include <time.h>
 #include <glib.h>
 
+#include "db.h"
 #include "log.h"
 #include "object.h"
-#include "db.h"
 
 /* global hash table */
 static GHashTable *object_table = NULL;
@@ -42,14 +42,50 @@ static void obj_initial(const char *imei)
 //it is a callback to update obj into db
 static void obj_update(gpointer key, gpointer value, gpointer user_data)
 {
-	OBJECT *obj = (OBJECT *)value;
+	//OBJECT *obj = (OBJECT *)value;
 	//db_updateOBJ(obj->IMEI, obj->timestamp);
+    key = key;
+    value = value;
+    user_data = user_data;
 }
 
 static void obj_table_save()
 {
     /* foreach hash */
     //g_hash_table_foreach(object_table, obj_update, NULL);
+}
+
+typedef struct 
+{
+    const void *msg;
+    SESSION *session;
+    MANAGER_SEND_PROC proc;
+}MANAGER_SEND_S;
+
+//it is a callback for sending imei data to manager
+static void obj_sendImeiData2Manager(gpointer key, gpointer value, gpointer user_data)
+{
+    key = key;
+    OBJECT *obj = (OBJECT *)value;
+    MANAGER_SEND_S *pstManagerSend = (MANAGER_SEND_S *)user_data;
+
+    pstManagerSend->proc(pstManagerSend->msg, pstManagerSend->session, obj->IMEI, obj->session, obj->timestamp, obj->lon, obj->lat, obj->speed, obj->course);
+
+    return;
+}
+
+void obj_sendImeiData2ManagerLoop(const void *msg, SESSION *session, MANAGER_SEND_PROC proc)
+{
+    MANAGER_SEND_S *pstManagerSend;
+
+    pstManagerSend->msg = msg;
+    pstManagerSend->session = session;
+    pstManagerSend->proc = proc;
+    
+    /* foreach hash */
+    g_hash_table_foreach(object_table, obj_sendImeiData2Manager, pstManagerSend);
+
+    return;
 }
 
 void obj_freeKey(gpointer key)
