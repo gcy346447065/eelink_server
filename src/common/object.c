@@ -74,6 +74,7 @@ static void obj_sendImeiData2Manager(gpointer key, gpointer value, gpointer user
     //manager_sendImeiData
     pstManagerSend->proc(pstManagerSend->msg, pstManagerSend->session, obj->IMEI, obj->session, obj->timestamp, obj->lon, obj->lat, obj->speed, obj->course);
 
+    LOG_INFO("obj_sendImeiData2Manager free");
     free(pstManagerSend);
     return;
 }
@@ -81,6 +82,10 @@ static void obj_sendImeiData2Manager(gpointer key, gpointer value, gpointer user
 void obj_sendImeiData2ManagerLoop(const void *msg, SESSION *session, MANAGER_SEND_PROC proc)
 {
     MANAGER_SEND_S *pstManagerSend = malloc(sizeof(MANAGER_SEND_S));
+    if(!pstManagerSend)
+    {
+        return;
+    }
 
     LOG_INFO("obj_sendImeiData2ManagerLoop");
 

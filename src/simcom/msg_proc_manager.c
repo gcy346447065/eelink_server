@@ -54,6 +54,8 @@ int manager_sendImeiData(const void *msg, SESSION *ManagerSession, const char *i
         online_offline = 1; //online
     }
 
+    LOG_INFO("manager_sendImeiData, imei(%s)", imei);
+
     MSG_IMEI_DATA_RSP *rsp = (MSG_IMEI_DATA_RSP *)alloc_manager_rspMsg((const MSG_HEADER *)msg);
     if(rsp)
     {
@@ -70,8 +72,8 @@ int manager_sendImeiData(const void *msg, SESSION *ManagerSession, const char *i
     }
     else
     {
-        free_manager_msg(rsp);
         LOG_ERROR("insufficient memory");
+        free_manager_msg(rsp);
         return -1;
     }
 

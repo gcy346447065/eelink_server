@@ -45,12 +45,14 @@ MSG_HEADER *alloc_manager_rspMsg(const MSG_HEADER *pMsg)
             return NULL;
     }
 
-    MSG_HEADER* msg = malloc(msgLen);
-
-    msg->signature = htons(START_FLAG);
-    msg->cmd = pMsg->cmd;
-    msg->seq = pMsg->seq;
-    msg->length = htons(msgLen - MSG_HEADER_LEN);
+    MSG_HEADER *msg = malloc(msgLen);
+    if(msg)
+    {
+        msg->signature = htons(START_FLAG);
+        msg->cmd = pMsg->cmd;
+        msg->seq = pMsg->seq;
+        msg->length = htons(msgLen - MSG_HEADER_LEN);
+    }
 
     return msg;
 }
