@@ -154,7 +154,7 @@ int handle_manager_msg(const char *m, size_t msgLen, void *arg)
 
     if(msgLen < MSG_HEADER_LEN)
     {
-        LOG_ERROR("message length not enough: %zu(at least(%zu)", msgLen, MSG_HEADER_LEN);
+        LOG_ERROR("message length not enough: %zu(at least(%zu))", msgLen, MSG_HEADER_LEN);
 
         return -1;
     }

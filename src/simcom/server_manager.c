@@ -68,7 +68,7 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
     }
     else if (events & BEV_EVENT_TIMEOUT)
     {
-        session_del(session);
+        LOG_ERROR("BEV_EVENT_TIMEOUT");
         evutil_socket_t socket = bufferevent_getfd(bev);
         EVUTIL_CLOSESOCKET(socket);
         bufferevent_free(bev);
@@ -84,8 +84,11 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
             }
             LOG_ERROR("BEV_EVENT_ERROR:%s", evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
         }
+        else
+        {
+            LOG_ERROR("BEV_EVENT_EOF");
+        }
 
-        session_del(session);
         evutil_socket_t socket = bufferevent_getfd(bev);
         EVUTIL_CLOSESOCKET(socket);
         bufferevent_free(bev);
