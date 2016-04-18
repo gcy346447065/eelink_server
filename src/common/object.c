@@ -71,6 +71,7 @@ static void obj_sendImeiData2Manager(gpointer key, gpointer value, gpointer user
 
     LOG_INFO("obj_sendImeiData2Manager imei(%s)", obj->IMEI);
 
+    //manager_sendImeiData
     pstManagerSend->proc(pstManagerSend->msg, pstManagerSend->session, obj->IMEI, obj->session, obj->timestamp, obj->lon, obj->lat, obj->speed, obj->course);
 
     free(pstManagerSend);
@@ -85,7 +86,7 @@ void obj_sendImeiData2ManagerLoop(const void *msg, SESSION *session, MANAGER_SEN
 
     pstManagerSend->msg = msg;
     pstManagerSend->session = session;
-    pstManagerSend->proc = proc;
+    pstManagerSend->proc = proc; //manager_sendImeiData
     
     /* foreach hash */
     g_hash_table_foreach(object_table, obj_sendImeiData2Manager, pstManagerSend);
