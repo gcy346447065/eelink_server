@@ -74,8 +74,6 @@ static void obj_sendImeiData2Manager(gpointer key, gpointer value, gpointer user
     //manager_sendImeiData
     pstManagerSend->proc(pstManagerSend->msg, pstManagerSend->session, obj->IMEI, obj->session, obj->timestamp, obj->lon, obj->lat, obj->speed, obj->course);
 
-    LOG_INFO("obj_sendImeiData2Manager free");
-    free(pstManagerSend);
     return;
 }
 
@@ -97,14 +95,15 @@ void obj_sendImeiData2ManagerLoop(const void *msg, int msg_size, SESSION *sessio
 
     LOG_INFO("obj_sendImeiData2ManagerLoop");
 
-    pstManagerSend->msg = msg_copy;
+    pstManagerSend->msg = msg;
     pstManagerSend->session = session;
     pstManagerSend->proc = proc; //manager_sendImeiData
     
     /* foreach hash */
     g_hash_table_foreach(object_table, obj_sendImeiData2Manager, pstManagerSend);
 
-    free(msg_copy);
+    //free(msg_copy);
+    free(pstManagerSend);
     return;
 }
 
