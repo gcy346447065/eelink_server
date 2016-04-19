@@ -54,7 +54,7 @@ int manager_sendImeiData(const void *msg, SESSION *ManagerSession, const char *i
         online_offline = 1; //online
     }
 
-    LOG_INFO("manager_sendImeiData, imei(%s), msg(%x), session(%x)", imei, msg, ManagerSession);
+    LOG_INFO("manager_sendImeiData, imei(%s)", imei);
 
     MSG_IMEI_DATA_RSP *rsp = (MSG_IMEI_DATA_RSP *)alloc_manager_rspMsg((const MSG_HEADER *)msg);
     if(rsp)
@@ -68,7 +68,7 @@ int manager_sendImeiData(const void *msg, SESSION *ManagerSession, const char *i
         rsp->imei_data.gps.course = course;
 
         manager_sendMsg(rsp, sizeof(MSG_IMEI_DATA_RSP), ManagerSession);
-        LOG_INFO("send imei data rsp, msg(%x), session(%x)", msg, ManagerSession);
+        LOG_INFO("send imei data rsp");
     }
     else
     {
@@ -118,7 +118,7 @@ static int manager_imeiData(const void *msg, SESSION *session)
     LOG_INFO("get imei data req");
 
     //loop for sending imei data rsp
-    obj_sendImeiData2ManagerLoop((const void *)msg, sizeof(MSG_IMEI_DATA_REQ), session, manager_sendImeiData);
+    obj_sendImeiData2ManagerLoop((const void *)msg, session, manager_sendImeiData);
 
     return 0;
 }

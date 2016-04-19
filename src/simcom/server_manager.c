@@ -133,7 +133,7 @@ static void accept_conn_cb(struct evconnlistener *listener,
     bufferevent_enable(bev, EV_READ | EV_WRITE);
 
     //set the timeout for the connection, when timeout close the connection
-    struct timeval tm = {180, 0};
+    struct timeval tm = {600, 0};
 
     bufferevent_set_timeouts(bev, &tm, &tm);
 }

@@ -77,21 +77,13 @@ static void obj_sendImeiData2Manager(gpointer key, gpointer value, gpointer user
     return;
 }
 
-void obj_sendImeiData2ManagerLoop(const void *msg, int msg_size, SESSION *session, MANAGER_SEND_PROC proc)
+void obj_sendImeiData2ManagerLoop(const void *msg, SESSION *session, MANAGER_SEND_PROC proc)
 {
     MANAGER_SEND_S *pstManagerSend = malloc(sizeof(MANAGER_SEND_S));
     if(!pstManagerSend)
     {
         return;
     }
-
-    //msg will be freed for the first foreach, so use msg_copy
-    const void *msg_copy = malloc(msg_size);
-    if(!msg_copy)
-    {
-        return;
-    }
-    memcpy(msg_copy, msg, msg_size);
 
     LOG_INFO("obj_sendImeiData2ManagerLoop");
 
@@ -102,7 +94,6 @@ void obj_sendImeiData2ManagerLoop(const void *msg, int msg_size, SESSION *sessio
     /* foreach hash */
     g_hash_table_foreach(object_table, obj_sendImeiData2Manager, pstManagerSend);
 
-    //free(msg_copy);
     free(pstManagerSend);
     return;
 }
