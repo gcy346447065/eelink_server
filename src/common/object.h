@@ -69,7 +69,7 @@ typedef struct
 
 
 typedef int (*MANAGER_SEND_PROC)(const void *msg, SESSION *ManagerSession, const char *imei, SESSION *deviceSession, int timestamp, float lon, float lat, char speed, short course);
-void obj_sendImeiData2ManagerLoop(const void *msg, SESSION *session, MANAGER_SEND_PROC proc);
+void obj_sendImeiData2ManagerLoop(const void *msg, int msg_size, SESSION *session, MANAGER_SEND_PROC proc);
 
 void obj_table_initial(void (*func)(const char *));
 void obj_table_destruct();

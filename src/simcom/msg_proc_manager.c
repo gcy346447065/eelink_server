@@ -118,7 +118,7 @@ static int manager_imeiData(const void *msg, SESSION *session)
     LOG_INFO("get imei data req");
 
     //loop for sending imei data rsp
-    obj_sendImeiData2ManagerLoop((const void *)msg, session, manager_sendImeiData);
+    obj_sendImeiData2ManagerLoop((const void *)msg, sizeof(MSG_IMEI_DATA_REQ), session, manager_sendImeiData);
 
     return 0;
 }
