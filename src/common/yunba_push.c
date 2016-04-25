@@ -225,6 +225,12 @@ void yunba_publish(char *imei, int yunba_cmd, int status)
 	if (rc != MQTTCLIENT_SUCCESS)
 	{
 		LOG_ERROR("yunba push error: rc = %d", rc);
+
+		if(rc == MQTTCLIENT_DISCONNECTED) //-3
+		{
+			LOG_INFO("reconnect to yunba");
+			yunba_connect();
+		}
 		return;
 	}
 	cJSON_Delete(Opt);
