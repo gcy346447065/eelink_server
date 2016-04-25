@@ -170,7 +170,7 @@ typedef struct
     char sms[];
 }__attribute__((__packed__)) MSG_SMS_REQ;
 
-typedef MSG_SMS_REQ MSG_SMS_RSP;
+typedef MSG_HEADER MSG_SMS_RSP;
 
 /*
  * 433 message structure
@@ -337,6 +337,8 @@ typedef struct
     int end;
     int miles;    //unit: meters
 }__attribute__((__packed__)) MSG_ITINERARY_REQ;
+
+typedef MSG_HEADER MSG_ITINERARY_RSP;
 
 /*
  * battery message structure

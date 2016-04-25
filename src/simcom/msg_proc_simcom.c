@@ -423,7 +423,21 @@ static int simcom_sms(const void *msg , SESSION *session)
 
     LOG_INFO("imei(%s) SMS telphone(%s)", obj->IMEI, req->telphone);
 
-    //TO DO: sms
+    //TO DO: send sms
+
+    //sms rsp
+    MSG_SMS_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
+    if(rsp)
+    {
+        simcom_sendMsg(rsp, sizeof(MSG_SMS_RSP), session);
+        LOG_INFO("send sms rsp");
+    }
+    else
+    {
+        free(rsp);
+        LOG_ERROR("insufficient memory");
+        return -1;
+    }
 
     return 0;
 }
@@ -931,6 +945,20 @@ static int simcom_itinerary(const void *msg, SESSION *session)
     if(!obj)
     {
         LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+
+    //itinerary rsp
+    MSG_ITINERARY_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
+    if(rsp)
+    {
+        simcom_sendMsg(rsp, sizeof(MSG_ITINERARY_RSP), session);
+        LOG_INFO("send itinerary rsp");
+    }
+    else
+    {
+        free(rsp);
+        LOG_ERROR("insufficient memory");
         return -1;
     }
 

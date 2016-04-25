@@ -37,7 +37,11 @@ MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER *pMsg)
             break;
 
         case CMD_SMS:
-            msgLen = sizeof(MSG_SMS_RSP);    //FIXME: without any sms contents
+            msgLen = sizeof(MSG_SMS_RSP);
+            break;
+
+        case CMD_ITINERARY:
+            msgLen = sizeof(MSG_ITINERARY_RSP);
             break;
 
         default:
