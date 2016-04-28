@@ -429,6 +429,8 @@ typedef struct
     char IMSI[MAX_IMSI_LENGTH]; //MCC+MNC+MSIN
 }__attribute__((__packed__)) MSG_SIM_INFO_REQ;
 
+typedef MSG_HEADER MSG_SIM_INFO_RSP;
+
 /*
  * GPS PACK message structure
  */

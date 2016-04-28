@@ -391,6 +391,20 @@ static int simcom_alarm(const void *msg, SESSION *session)
     //add alarm log in db
     db_add_log(obj->IMEI, "alarm");
 
+    //alarm rsp
+    MSG_ALARM_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
+    if(rsp)
+    {
+        simcom_sendMsg(rsp, sizeof(MSG_ALARM_RSP), session);
+        LOG_INFO("send alarm rsp");
+    }
+    else
+    {
+        free(rsp);
+        LOG_ERROR("insufficient memory");
+        return -1;
+    }
+
     return 0;
 }
 
@@ -1388,6 +1402,20 @@ static int simcom_SimInfo(const void *msg, SESSION *session)
         memcpy(obj->IMSI, req->IMSI, MAX_IMSI_LENGTH);
 
         sync_SimInfo(obj->IMEI, obj->CCID, obj->IMSI);
+    }
+
+    //sim info rsp
+    MSG_SIM_INFO_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
+    if(rsp)
+    {
+        simcom_sendMsg(rsp, sizeof(MSG_SIM_INFO_RSP), session);
+        LOG_INFO("send sim info rsp");
+    }
+    else
+    {
+        free(rsp);
+        LOG_ERROR("insufficient memory");
+        return -1;
     }
     
     return 0;

@@ -44,6 +44,14 @@ MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER *pMsg)
             msgLen = sizeof(MSG_ITINERARY_RSP);
             break;
 
+        case CMD_SIM_INFO:
+            msgLen = sizeof(MSG_SIM_INFO_RSP);
+            break;
+
+        case CMD_ALARM:
+            msgLen = sizeof(MSG_ALARM_RSP);
+            break;
+
         default:
             return NULL;
     }
