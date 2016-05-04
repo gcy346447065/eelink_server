@@ -979,7 +979,22 @@ static int simcom_itinerary(const void *msg, SESSION *session)
     LOG_INFO("imei(%s) itinerary: start(%d), end(%d), miles(%d)",
          obj->IMEI, ntohl(req->start), ntohl(req->end), ntohl(req->miles));
 
-    sync_itinerary(obj->IMEI, ntohl(req->start), ntohl(req->end), ntohl(req->miles));
+    static int last_start = 0;
+    static int last_end = 0;
+    static int last_miles = 0;
+
+    if(last_start != ntohl(req->start) || last_end != ntohl(req->end) || last_miles != ntohl(req->miles))
+    {
+        last_start = ntohl(req->start);
+        last_end = ntohl(req->end);
+        last_miles = ntohl(req->miles);
+
+        sync_itinerary(obj->IMEI, last_start, last_end, last_miles);
+    }
+    else
+    {
+        LOG_INFO("get repetitive itinerary");
+    }
 
     return 0;
 }
