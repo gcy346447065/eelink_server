@@ -1394,14 +1394,26 @@ static int simcom_SimInfo(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("imei(%s) SimInfo: ccid(%s), imsi(%s)", obj->IMEI, req->CCID, req->IMSI);
+    char ccid[CCID_LENGTH + 1];
+    memcpy(ccid, req->CCID, CCID_LENGTH);
+    ccid[CCID_LENGTH] = '\0'; //add '\0' for string operaton
 
-    if(strlen(req->CCID) == MAX_CCID_LENGTH && strlen(req->IMSI) == MAX_IMSI_LENGTH)
+    char imsi[IMSI_LENGTH + 1];
+    memcpy(imsi, req->IMSI, IMSI_LENGTH);
+    imsi[IMSI_LENGTH] = '\0'; //add '\0' for string operaton
+
+    LOG_INFO("imei(%s) SimInfo: ccid(%s), imsi(%s)", obj->IMEI, ccid, imsi);
+
+    if(strlen(ccid) == MAX_CCID_LENGTH && strlen(imsi) == MAX_IMSI_LENGTH)
     {
-        memcpy(obj->CCID, req->CCID, MAX_CCID_LENGTH);
-        memcpy(obj->IMSI, req->IMSI, MAX_IMSI_LENGTH);
+        memcpy(obj->CCID, ccid, CCID_LENGTH + 1);
+        memcpy(obj->IMSI, imsi, IMSI_LENGTH + 1);
 
         sync_SimInfo(obj->IMEI, obj->CCID, obj->IMSI);
+    }
+    else
+    {
+        LOG_ERROR("sim info ccid or imsi length error");
     }
 
     //sim info rsp
