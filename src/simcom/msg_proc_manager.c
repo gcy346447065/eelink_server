@@ -59,7 +59,7 @@ int manager_sendImeiData(const void *msg, SESSION *ManagerSession, const char *i
     MSG_IMEI_DATA_RSP *rsp = (MSG_IMEI_DATA_RSP *)alloc_manager_rspMsg((const MSG_HEADER *)msg);
     if(rsp)
     {
-        memcpy(rsp->imei_data.IMEI, imei, MAX_IMEI_LENGTH);
+        //memcpy(rsp->imei_data.IMEI, imei, MAX_IMEI_LENGTH);
         rsp->imei_data.online_offline = online_offline;
         rsp->imei_data.gps.timestamp = timestamp;
         rsp->imei_data.gps.longitude = lon;
@@ -109,16 +109,51 @@ static int manager_login(const void *msg, SESSION *session)
 static int manager_imeiData(const void *msg, SESSION *session)
 {
     const MSG_IMEI_DATA_REQ *req = (const MSG_IMEI_DATA_REQ *)msg;
-    if(ntohs(req->length) != sizeof(MSG_IMEI_DATA_REQ) - MSG_HEADER_LEN)
+    if(ntohs(req->header.length) < sizeof(MSG_IMEI_DATA_REQ) - MSG_HEADER_LEN)
     {
         LOG_ERROR("imei data message length not enough");
         return -1;
     }
 
-    LOG_INFO("get imei data req");
+    char imei[IMEI_LENGTH + 1];
+    memcpy(imei, req->IMEI, IMEI_LENGTH);
+    imei[IMEI_LENGTH] = '\0'; //add '\0' for string operaton
 
+    LOG_INFO("get imei data req, imei(%s)", imei);
+
+    //imei data rsp
+    MSG_IMEI_DATA_RSP *rsp = (MSG_IMEI_DATA_RSP *)alloc_manager_rspMsg((const MSG_HEADER *)msg);
+    if(rsp)
+    {
+        OBJECT *obj = obj_get(imei);
+        if(obj)
+        {
+            LOG_INFO("succeed to find imei(%s) in object, send full rsp", imei);
+
+            rsp->imei_data.online_offline = obj->session ? 1 : 2;//1 for online, 2 for offline
+            rsp->imei_data.gps.timestamp = obj->timestamp;
+            rsp->imei_data.gps.longitude = obj->lon;
+            rsp->imei_data.gps.latitude = obj->lat;
+            rsp->imei_data.gps.speed = obj->speed;
+            rsp->imei_data.gps.course = obj->course;
+        }
+        else
+        {
+            LOG_INFO("failed to find imei(%s) in object, send null rsp", imei);
+        }
+        
+        manager_sendMsg(rsp, sizeof(MSG_IMEI_DATA_RSP), session);
+        LOG_INFO("send imei data rsp");
+    }
+    else
+    {
+        LOG_ERROR("insufficient memory");
+        return -1;
+    }
+
+    //unused, request for one imei data in one time
     //loop for sending imei data rsp
-    obj_sendImeiData2ManagerLoop((const void *)msg, session, manager_sendImeiData);
+    //obj_sendImeiData2ManagerLoop((const void *)msg, session, manager_sendImeiData);
 
     return 0;
 }

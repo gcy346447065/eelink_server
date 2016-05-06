@@ -41,7 +41,11 @@ typedef MSG_HEADER MSG_LOGIN_RSP;
 /*
  * imei data message structure
  */
-typedef MSG_HEADER MSG_IMEI_DATA_REQ;
+typedef struct
+{
+    MSG_HEADER header;
+    char IMEI[MAX_IMEI_LENGTH];
+}__attribute__((__packed__)) MSG_IMEI_DATA_REQ;
 
 typedef struct
 {
@@ -54,7 +58,6 @@ typedef struct
 
 typedef struct
 {
-    char IMEI[MAX_IMEI_LENGTH];
     char online_offline; //1 for online; 2 for offline
     GPS  gps;
 }__attribute__((__packed__)) IMEI_DATA;
