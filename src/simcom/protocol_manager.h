@@ -58,6 +58,7 @@ typedef struct
 
 typedef struct
 {
+    char IMEI[MAX_IMEI_LENGTH];
     char online_offline; //1 for online; 2 for offline
     GPS  gps;
 }__attribute__((__packed__)) IMEI_DATA;

@@ -59,7 +59,7 @@ int manager_sendImeiData(const void *msg, SESSION *ManagerSession, const char *i
     MSG_IMEI_DATA_RSP *rsp = (MSG_IMEI_DATA_RSP *)alloc_manager_rspMsg((const MSG_HEADER *)msg);
     if(rsp)
     {
-        //memcpy(rsp->imei_data.IMEI, imei, MAX_IMEI_LENGTH);
+        memcpy(rsp->imei_data.IMEI, imei, MAX_IMEI_LENGTH);
         rsp->imei_data.online_offline = online_offline;
         rsp->imei_data.gps.timestamp = timestamp;
         rsp->imei_data.gps.longitude = lon;
@@ -130,6 +130,7 @@ static int manager_imeiData(const void *msg, SESSION *session)
         {
             LOG_INFO("succeed to find imei(%s) in object, send full rsp", imei);
 
+            memcpy(rsp->imei_data.IMEI, imei, MAX_IMEI_LENGTH);
             rsp->imei_data.online_offline = obj->session ? 1 : 2;//1 for online, 2 for offline
             rsp->imei_data.gps.timestamp = obj->timestamp;
             rsp->imei_data.gps.longitude = obj->lon;
