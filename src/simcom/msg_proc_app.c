@@ -115,9 +115,12 @@ static int app_sendWildMsg2Device(cJSON* appMsg, OBJECT* obj)
         LOG_ERROR("wild cmd with no data");
         return -1;
     }
-    char* data = dataItem->string;
 
-    void *msg = alloc_simcomWildMsg(data, strlen(data));
+    int length = strlen(dataItem->valuestring);
+    char *data = malloc(length);
+    memcpy(data, dataItem->valuestring, length);
+
+    void *msg = alloc_simcomWildMsg(data, length);
     if(!msg)
     {
         LOG_FATAL("insufficient memory");
@@ -125,7 +128,7 @@ static int app_sendWildMsg2Device(cJSON* appMsg, OBJECT* obj)
         return -1;
     }
 
-    app_sendMsg2Device(msg, MSG_HEADER_LEN + strlen(data), obj);
+    app_sendMsg2Device(msg, MSG_HEADER_LEN + length, obj);
     return 0;
 }
 
