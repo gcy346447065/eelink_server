@@ -66,6 +66,8 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
         ret = -1;
     }
 
+    LOG_DEBUG("push to jiguang: imei(%s), jiguang_cmd(%d), status(%d)", imei, jiguang_cmd, status);
+
     return ret;
 }
 
