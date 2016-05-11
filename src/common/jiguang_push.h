@@ -18,4 +18,7 @@ enum JIGUANG_CMD
     JIGUANG_CMD_AUTOLOCK_NOTIFY   =  2
 };
 
+int jiguang_push(char *imei, int yunba_cmd, int status);
+size_t jiguang_onPush(void *contents, size_t size, size_t nmemb, void *userdata);
+
 #endif /* COMMON_JIGUANG_PUSH_H_ */

@@ -1,4 +1,7 @@
 SET(SOURCE_FILE
+    jiguang_push.c
+    jiguang_push.h
+
     objectID_leancloud.c
     objectID_leancloud.h
 

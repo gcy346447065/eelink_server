@@ -22,6 +22,7 @@
 #include "mqtt.h"
 #include "cJSON.h"
 #include "yunba_push.h"
+#include "jiguang_push.h"
 #include "msg_app.h"
 #include "cgi2gps.h"
 #include "sync.h"
@@ -385,6 +386,9 @@ static int simcom_alarm(const void *msg, SESSION *session)
 
     //send to ios APP by yunba
     yunba_publish(obj->IMEI, YUNBA_CMD_ALARM, 0);
+
+    //test for jiguang push
+    jiguang_push(obj->IMEI, 0, 0);
 
     LOG_INFO("imei(%s) send alarm(%d)", obj->IMEI, req->alarmType);
 
