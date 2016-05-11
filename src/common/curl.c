@@ -97,13 +97,12 @@ CURL* initCurlHandleOfYeelink()
     return curl;
 }
 
-void clcanupLeancloudHeader()
+void cleanupLeancloudHeader()
 {
 	struct curl_slist *headerlist = getLeancloudHeader();
 
 	curl_slist_free_all(headerlist);
 }
-
 
 void cleanupYeelinkHeader()
 {
@@ -111,4 +110,3 @@ void cleanupYeelinkHeader()
 
 	curl_slist_free_all(headerlist);
 }
-
