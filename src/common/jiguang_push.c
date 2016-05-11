@@ -39,6 +39,7 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
         memset(topic, 0, sizeof(topic));
         snprintf(topic, 128, "simcom_%s", imei);
         cJSON_AddItemToArray(registration_id, cJSON_CreateString(topic));
+        cJSON_AddItemToObject(audience, "registration_id", registration_id);
         cJSON_AddItemToObject(root, "audience", audience);
 
         cJSON *notification = cJSON_CreateObject();
@@ -51,7 +52,6 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
                 cJSON_AddStringToObject(android, "alert", "alarm: moved");
                 cJSON_AddStringToObject(ios, "alert", "alarm: moved");
                 cJSON_AddStringToObject(ios, "sound", "alarm.mp3");
-                cJSON_AddItemToObject(root, "notification", notification);
                 break;
 
             case JIGUANG_CMD_AUTOLOCK_NOTIFY:
@@ -67,12 +67,14 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
                 cJSON_AddItemToObject(android, "alert", alert);
                 cJSON_AddItemToObject(ios, "alert", alert);
                 cJSON_AddStringToObject(ios, "sound", "default");
-                cJSON_AddItemToObject(root, "notification", notification);
                 break;
 
             default:
                 break;
         }
+        cJSON_AddItemToObject(notification, "android", android);
+        cJSON_AddItemToObject(notification, "ios", ios);
+        cJSON_AddItemToObject(root, "notification", notification);
 
         char *data = cJSON_PrintUnformatted(root);
         LOG_DEBUG("%s", data);
