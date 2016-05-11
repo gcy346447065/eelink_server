@@ -197,7 +197,7 @@ void yunba_publish(char *imei, int yunba_cmd, int status)
 		case YUNBA_CMD_ALARM:
 			cJSON_AddStringToObject(Opt, "time_to_live", "120");
 			cJSON_AddStringToObject(Opt, "time_delay", "1100");
-			cJSON_AddStringToObject(Opt, "apn_json", "{\"aps\":{\"alert\":\"Alarm: moved\", \"sound\":\"alarm.mp3\"}}");
+			cJSON_AddStringToObject(Opt, "apn_json", "{\"aps\":{\"alert\":\"alarm: moved\", \"sound\":\"alarm.mp3\"}}");
 			break;
 
 		case YUNBA_CMD_AUTOLOCK_NOTIFY:

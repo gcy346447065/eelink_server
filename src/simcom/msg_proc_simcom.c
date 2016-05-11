@@ -387,8 +387,8 @@ static int simcom_alarm(const void *msg, SESSION *session)
     //send to ios APP by yunba
     yunba_publish(obj->IMEI, YUNBA_CMD_ALARM, 0);
 
-    //test for jiguang push
-    jiguang_push(obj->IMEI, 0, 0);
+    //send alarm by jiguang push
+    jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, 0);
 
     LOG_INFO("imei(%s) send alarm(%d)", obj->IMEI, req->alarmType);
 
@@ -1211,6 +1211,9 @@ static int simcom_DefendNotify(const void *msg, SESSION *session)
 
         //send to IOS APP by yunba
         yunba_publish(obj->IMEI, YUNBA_CMD_AUTOLOCK_NOTIFY, rsp->status);
+
+        //send autolock notify by jiguang push
+        jiguang_push(obj->IMEI, JIGUANG_CMD_AUTOLOCK_NOTIFY, rsp->status);
     }
     else
     {

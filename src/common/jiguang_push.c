@@ -32,11 +32,47 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
     {
         cJSON *root = cJSON_CreateObject();
         cJSON_AddStringToObject(root, "platform", "all");
-        cJSON_AddStringToObject(root, "audience", "all");
+
+        cJSON *audience = cJSON_CreateObject();
+        cJSON *registration_id = cJSON_CreateArray();
+        char topic[128];
+        memset(topic, 0, sizeof(topic));
+        snprintf(topic, 128, "simcom_%s", imei);
+        cJSON_AddItemToArray(registration_id, cJSON_CreateString(topic));
+        cJSON_AddItemToObject(root, "audience", audience);
 
         cJSON *notification = cJSON_CreateObject();
-        cJSON_AddStringToObject(notification, "alert", "test for jiguang push");
-        cJSON_AddItemToObject(root, "notification", notification);
+        cJSON *android = cJSON_CreateObject();
+        cJSON *ios = cJSON_CreateObject();
+        cJSON *alert;
+        switch(jiguang_cmd)
+        {
+            case JIGUANG_CMD_ALARM:
+                cJSON_AddStringToObject(android, "alert", "alarm: moved");
+                cJSON_AddStringToObject(ios, "alert", "alarm: moved");
+                cJSON_AddStringToObject(ios, "sound", "alarm.mp3");
+                cJSON_AddItemToObject(root, "notification", notification);
+                break;
+
+            case JIGUANG_CMD_AUTOLOCK_NOTIFY:
+                if(status == 1)
+                {
+                    alert = cJSON_CreateString("autolock notify: on");
+                }
+                else if(status == 0)
+                {
+                    alert = cJSON_CreateString("autolock notify: off");
+                }
+
+                cJSON_AddItemToObject(android, "alert", alert);
+                cJSON_AddItemToObject(ios, "alert", alert);
+                cJSON_AddStringToObject(ios, "sound", "default");
+                cJSON_AddItemToObject(root, "notification", notification);
+                break;
+
+            default:
+                break;
+        }
 
         char *data = cJSON_PrintUnformatted(root);
         LOG_DEBUG("%s", data);
