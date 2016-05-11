@@ -14,7 +14,16 @@
 enum
 {
     CMD_LOGIN           =  1,
-    CMD_IMEI_DATA       =  2
+    CMD_IMEI_DATA       =  2,
+    CMD_GET_LOG         =  3,
+    CMD_GET_SETTING     =  4,
+    CMD_GET_BATTERY     =  5,
+    CMD_GET_GSM         =  6,
+    CMD_GET_433         =  7,
+    CMD_GET_GPS         =  8,
+    CMD_REBOOT          =  9,
+    CMD_UPGRADE         = 10,
+    CMD_GET_VERSION     = 11
 };
 
 #pragma pack(push, 1)
@@ -69,6 +78,140 @@ typedef struct
     IMEI_DATA imei_data;
 }__attribute__((__packed__)) MSG_IMEI_DATA_RSP;
 
+/*
+ * get log message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    char IMEI[MAX_IMEI_LENGTH];
+}__attribute__((__packed__)) MSG_GET_LOG_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_LOG_RSP;
+
+/*
+ * get setting message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    char IMEI[MAX_IMEI_LENGTH];
+}__attribute__((__packed__)) MSG_GET_SETTING_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_SETTING_RSP;
+
+/*
+ * get battery message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    char IMEI[MAX_IMEI_LENGTH];
+}__attribute__((__packed__)) MSG_GET_BATTERY_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_BATTERY_RSP;
+
+/*
+ * get GSM message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    char IMEI[MAX_IMEI_LENGTH];
+}__attribute__((__packed__)) MSG_GET_GSM_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_GSM_RSP;
+
+/*
+ * get 433 message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    char IMEI[MAX_IMEI_LENGTH];
+}__attribute__((__packed__)) MSG_GET_433_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_433_RSP;
+
+/*
+ * get GPS message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    char IMEI[MAX_IMEI_LENGTH];
+}__attribute__((__packed__)) MSG_GET_GPS_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_GPS_RSP;
+
+/*
+ * reboot message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    char IMEI[MAX_IMEI_LENGTH];
+}__attribute__((__packed__)) MSG_REBOOT_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_REBOOT_RSP;
+
+/*
+ * upgrade message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    char IMEI[MAX_IMEI_LENGTH];
+}__attribute__((__packed__)) MSG_UPGRADE_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_UPGRADE_RSP;
+
+/*
+ * get version message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    char IMEI[MAX_IMEI_LENGTH];
+}__attribute__((__packed__)) MSG_GET_VERSION_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_VERSION_RSP;
 
 #pragma pack(pop)
 
