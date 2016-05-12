@@ -147,6 +147,20 @@ size_t leancloud_onGetObjectIDWithImei(void *contents, size_t size, size_t nmemb
 	else
 	{
 		LOG_DEBUG("get objectID with imei response: %s", rsp);
+
+		cJSON* objectID = cJSON_GetObjectItem(json, "objectId");
+		if(!objectID)
+		{
+			LOG_ERROR("can't get objectId in leancloud_onGetObjectIDWithImei");
+			return 0;
+		}
+
+		int rc = objectID_add_HashAndDb(imei, objectID->valuestring);
+		if(rc)
+		{
+			LOG_ERROR("can't add objectId into hash and db");
+			return 0;
+		}
 	}
 
 	cJSON_Delete(json);

@@ -328,7 +328,7 @@ int leancloud_getObjectIDWithImei(const char* imei)
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onGetObjectIDWithImei);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, imei);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
 
     CURLcode res = curl_easy_perform(curl);
     if(CURLE_OK != res)
