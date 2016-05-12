@@ -142,11 +142,11 @@ size_t leancloud_onGetObjectIDWithImei(void *contents, size_t size, size_t nmemb
 
 	if (!json)
 	{
-		LOG_ERROR("error parse SimInfo response: %s", rsp);
+		LOG_ERROR("error objectID with imei response: %s", rsp);
 	}
 	else
 	{
-		LOG_DEBUG("get save SimInfo response: %s", rsp);
+		LOG_DEBUG("get objectID with imei response: %s", rsp);
 	}
 
 	cJSON_Delete(json);

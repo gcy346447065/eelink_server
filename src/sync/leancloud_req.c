@@ -324,7 +324,7 @@ int leancloud_getObjectIDWithImei(const char* imei)
     LOG_INFO("leancloud_getObjectIDWithImei imei(%s)", imei);
 
     char url[256] = {0};
-    snprintf(url, 256, "%s/classes/DID?where={\"imei\":\"%s\"}", LEANCLOUD_URL_BASE, imei);
+    snprintf(url, 256, "%s/classes/DID?where={\"IMEI\":\"%s\"}", LEANCLOUD_URL_BASE, imei);
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onGetObjectIDWithImei);
