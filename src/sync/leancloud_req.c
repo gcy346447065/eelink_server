@@ -333,7 +333,7 @@ int leancloud_getObjectIDWithImei(const char* imei)
     CURLcode res = curl_easy_perform(curl);
     if(CURLE_OK != res)
     {
-        LOG_ERROR("leancloud_get failed: %s", curl_easy_strerror(res));
+        LOG_ERROR("leancloud_getObjectIDWithImei failed: %s", curl_easy_strerror(res));
         return -1;
     }
 
