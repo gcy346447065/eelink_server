@@ -130,6 +130,31 @@ size_t leancloud_onSaveSimInfo(void *contents, size_t size, size_t nmemb, void *
 	return size * nmemb;
 }
 
+size_t leancloud_onGetObjectIDWithImei(void *contents, size_t size, size_t nmemb, void *userdata)
+{
+	userdata = userdata;
+
+	char* rsp = malloc(size * nmemb + 1);
+	memcpy(rsp, contents, size * nmemb);
+	rsp[size * nmemb] = 0;
+
+	cJSON* json = cJSON_Parse(rsp);
+
+	if (!json)
+	{
+		LOG_ERROR("error parse SimInfo response: %s", rsp);
+	}
+	else
+	{
+		LOG_DEBUG("get save SimInfo response: %s", rsp);
+	}
+
+	cJSON_Delete(json);
+	free(rsp);
+
+	return size * nmemb;
+}
+
 size_t leancloud_onRev(void *contents, size_t size, size_t nmemb, void *userdata)
 {
 	size_t realsize = size * nmemb;

@@ -75,7 +75,7 @@ char *objectID_get_hash(const char *imei)
     char *objectID = g_hash_table_lookup(objectID_table, imei);
     if(!objectID)
     {
-        LOG_ERROR("can't get objectID");
+        LOG_ERROR("can't get objectID from hash table");
         return NULL;
     }
     else

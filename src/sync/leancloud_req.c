@@ -88,7 +88,7 @@ static int leancloud_batch(CURL *curl, const void* data, int len)
     return 0;
 }
 
-static int leancloud_get(CURL *curl, const char* class)
+static int leancloud_get(CURL *curl, const char *class)
 {
     char url[256] = {0};
 
@@ -98,7 +98,6 @@ static int leancloud_get(CURL *curl, const char* class)
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
 
     CURLcode res = curl_easy_perform(curl);
-    //curl_easy_cleanup(curl);
     if(CURLE_OK != res)
     {
         LOG_ERROR("leancloud_get failed: %s", curl_easy_strerror(res));
@@ -108,7 +107,7 @@ static int leancloud_get(CURL *curl, const char* class)
     return 0;
 }
 
-int leancloud_saveGPS(int timestamp, const char* imei, double lat, double lng, int speed, int course)
+int leancloud_saveGPS(int timestamp, const char *imei, double lat, double lng, int speed, int course)
 {
 	ENVIRONMENT* env = env_get();
 	CURL* curl = env->curl_leancloud;
@@ -149,6 +148,9 @@ int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
     if(objectID == NULL)
     {
         LOG_ERROR("can't get objectId hash, imei(%s)", imei);
+
+        //get objectID from leancloud
+        leancloud_getObjectIDWithImei(imei);
         return -1;
     }
 
@@ -190,7 +192,7 @@ int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
     cJSON_AddItemToObject(root, "requests", requests);
     
     char *data = cJSON_PrintUnformatted(root);
-    LOG_INFO("%s", data);
+    LOG_DEBUG("%s", data);
 
     //set curl
     int ret = 0;
@@ -235,6 +237,9 @@ int leancloud_saveSimInfo(const char* imei, const char* ccid, const char* imsi)
     if(objectID == NULL)
     {
         LOG_ERROR("can't get objectId hash, imei(%s)", imei);
+
+        //get objectID from leancloud
+        leancloud_getObjectIDWithImei(imei);
         return -1;
     }
 
@@ -258,7 +263,7 @@ int leancloud_saveSimInfo(const char* imei, const char* ccid, const char* imsi)
     cJSON_AddItemToObject(root, "requests", requests);
     
     char* data = cJSON_PrintUnformatted(root);
-    LOG_INFO("%s", data);
+    LOG_DEBUG("%s", data);
 
     //set curl
     int ret = 0;
@@ -311,6 +316,30 @@ int leancloud_saveDid(const char* imei)
     return ret;
 }
 
+int leancloud_getObjectIDWithImei(const char* imei)
+{
+    ENVIRONMENT* env = env_get();
+    CURL* curl = env->curl_leancloud;
+
+    LOG_INFO("leancloud_getObjectIDWithImei imei(%s)", imei);
+
+    char url[256] = {0};
+    snprintf(url, 256, "%s/classes/DID?where={\"imei\":\"%s\"}", LEANCLOUD_URL_BASE, imei);
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, leancloud_onGetObjectIDWithImei);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, imei);
+
+    CURLcode res = curl_easy_perform(curl);
+    if(CURLE_OK != res)
+    {
+        LOG_ERROR("leancloud_get failed: %s", curl_easy_strerror(res));
+        return -1;
+    }
+
+    return 0;
+}
+
 int leancloud_makeMultiDidCurl(char** ppImeiMulti, int ImeiNum, char* data)
 {
     cJSON *root, *requests, *request, *body;
@@ -330,7 +359,7 @@ int leancloud_makeMultiDidCurl(char** ppImeiMulti, int ImeiNum, char* data)
     }
 
     data = cJSON_PrintUnformatted(root);
-    LOG_INFO("%s", data);
+    LOG_DEBUG("%s", data);
 
     cJSON_Delete(root);
 
@@ -381,7 +410,6 @@ int leancloud_onGetOBJ(MemroyBuf *chunk)
 
 	}
 
-
     cJSON_Delete(root);
     return ret;
 }
@@ -411,23 +439,4 @@ int leancloud_getOBJ(void)
         return -1;
     }
     return 0;
-}
-
-int leancloud_sendSms2Tel(const char *SmsTemplate, const char *TelNumber)
-{
-    ENVIRONMENT* env = env_get();
-    CURL* curl = env->curl_leancloud;
-
-    cJSON *root = cJSON_CreateObject();
-
-    cJSON_AddStringToObject(root, "mobilePhoneNumber", "15871413731");
-    cJSON_AddStringToObject(root, "template", "SmsAlarm");
-    char *data = cJSON_PrintUnformatted(root);
-
-    int ret = leancloud_sms(curl, data, strlen(data));
-
-    cJSON_Delete(root);
-    free(data);
-
-    return ret;
 }
