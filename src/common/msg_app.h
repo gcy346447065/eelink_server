@@ -25,7 +25,7 @@ enum CMD
     APP_CMD_AUTOPERIOD_GET      = 10,
     APP_CMD_AUTOLOCK_GET        = 11,
     APP_CMD_BATTERY             = 12,
-    APP_CMD_AUTOLOCK_NOTIFY     = 13
+    APP_CMD_STATUS_GET          = 13
 };
 
 enum CODE
@@ -44,6 +44,12 @@ enum ALARM
     ALM_VIBRATE         = 2,
     ALM_FENCE_IN_TK115  = 0x83,
     ALM_FENCE_OUT_TK115 = 0x84
+};
+
+enum NOTIFY
+{
+    NOTIFY_AUTOLOCK     = 0,
+    NOTIFY_STATUS       = 1
 };
 
 //Message definition
@@ -79,14 +85,12 @@ void app_sendLocationRsp2App(int code, OBJECT *obj);
 void app_sendAutoPeriodGetRsp2App(int cmd, int code, int period, void *session);
 void app_sendAutoLockGetRsp2App(int cmd, int code, int state, void *session);
 void app_sendBatteryRsp2App(int cmd, int code, int percent, int miles, void *session);
-void app_sendAutoLockNotifyRsp2App(int cmd, int code, int timestamp, int lock, void *session);
+void app_sendStatusGetRsp2App(int cmd, int code, OBJECT *obj, char autolock, char autoperiod, char percent, char miles, char status);
 
 void app_sendGpsMsg2App(void* session);
-
 void app_send433Msg2App(int timestamp, int intensity, void * session);
-
 void app_sendAlarmMsg2App(int type, const char *msg, void *session);
-
 void app_sendDebugMsg2App(const char *msg, size_t length, void *session);
+void app_sendNotifyMsg2App(int notify, int timestamp, int lock_status, void *session);
 
 #endif /* SRC_MSG_APP_H_ */

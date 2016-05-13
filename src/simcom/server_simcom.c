@@ -22,6 +22,8 @@
 static void send_msg(struct bufferevent* bev, const void* buf, size_t n)
 {
     bufferevent_write(bev, buf, n);
+
+    return;
 }
 
 static void read_cb(struct bufferevent *bev, void *arg)
@@ -122,8 +124,8 @@ static void accept_conn_cb(struct evconnlistener *listener,
 
     bufferevent_enable(bev, EV_READ | EV_WRITE);
 
-    //set the timeout for the connection, when timeout close the connectiont
-    struct timeval tm = {600, 0};
+    //set the timeout for the connection, when timeout close the connection
+    struct timeval tm = {180, 0};
 
     bufferevent_set_timeouts(bev, &tm, &tm);
 }
@@ -159,7 +161,7 @@ struct evconnlistener* server_simcom(struct event_base* base, int port)
         LOG_FATAL("Couldn't create listener");
         return NULL;
     }
-    evconnlistener_set_error_cb(listener, accept_error_cb);
 
+    evconnlistener_set_error_cb(listener, accept_error_cb);
     return listener;
 }

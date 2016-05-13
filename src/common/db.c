@@ -84,7 +84,23 @@ static int _db_initial()
                     return 2;
                 }
 
-                LOG_INFO("create and use database: %s, creat table object", DB_NAME);
+                /* creat table imei2objectID */
+                snprintf(query, MAX_QUERY, "create table imei2objectID(imei char(15) not null primary key, \
+                                            objectID char(24) not null)");
+                
+                if(mysql_ping(conn))
+                {
+                    LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+                    return 1;
+                }
+
+                if(mysql_query(conn, query))
+                {
+                    LOG_ERROR("can't creat table imei2objectID(%u, %s)", mysql_errno(conn), mysql_error(conn));
+                    return 2;
+                }
+
+                LOG_INFO("create and use database: %s, creat table object, creat table imei2objectID", DB_NAME);
                 return 0;
             }
         }
@@ -97,6 +113,42 @@ static int _db_initial()
     else
     {
         LOG_INFO("connect database: %s", DB_NAME);
+
+        /* creat table object if not exists */
+        char query[MAX_QUERY];
+        snprintf(query, MAX_QUERY, "create table if not exists object(imei char(16) not null primary key, \
+                                    RegisterTime timestamp default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP, \
+                                    IsPosted tinyint default '0', \
+                                    ObjectType int(4) not null)");
+        
+        if(mysql_ping(conn))
+        {
+            LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+            return 1;
+        }
+
+        if(mysql_query(conn, query))
+        {
+            LOG_ERROR("can't creat table object(%u, %s)", mysql_errno(conn), mysql_error(conn));
+            return 2;
+        }
+
+        /* creat table imei2objectID if not exists */
+        snprintf(query, MAX_QUERY, "create table  if not exists imei2objectID(imei char(15) not null primary key, \
+                                    objectID char(24) not null)");
+        
+        if(mysql_ping(conn))
+        {
+            LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+            return 1;
+        }
+
+        if(mysql_query(conn, query))
+        {
+            LOG_ERROR("can't creat table imei2objectID(%u, %s)", mysql_errno(conn), mysql_error(conn));
+            return 2;
+        }
+
         return 0;
     }
 }
@@ -180,11 +232,11 @@ static int _db_createCGI(const char* tableName)
     return 0;
 }
 
-static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, float altitude, float speed, float course)
+static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, short course)
 {
-    //timestamp INT, lat DOUBLE, lon DOUBLE, altitude DOUBLE, speed DOUBLE, course DOUBLE
+    //timestamp INT, lat DOUBLE, lon DOUBLE, speed DOUBLE, course DOUBLE
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into gps_%s(timestamp,lat,lon,altitude,speed,course) values(%d,%f,%f,%f,%f,%f)",imeiName, timestamp, lat, lon, altitude, speed, course);
+    snprintf(query, MAX_QUERY, "insert into gps_%s(timestamp,lat,lon,speed,course) values(%d,%f,%f,%d,%d)",imeiName, timestamp, lat, lon, speed, course);
     
     if(mysql_ping(conn))
     {
@@ -198,7 +250,7 @@ static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon
         return 2;
     }
 
-    LOG_INFO("insert into gps_%s: %d, %f, %f, %f, %f, %f", imeiName, timestamp, lat, lon, altitude, speed, course);
+    LOG_INFO("insert into gps_%s: %d, %f, %f, %d, %d", imeiName, timestamp, lat, lon, speed, course);
     return 0;
 }
 
@@ -240,7 +292,7 @@ static int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[],
 Names of the table and columns need modifing*/
 static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *))
 {
-    char query[] = "select imei from object";
+    char query[] = "select imei from object where length(imei)=15";
 
     if(mysql_ping(conn))
     {
@@ -335,6 +387,52 @@ static int _db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*))
     return 0;
 }
 
+static int _db_doWithObjectID(int (*func1)(const char*, const char*))
+{
+    char query[] = "select * from imei2objectID where length(imei)=15";
+
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get imei2objectID from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    result = mysql_store_result(conn);
+    while(row = mysql_fetch_row(result))
+    {
+        func1(row[0], row[1]); //objectID_add_hash
+    }
+    mysql_free_result(result);
+    return 0;
+}
+
+static int _db_add_ObjectID(const char *imei, const char *objectID)
+{
+    char query[MAX_QUERY];
+    snprintf(query, MAX_QUERY, "insert into imei2objectID(imei, objectID) values(\'%s\', \'%s\')", imei, objectID);
+    
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_ERROR("can't add imei(%s), objectID(%s) into imei2objectID(%u, %s)", imei, objectID, mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+    return 0;
+}
+
 int db_initial(void)
 {
 #ifdef WITH_DB
@@ -379,10 +477,10 @@ int db_createCGI(const char* tableName)
 #endif
 }
 
-int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, float altitude, float speed, float course)
+int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char speed, short course)
 {
 #ifdef WITH_DB
-    return _db_saveGPS(imeiName, timestamp, lat, lon, altitude, speed, course);
+    return _db_saveGPS(imeiName, timestamp, lat, lon, speed, course);
 #else
     return 0;
 #endif
@@ -428,6 +526,24 @@ int db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*))
 {
 #ifdef WITH_DB
     return _db_ResaveOBJUnpostedImei_cb(func1);
+#else
+    return 0;
+#endif
+}
+
+int db_doWithObjectID(int (*func1)(const char*, const char*))
+{
+#ifdef WITH_DB
+    return _db_doWithObjectID(func1);
+#else
+    return 0;
+#endif
+}
+
+int db_add_ObjectID(const char *imei, const char *objectID)
+{
+#ifdef WITH_DB
+    return _db_add_ObjectID(imei, objectID);
 #else
     return 0;
 #endif

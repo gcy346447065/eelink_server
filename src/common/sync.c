@@ -32,9 +32,18 @@ void sync_reconnect_fn(evutil_socket_t fd, short a, void * arg)
     sync_init(base);
 }
 
-static void sendMsg2Sync(void* data, size_t len)
+static void sendMsg2Sync(void *data, size_t len)
 {
-    bufferevent_write(bev, data, len);
+    if(bev)
+    {
+        bufferevent_write(bev, data, len);
+    }
+    else
+    {
+        LOG_INFO("sync server connection dev null, wait to reconnect");
+    }
+    
+    return;
 }
 
 static void event_cb(struct bufferevent *bev, short events, void *arg)
@@ -178,17 +187,17 @@ void sync_newIMEI(const char *imei)
     return;
 }
 
-void sync_gps(const char* imei, float lat, float lng, float altitude, char speed, short course)
+void sync_gps(const char* imei, int timestamp, float lat, float lng, char speed, short course)
 {
     cJSON* root = cJSON_CreateObject();
 
     cJSON_AddNumberToObject(root, TAG_CMD, CMD_SYNC_NEW_GPS);
+    cJSON_AddNumberToObject(root, TAG_TIMESTAMP, timestamp);
     cJSON_AddStringToObject(root, TAG_IMEI, imei);
     cJSON_AddNumberToObject(root, TAG_LAT, lat);
     cJSON_AddNumberToObject(root, TAG_LNG, lng);
-    cJSON_AddNumberToObject(root, "ALTITUDE", altitude);
-    cJSON_AddNumberToObject(root, "SPEED", speed);
-    cJSON_AddNumberToObject(root, "COURSE", course);
+    cJSON_AddNumberToObject(root, TAG_SPEED, speed);
+    cJSON_AddNumberToObject(root, TAG_COURSE, course);
 
     char *data = cJSON_PrintUnformatted(root);
     if (!data)
@@ -199,12 +208,62 @@ void sync_gps(const char* imei, float lat, float lng, float altitude, char speed
     }
 
     sendMsg2Sync(data, strlen(data));
-    LOG_INFO("send gps(imei(%s), lat(%f), lng(%f), altitude(%f), speed(%u), course(%d)) to sync",
-            imei, lat, lng, altitude, speed, course);
+    LOG_INFO("send gps(timestamp(%d), imei(%s), lat(%f), lng(%f), speed(%d), course(%d)) to sync",
+            timestamp, imei, lat, lng, speed, course);
+
+    free(data);
+    cJSON_Delete(root);
+    return;
+}
+
+void sync_itinerary(const char *imei, int start, int end, int miles)
+{
+    cJSON* root = cJSON_CreateObject();
+
+    cJSON_AddNumberToObject(root, TAG_CMD, CMD_SYNC_NEW_ITINERARY);
+    cJSON_AddStringToObject(root, TAG_IMEI, imei);
+    cJSON_AddNumberToObject(root, TAG_START, start);
+    cJSON_AddNumberToObject(root, TAG_END, end);
+    cJSON_AddNumberToObject(root, TAG_MILES, miles);
+
+    char *data = cJSON_PrintUnformatted(root);
+    if (!data)
+    {
+        LOG_ERROR("internal error");
+        cJSON_Delete(root);
+        return;
+    }
+
+    sendMsg2Sync(data, strlen(data));
+    LOG_INFO("send itinerary(start(%d), end(%d), miles(%d) to sync", start, end, miles);
+
+    free(data);
+    cJSON_Delete(root);
+    return;
+}
+
+void sync_SimInfo(const char* imei, const char* ccid, const char* imsi)
+{
+    cJSON* root = cJSON_CreateObject();
+
+    cJSON_AddNumberToObject(root, TAG_CMD, CMD_SYNC_NEW_SIM_INFO);
+    cJSON_AddStringToObject(root, TAG_IMEI, imei);
+    cJSON_AddStringToObject(root, TAG_CCID, ccid);
+    cJSON_AddStringToObject(root, TAG_IMSI, imsi);
+
+    char *data = cJSON_PrintUnformatted(root);
+    if (!data)
+    {
+        LOG_ERROR("internal error");
+        cJSON_Delete(root);
+        return;
+    }
+
+    sendMsg2Sync(data, strlen(data));
+    LOG_INFO("send sim_info(imei(%s), ccid(%s), imsi(%s) to sync", imei, ccid, imsi);
 
     free(data);
     cJSON_Delete(root);
 
     return;
 }
-

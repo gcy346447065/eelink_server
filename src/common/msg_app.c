@@ -100,7 +100,6 @@ void app_sendLocationRsp2App(int code, OBJECT *obj)
     cJSON_AddNumberToObject(result, "isGPSlocated", obj->isGPSlocated);
     cJSON_AddNumberToObject(result, "lat", obj->lat);
     cJSON_AddNumberToObject(result, "lng", obj->lon);
-    cJSON_AddNumberToObject(result, "altitude", obj->altitude);
     cJSON_AddNumberToObject(result, "speed", obj->speed);
     cJSON_AddNumberToObject(result, "course", obj->course);
     cJSON_AddItemToObject(root, "result", result);
@@ -206,14 +205,8 @@ void app_sendBatteryRsp2App(int cmd, int code, int percent, int miles, void *ses
     return;
 }
 
-void app_sendAutoLockNotifyRsp2App(int cmd, int code, int timestamp, int lock, void *session)
+void app_sendStatusGetRsp2App(int cmd, int code, OBJECT *obj, char autolock, char autoperiod, char percent, char miles, char status)
 {
-    OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
-    if (!obj)
-    {
-        LOG_ERROR("obj null, no data to upload");
-        return;
-    }
     char topic[IMEI_LENGTH + 13];
     memset(topic, 0, sizeof(topic));
     snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/cmd", obj->IMEI);
@@ -223,14 +216,34 @@ void app_sendAutoLockNotifyRsp2App(int cmd, int code, int timestamp, int lock, v
     cJSON_AddNumberToObject(root, "code", code);
 
     cJSON *result = cJSON_CreateObject();
-    cJSON_AddNumberToObject(result, "timestamp", timestamp);
-    cJSON_AddNumberToObject(result, "lock", lock);
+    cJSON_AddBoolToObject(result, "isGPSlocated", obj->isGPSlocated);
+
+    cJSON *gps = cJSON_CreateObject();
+    cJSON_AddNumberToObject(gps, "timestamp", obj->timestamp);
+    cJSON_AddNumberToObject(gps, "lat", obj->lat);
+    cJSON_AddNumberToObject(gps, "lng", obj->lon);
+    cJSON_AddNumberToObject(gps, "speed", obj->speed);
+    cJSON_AddNumberToObject(gps, "course", obj->course);
+    cJSON_AddItemToObject(result, "gps", gps);
+
+    cJSON_AddBoolToObject(result, "lock", status);
+
+    cJSON *J_autolock = cJSON_CreateObject();
+    cJSON_AddBoolToObject(J_autolock, "isOn", autolock);
+    cJSON_AddNumberToObject(J_autolock, "period", autoperiod);
+    cJSON_AddItemToObject(result, "autolock", J_autolock);
+
+    cJSON *battery = cJSON_CreateObject();
+    cJSON_AddNumberToObject(battery, "percent", percent);
+    cJSON_AddNumberToObject(battery, "miles", miles);
+    cJSON_AddItemToObject(result, "battery", battery);
+
     cJSON_AddItemToObject(root, "result", result);
 
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send auto lock notify to APP, imei(%s), code(%d)", obj->IMEI, code);
+    LOG_INFO("send status get response to APP, imei(%s), code(%d)", obj->IMEI, code);
     free(json);
     cJSON_Delete(root);
 
@@ -262,7 +275,6 @@ void app_sendGpsMsg2App(void* session)
     cJSON_AddNumberToObject(root, "isGPSlocated", obj->isGPSlocated);
     cJSON_AddNumberToObject(root, "lat", obj->lat);
     cJSON_AddNumberToObject(root, "lng", obj->lon);
-    cJSON_AddNumberToObject(root, "altitude", obj->altitude);
     cJSON_AddNumberToObject(root, "speed", obj->speed);
     cJSON_AddNumberToObject(root, "course", obj->course);
 
@@ -348,3 +360,38 @@ void app_sendDebugMsg2App(const char *msg, size_t length, void *session)
     return;
 }
 
+/* dev2app/<imei>/notify */
+void app_sendNotifyMsg2App(int notify, int timestamp, int lock_status, void *session)
+{
+    OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
+    if (!obj)
+    {
+        LOG_ERROR("object null,internal error");
+        return;
+    }
+    char topic[IMEI_LENGTH + 16];
+    memset(topic, 0, sizeof(topic));
+    snprintf(topic, IMEI_LENGTH + 16, "dev2app/%s/notify", obj->IMEI);
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, "notify", notify);
+
+    cJSON *data = cJSON_CreateObject();
+    cJSON_AddNumberToObject(data, "timestamp", timestamp);
+    if(notify == NOTIFY_AUTOLOCK)
+    {
+        cJSON_AddNumberToObject(data, "lock", lock_status);
+    }
+    else if(notify == NOTIFY_STATUS)
+    {
+        cJSON_AddNumberToObject(data, "status", lock_status);
+    }
+    cJSON_AddItemToObject(root, "data", data);
+
+    char *json = cJSON_PrintUnformatted(root);
+
+    app_sendMsg2App(topic, json, strlen(json));
+    LOG_INFO("send notify msg to APP");
+
+    return;
+}

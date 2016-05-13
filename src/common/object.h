@@ -36,15 +36,16 @@ typedef struct
     int ObjectType;
 
     char IMEI[IMEI_LENGTH + 1];
+    char CCID[CCID_LENGTH + 1];
+    char IMSI[IMSI_LENGTH + 1];
     char language;
     char locale;
 
-    time_t timestamp;
+    int timestamp;
     float lat;
     float lon;
-    float altitude;
-    float speed;
-    float course;
+    char speed;
+    short course;
 
     CGI_MC cell[CELL_NUM];
     char isGPSlocated;

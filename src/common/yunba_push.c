@@ -20,7 +20,7 @@ static int extendedCmdArrive(void *context __attribute__((unused)), EXTED_CMD cm
 	char buf[1024];
 	memset(buf, 0, 1024);
 	memcpy(buf, ret_string, ret_string_len);
-	LOG_INFO("extended cmd arrived:%02x,%02x,%02x, %s\n", cmd, status, ret_string_len, buf);
+	LOG_INFO("extended cmd arrived:cmd=%02x,status=%02x,msg=%s\n", cmd, status, buf);
 
 	return 0;
 }
@@ -62,10 +62,11 @@ static void connectionLost(void *context __attribute__((unused)), char *cause)
 {
 	//The reason for the disconnection. Currently, cause is always set to NULL.
 	LOG_WARN("yunba connect lost:%s", cause);
+        int rc = MQTTClient_connect(client, &conn_opts);
 
-	if (MQTTClient_connect(client, &conn_opts) != MQTTCLIENT_SUCCESS)
+	if (rc != MQTTCLIENT_SUCCESS)
 	{
-		LOG_ERROR("failed to re-connect");
+		LOG_ERROR("failed to re-connect:%d", rc);
 		//FIXME: how to do when connect failed when lost connection
 		//exit(-1);
 	}

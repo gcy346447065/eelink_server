@@ -13,6 +13,7 @@
 #include "env.h"
 #include "db.h"
 #include "timer.h"
+#include "objectID_leancloud.h"
 
 struct event_base *base = NULL;
 
@@ -21,6 +22,8 @@ void ResaveUnpostedImei_cb(evutil_socket_t fd __attribute__((unused)), short wha
     LOG_INFO("one-day timer for ResaveUnpostedImei_cb");
     
     db_ResaveOBJUnpostedImei_cb(arg); //leancloud_saveDid
+
+    return;
 }
 
 static void sig_usr(int signo)
@@ -36,6 +39,8 @@ static void sig_usr(int signo)
 		printf("oops! being killed!!!\n");
 		event_base_loopbreak(base);
 	}
+
+    return;
 }
 
 int main(int argc, char **argv)
@@ -98,6 +103,13 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    rc = objectID_table_initial();
+    if(rc)
+    {
+        LOG_FATAL("objectID_table_initial failed");
+        return -1;
+    }
+
     struct evconnlistener *listener = server_sync(base, port);
     if (listener)
     {
@@ -110,14 +122,8 @@ int main(int argc, char **argv)
     }
 
     //start a one-day timer to resave multiple unsaved DIDs
-    //struct timeval one_day = { 30, 0 };
     struct timeval one_day = { 86400, 0 };
     (void)timer_newLoop(base, &one_day, ResaveUnpostedImei_cb, leancloud_saveDid);
-
-    #if 1
-    LOG_INFO("test for leancloud_sendSms2Tel");
-    leancloud_sendSms2Tel("SmsAlarm", "15871413731");
-    #endif
 
     env_initial();
 
@@ -133,6 +139,7 @@ int main(int argc, char **argv)
 
     event_base_free(base);
 
+    objectID_table_destruct();
     db_destruct();
     curl_global_cleanup();
     zlog_fini();

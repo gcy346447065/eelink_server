@@ -290,10 +290,10 @@ void mqtt_publish(const char *topic, const void *payload, size_t payloadlen)
 
 void mqtt_subscribe(const char *imei)
 {
-	char topic[IMEI_LENGTH + 20];
+	char topic[IMEI_LENGTH + 13];
 	memset(topic, 0, sizeof(topic));
 
-	snprintf(topic, IMEI_LENGTH + 20, "app2dev/%s/cmd", (char *)imei);
+	snprintf(topic, IMEI_LENGTH + 13, "app2dev/%s/cmd", (char *)imei);
 	int rc = mosquitto_subscribe(mosq, NULL, topic, 0);
 	if(MOSQ_ERR_SUCCESS == rc)
 	{
@@ -309,10 +309,10 @@ void mqtt_subscribe(const char *imei)
 
 void mqtt_unsubscribe(const char *imei)
 {
-	char topic[IMEI_LENGTH + 20];
+	char topic[IMEI_LENGTH + 15];
 	memset(topic, 0, sizeof(topic));
 
-	snprintf(topic, IMEI_LENGTH + 20, "app2dev/%s/+/cmd", (char *)imei);
+	snprintf(topic, IMEI_LENGTH + 15, "app2dev/%s/+/cmd", (char *)imei);
     LOG_INFO("unsubscribe topic: %s", topic);
 	mosquitto_unsubscribe(mosq, NULL, topic);
 

@@ -8,7 +8,10 @@
 #ifndef SRC_MACRO_H_
 #define SRC_MACRO_H_
 
-#define IMEI_LENGTH (16)
+#define IMEI_LENGTH (15)
+#define CCID_LENGTH (20)
+#define IMSI_LENGTH (16)
+#define OBJECT_ID_LENGTH (24)
 #define MAX_DID_LEN (24)
 #define MAX_PWD_LEN (16)
 
@@ -17,6 +20,8 @@
 #define PRODUCT_KEY "01fdd12699454be1a072094ec063749d"
 #define MAGIC_NUMBER 0x12345678
 #define CELL_NUM 7
+
+#define FIRMWARE_SEGMENT_SIZE 1024
 
 typedef struct
 {

@@ -12,7 +12,8 @@ install:
 - sudo apt-get install cmake
 
 #- sudo apt-get install libevent-dev
-- wget https://sourceforge.net/projects/levent/files/libevent/libevent-2.0/libevent-2.0.22-stable.tar.gz
+#- wget https://sourceforge.net/projects/levent/files/libevent/libevent-2.0/libevent-2.0.22-stable.tar.gz
+- wget https://github.com/libevent/libevent/releases/download/release-2.0.22-stable/libevent-2.0.22-stable.tar.gz
 - tar zxf libevent-2.0.22-stable.tar.gz
 - cd libevent-2.0.22-stable && ./configure && make && sudo make install
 - cd ..
@@ -27,8 +28,9 @@ install:
 - cd ..
 
 #- sudo apt-get install libcurl4-openssl-dev
-- wget http://www.curl.haxx.se/download/curl-7.45.0.tar.gz
-- tar zxvf curl-7.45.0.tar.gz
+#- wget http://www.curl.haxx.se/download/curl-7.45.0.tar.gz
+- wget https://curl.haxx.se/download/curl-7.47.1.tar.gz
+- tar zxvf curl-7.47.1.tar.gz
 - cd curl-7.45.0 && make && sudo make install
 - cd ..
 
