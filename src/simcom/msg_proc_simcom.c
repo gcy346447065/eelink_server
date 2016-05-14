@@ -140,6 +140,7 @@ static int simcom_login(const void *msg, SESSION *session)
     {
         LOG_INFO("simcom IMEI(%s) already login", imei);
     }
+    obj->version = ntohl(req->version); //remember the version of firmware of the device
 
     //login rsp
     MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
@@ -172,7 +173,7 @@ static int simcom_login(const void *msg, SESSION *session)
     if(theLastVersion)
     {
         theSize = getLastFileSize();
-        LOG_INFO("req->version is %d, theLastVersion is %d, theSize is %d", ntohl(req->version), theLastVersion, theSize);
+        LOG_INFO("req->version is %d, theLastVersion is %d, theSize is %d", obj->version, theLastVersion, theSize);
         
         if(ntohl(req->version) < theLastVersion)
         {

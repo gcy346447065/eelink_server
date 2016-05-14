@@ -34,6 +34,7 @@ typedef struct
      */
 
     int ObjectType;
+    int version;
 
     char IMEI[IMEI_LENGTH + 1];
     char CCID[CCID_LENGTH + 1];
@@ -64,7 +65,7 @@ typedef struct
     int device_id;
     int sensor_id;
 
-    void* session;
+    void *session;
 } OBJECT;
 
 

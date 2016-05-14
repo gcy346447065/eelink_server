@@ -11,8 +11,8 @@
 #include <stdio.h>
 #include "protocol_manager.h"
 
-MSG_HEADER* alloc_manager_msg(char cmd, size_t length);
-MSG_HEADER* alloc_manager_rspMsg(const MSG_HEADER *pMsg);
+MANAGER_MSG_HEADER* alloc_manager_msg(char cmd, size_t length);
+MANAGER_MSG_HEADER* alloc_manager_rspMsg(const MANAGER_MSG_HEADER *pMsg);
 
 void free_manager_msg(void *msg);
 char get_manager_msg_cmd(void *msg);

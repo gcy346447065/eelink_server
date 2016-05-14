@@ -195,3 +195,28 @@ void *alloc_simcomUpgradeEndReq(int checksum, int size)
     return req;
 }
 
+void *alloc_simcomManagerReq(int cmd)
+{
+    if(cmd == CMD_GET_LOG ||
+       cmd == CMD_GET_433 ||
+       cmd == CMD_GET_GSM ||
+       cmd == CMD_GET_GPS ||
+       cmd == CMD_GET_SETTING ||
+       cmd == CMD_GET_BATTERY ||
+       cmd == CMD_REBOOT ||
+       cmd == CMD_UPGRADE)
+    {
+        MSG_HEADER *msg = malloc(MSG_HEADER_LEN);
+        msg->signature = htons(START_FLAG);
+        msg->cmd = cmd;
+        msg->seq = seq++;
+        msg->length = 0;
+
+        return msg;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+

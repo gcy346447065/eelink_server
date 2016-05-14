@@ -17,6 +17,13 @@
 
 enum
 {
+    CMD_UPGRADE         = -7,
+    CMD_GET_LOG         = -6,
+    CMD_GET_433         = -5,
+    CMD_GET_GSM         = -4,
+    CMD_GET_GPS         = -3,
+    CMD_GET_SETTING     = -2,
+    CMD_GET_BATTERY     = -1,
     CMD_WILD            =  0,
     CMD_LOGIN           =  1,
     CMD_PING            =  2,
@@ -67,6 +74,77 @@ typedef struct
 }__attribute__((__packed__)) MSG_HEADER;
 
 #define MSG_HEADER_LEN sizeof(MSG_HEADER)
+
+/*
+ * upgrade message structure
+ */
+typedef MSG_HEADER MSG_UPGRADE_REQ;
+
+/*
+ * get log message structure
+ */
+typedef MSG_HEADER MSG_GET_LOG_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_LOG_RSP;
+
+/*
+ * get 433 message structure
+ */
+typedef MSG_HEADER MSG_GET_433_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_433_RSP;
+
+/*
+ * get GSM message structure
+ */
+typedef MSG_HEADER MSG_GET_GSM_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_GSM_RSP;
+
+/*
+ * get GPS message structure
+ */
+typedef MSG_HEADER MSG_GET_GPS_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_GPS_RSP;
+
+/*
+ * get setting message structure
+ */
+typedef MSG_HEADER MSG_GET_SETTING_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_SETTING_RSP;
+
+/*
+ * get battery message structure
+ */
+typedef MSG_HEADER MSG_GET_BATTERY_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_BATTERY_RSP;
 
 /*
  * Login message structure
@@ -430,6 +508,11 @@ typedef struct
 }__attribute__((__packed__)) MSG_SIM_INFO_REQ;
 
 typedef MSG_HEADER MSG_SIM_INFO_RSP;
+
+/*
+ * reboot message structure
+ */
+typedef MSG_HEADER MSG_REBOOT_REQ;
 
 /*
  * GPS PACK message structure
