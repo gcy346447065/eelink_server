@@ -25,7 +25,8 @@ enum CMD
     APP_CMD_AUTOPERIOD_GET      = 10,
     APP_CMD_AUTOLOCK_GET        = 11,
     APP_CMD_BATTERY             = 12,
-    APP_CMD_STATUS_GET          = 13
+    APP_CMD_STATUS_GET          = 13,
+    APP_CMD_GPS_SWITCH          = 14
 };
 
 enum CODE

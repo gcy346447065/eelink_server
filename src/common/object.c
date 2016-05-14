@@ -106,7 +106,7 @@ void obj_freeKey(gpointer key)
 
 void obj_freeValue(gpointer value)
 {
-    OBJECT * obj = (OBJECT *)value;
+    OBJECT *obj = (OBJECT *)value;
 
     LOG_DEBUG("free value IMEI:%s of object_table", get_IMEI_STRING(obj->IMEI));
 
@@ -147,6 +147,7 @@ OBJECT *obj_new()
 	memset(obj, 0, sizeof(OBJECT));
 
 	make_pwd(obj->pwd);
+    obj->gps_switch = 1;
 
 	return obj;
 }
@@ -197,7 +198,7 @@ const char* getMacFromIMEI(const unsigned char* IMEI)
 
 /***** when IMEI_LENGTH changed to 15, this function becomes bad, do not use it! *****/
 //imei of 8 bits to imei of 16 bits, the result ends by '\0'
-const char* get_IMEI_STRING(const unsigned char* IMEI)
+const char *get_IMEI_STRING(const char *IMEI)
 {
 	static char strIMEI[IMEI_LENGTH + 1];
 	strcpy(strIMEI, "unknown imei");

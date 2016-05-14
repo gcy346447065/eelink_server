@@ -19,6 +19,7 @@ static GHashTable *objectID_table = NULL;
 
 static void print_key_value(gpointer key, gpointer value, gpointer user_data)
 {
+    user_data = user_data;
     LOG_INFO("%s----->%s", (char *)key, (char *)value);
 }
 

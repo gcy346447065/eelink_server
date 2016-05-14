@@ -12,6 +12,8 @@ int leancloud_saveDid(const char* imei);
 
 int leancloud_saveGPS(int timestamp, const char* imei, double lat, double lng, int speed, int course);
 
+int leancloud_saveGPSWithDID(int timestamp, const char *imei, double lat, double lng, int speed, int course, const char *did);
+
 int leancloud_saveItinerary(const char *imei, int start, int end, int miles);
 
 int leancloud_saveSimInfo(const char* imei, const char* ccid, const char* imsi);

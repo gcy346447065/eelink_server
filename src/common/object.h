@@ -65,6 +65,9 @@ typedef struct
     int device_id;
     int sensor_id;
 
+    //gps开关，为刘老师写字版本增加
+    int gps_switch;
+
     void *session;
 } OBJECT;
 
@@ -81,7 +84,7 @@ void obj_del(OBJECT *obj);
 OBJECT *obj_get(const char IMEI[]);
 
 int obj_did_got(OBJECT *obj);
-const char* get_IMEI_STRING(const unsigned char* IMEI);
+const char* get_IMEI_STRING(const char* IMEI);
 const char* getMacFromIMEI(const unsigned char* IMEI);
 
 #endif /* SRC_OBJECT_ */

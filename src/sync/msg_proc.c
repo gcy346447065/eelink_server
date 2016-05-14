@@ -31,18 +31,33 @@ static void msg_saveGPS(cJSON* json)
     cJSON* speed = cJSON_GetObjectItem(json, TAG_SPEED);
     cJSON* course = cJSON_GetObjectItem(json, TAG_COURSE);
 
+    cJSON* did = cJSON_GetObjectItem(json, TAG_DID);
+
     if (!timestamp || !imei || !lat || !lng || !speed || !course)
     {
         LOG_ERROR("save GPS failed");
         return;
     }
 
-    leancloud_saveGPS(timestamp->valueint,
-                      imei->valuestring,
-                      lat->valuedouble,
-                      lng->valuedouble,
-                      speed->valueint,
-                      course->valueint);
+    if (did)
+    {
+        leancloud_saveGPSWithDID(timestamp->valueint,
+                                 imei->valuestring,
+                                 lat->valuedouble,
+                                 lng->valuedouble,
+                                 speed->valueint,
+                                 course->valueint,
+                                 did->valuestring);
+    }
+    else
+    {
+        leancloud_saveGPS(timestamp->valueint,
+                          imei->valuestring,
+                          lat->valuedouble,
+                          lng->valuedouble,
+                          speed->valueint,
+                          course->valueint);
+    }
 
     return;
 }
