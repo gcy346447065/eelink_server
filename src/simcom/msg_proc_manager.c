@@ -185,7 +185,13 @@ static int manager_getLog(const void *msg, SESSION *session)
         {
             LOG_FATAL("insufficient memory");
         }
+
         SESSION *simcomSession = (SESSION *)obj->session;
+        if (!simcomSession)
+        {
+            LOG_ERROR("device offline");
+            return -1;
+        }
         MSG_SEND pfn = simcomSession->pSendMsg;
         if (!pfn)
         {
@@ -229,7 +235,13 @@ static int manager_get433(const void *msg, SESSION *session)
         {
             LOG_FATAL("insufficient memory");
         }
+
         SESSION *simcomSession = (SESSION *)obj->session;
+        if (!simcomSession)
+        {
+            LOG_ERROR("device offline");
+            return -1;
+        }
         MSG_SEND pfn = simcomSession->pSendMsg;
         if (!pfn)
         {
@@ -273,7 +285,13 @@ static int manager_getGSM(const void *msg, SESSION *session)
         {
             LOG_FATAL("insufficient memory");
         }
+
         SESSION *simcomSession = (SESSION *)obj->session;
+        if (!simcomSession)
+        {
+            LOG_ERROR("device offline");
+            return -1;
+        }
         MSG_SEND pfn = simcomSession->pSendMsg;
         if (!pfn)
         {
@@ -317,7 +335,13 @@ static int manager_getGPS(const void *msg, SESSION *session)
         {
             LOG_FATAL("insufficient memory");
         }
+
         SESSION *simcomSession = (SESSION *)obj->session;
+        if (!simcomSession)
+        {
+            LOG_ERROR("device offline");
+            return -1;
+        }
         MSG_SEND pfn = simcomSession->pSendMsg;
         if (!pfn)
         {
@@ -361,7 +385,13 @@ static int manager_getSetting(const void *msg, SESSION *session)
         {
             LOG_FATAL("insufficient memory");
         }
+
         SESSION *simcomSession = (SESSION *)obj->session;
+        if (!simcomSession)
+        {
+            LOG_ERROR("device offline");
+            return -1;
+        }
         MSG_SEND pfn = simcomSession->pSendMsg;
         if (!pfn)
         {
@@ -405,7 +435,13 @@ static int manager_getBattery(const void *msg, SESSION *session)
         {
             LOG_FATAL("insufficient memory");
         }
+
         SESSION *simcomSession = (SESSION *)obj->session;
+        if (!simcomSession)
+        {
+            LOG_ERROR("device offline");
+            return -1;
+        }
         MSG_SEND pfn = simcomSession->pSendMsg;
         if (!pfn)
         {
@@ -449,7 +485,13 @@ static int manager_reboot(const void *msg, SESSION *session)
         {
             LOG_FATAL("insufficient memory");
         }
+        
         SESSION *simcomSession = (SESSION *)obj->session;
+        if (!simcomSession)
+        {
+            LOG_ERROR("device offline");
+            return -1;
+        }
         MSG_SEND pfn = simcomSession->pSendMsg;
         if (!pfn)
         {

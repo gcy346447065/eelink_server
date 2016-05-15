@@ -130,7 +130,7 @@ static void accept_conn_cb(struct evconnlistener *listener,
         return;
     }
 
-    SESSION* session = malloc(sizeof(SESSION));
+    SESSION *session = malloc(sizeof(SESSION));
     if (!session)
     {
         LOG_FATAL("memory alloc failed");

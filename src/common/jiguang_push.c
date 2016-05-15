@@ -34,12 +34,12 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
         cJSON_AddStringToObject(root, "platform", "all");
 
         cJSON *audience = cJSON_CreateObject();
-        cJSON *registration_id = cJSON_CreateArray();
+        cJSON *alias = cJSON_CreateArray();
         char topic[128];
         memset(topic, 0, sizeof(topic));
         snprintf(topic, 128, "simcom_%s", imei);
-        cJSON_AddItemToArray(registration_id, cJSON_CreateString(topic));
-        cJSON_AddItemToObject(audience, "registration_id", registration_id);
+        cJSON_AddItemToArray(alias, cJSON_CreateString(topic));
+        cJSON_AddItemToObject(audience, "alias", alias);
         cJSON_AddItemToObject(root, "audience", audience);
 
         cJSON *notification = cJSON_CreateObject();
