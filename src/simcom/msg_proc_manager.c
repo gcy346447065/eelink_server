@@ -93,6 +93,11 @@ static int manager_login(const void *msg, SESSION_MANAGER *sessionManager)
         return -1;
     }
 
+    if(sessionManager)
+    {
+        sessionManager_add(sessionManager);
+    }
+
     //login rsp
     MANAGER_MSG_LOGIN_RSP *rsp = (MANAGER_MSG_LOGIN_RSP *)alloc_manager_rspMsg((const MANAGER_MSG_HEADER *)msg);
     if(rsp)
