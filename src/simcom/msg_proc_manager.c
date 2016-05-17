@@ -192,7 +192,7 @@ static int manager_getLog(const void *msg, SESSION_MANAGER *sessionManager)
             LOG_FATAL("insufficient memory");
             return -1;
         }
-        req4simcom->managerSeq = htons(sessionManager->sequence);
+        req4simcom->managerSeq = htonl(sessionManager->sequence);
 
         SESSION *simcomSession = (SESSION *)obj->session;
         if (!simcomSession)
@@ -245,7 +245,7 @@ static int manager_get433(const void *msg, SESSION_MANAGER *sessionManager)
             LOG_FATAL("insufficient memory");
             return -1;
         }
-        req4simcom->managerSeq = htons(sessionManager->sequence);
+        req4simcom->managerSeq = htonl(sessionManager->sequence);
 
         SESSION *simcomSession = (SESSION *)obj->session;
         if (!simcomSession)
@@ -298,7 +298,7 @@ static int manager_getGSM(const void *msg, SESSION_MANAGER *sessionManager)
             LOG_FATAL("insufficient memory");
             return -1;
         }
-        req4simcom->managerSeq = htons(sessionManager->sequence);
+        req4simcom->managerSeq = htonl(sessionManager->sequence);
 
         SESSION *simcomSession = (SESSION *)obj->session;
         if (!simcomSession)
@@ -351,7 +351,7 @@ static int manager_getGPS(const void *msg, SESSION_MANAGER *sessionManager)
             LOG_FATAL("insufficient memory");
             return -1;
         }
-        req4simcom->managerSeq = htons(sessionManager->sequence);
+        req4simcom->managerSeq = htonl(sessionManager->sequence);
 
         SESSION *simcomSession = (SESSION *)obj->session;
         if (!simcomSession)
@@ -404,7 +404,7 @@ static int manager_getSetting(const void *msg, SESSION_MANAGER *sessionManager)
             LOG_FATAL("insufficient memory");
             return -1;
         }
-        req4simcom->managerSeq = htons(sessionManager->sequence);
+        req4simcom->managerSeq = htonl(sessionManager->sequence);
 
         SESSION *simcomSession = (SESSION *)obj->session;
         if (!simcomSession)
@@ -457,7 +457,7 @@ static int manager_getBattery(const void *msg, SESSION_MANAGER *sessionManager)
             LOG_FATAL("insufficient memory");
             return -1;
         }
-        req4simcom->managerSeq = htons(sessionManager->sequence);
+        req4simcom->managerSeq = htonl(sessionManager->sequence);
 
         SESSION *simcomSession = (SESSION *)obj->session;
         if (!simcomSession)
