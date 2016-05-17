@@ -179,7 +179,7 @@ static int manager_getLog(const void *msg, SESSION_MANAGER *sessionManager)
     OBJECT *obj = obj_get(imei);
     if(obj)
     {
-        LOG_INFO("succeed to find imei(%s) in object, send rsp to simcom", imei);
+        LOG_INFO("succeed to find imei(%s) in object, send req to simcom", imei);
 
         MSG_GET_LOG_REQ *req4simcom = (MSG_GET_LOG_REQ *)alloc_simcomManagerReq(CMD_GET_LOG);
         if(!req4simcom)
@@ -201,11 +201,12 @@ static int manager_getLog(const void *msg, SESSION_MANAGER *sessionManager)
             LOG_ERROR("device offline");
             return -1;
         }
+        LOG_HEX(req4simcom, sizeof(MSG_GET_LOG_REQ));
         pfn(simcomSession->bev, req4simcom, sizeof(MSG_GET_LOG_REQ)); //simcom_sendMsg
     }
     else
     {
-        LOG_INFO("failed to find imei(%s) in object, don't send rsp", imei);
+        LOG_INFO("failed to find imei(%s) in object, don't send req", imei);
         return -1;
     }
 
@@ -231,7 +232,7 @@ static int manager_get433(const void *msg, SESSION_MANAGER *sessionManager)
     OBJECT *obj = obj_get(imei);
     if(obj)
     {
-        LOG_INFO("succeed to find imei(%s) in object, send rsp to simcom", imei);
+        LOG_INFO("succeed to find imei(%s) in object, send req to simcom", imei);
 
         MSG_GET_433_REQ *req4simcom = (MSG_GET_433_REQ *)alloc_simcomManagerReq(CMD_GET_433);
         if(!req4simcom)
@@ -253,11 +254,12 @@ static int manager_get433(const void *msg, SESSION_MANAGER *sessionManager)
             LOG_ERROR("device offline");
             return -1;
         }
+        LOG_HEX(req4simcom, sizeof(MSG_GET_433_REQ));
         pfn(simcomSession->bev, req4simcom, sizeof(MSG_GET_433_REQ)); //simcom_sendMsg
     }
     else
     {
-        LOG_INFO("failed to find imei(%s) in object, don't send rsp", imei);
+        LOG_INFO("failed to find imei(%s) in object, don't send req", imei);
         return -1;
     }
 
@@ -283,7 +285,7 @@ static int manager_getGSM(const void *msg, SESSION_MANAGER *sessionManager)
     OBJECT *obj = obj_get(imei);
     if(obj)
     {
-        LOG_INFO("succeed to find imei(%s) in object, send rsp to simcom", imei);
+        LOG_INFO("succeed to find imei(%s) in object, send req to simcom", imei);
 
         MSG_GET_GSM_REQ *req4simcom = (MSG_GET_GSM_REQ *)alloc_simcomManagerReq(CMD_GET_GSM);
         if(!req4simcom)
@@ -305,11 +307,12 @@ static int manager_getGSM(const void *msg, SESSION_MANAGER *sessionManager)
             LOG_ERROR("device offline");
             return -1;
         }
+        LOG_HEX(req4simcom, sizeof(MSG_GET_GSM_REQ));
         pfn(simcomSession->bev, req4simcom, sizeof(MSG_GET_GSM_REQ)); //simcom_sendMsg
     }
     else
     {
-        LOG_INFO("failed to find imei(%s) in object, don't send rsp", imei);
+        LOG_INFO("failed to find imei(%s) in object, don't send req", imei);
         return -1;
     }
 
@@ -335,7 +338,7 @@ static int manager_getGPS(const void *msg, SESSION_MANAGER *sessionManager)
     OBJECT *obj = obj_get(imei);
     if(obj)
     {
-        LOG_INFO("succeed to find imei(%s) in object, send rsp to simcom", imei);
+        LOG_INFO("succeed to find imei(%s) in object, send req to simcom", imei);
 
         MSG_GET_GPS_REQ *req4simcom = (MSG_GET_GPS_REQ *)alloc_simcomManagerReq(CMD_GET_GPS);
         if(!req4simcom)
@@ -357,11 +360,12 @@ static int manager_getGPS(const void *msg, SESSION_MANAGER *sessionManager)
             LOG_ERROR("device offline");
             return -1;
         }
+        LOG_HEX(req4simcom, sizeof(MSG_GET_GPS_REQ));
         pfn(simcomSession->bev, req4simcom, sizeof(MSG_GET_GPS_REQ)); //simcom_sendMsg
     }
     else
     {
-        LOG_INFO("failed to find imei(%s) in object, don't send rsp", imei);
+        LOG_INFO("failed to find imei(%s) in object, don't send req", imei);
         return -1;
     }
 
@@ -387,7 +391,7 @@ static int manager_getSetting(const void *msg, SESSION_MANAGER *sessionManager)
     OBJECT *obj = obj_get(imei);
     if(obj)
     {
-        LOG_INFO("succeed to find imei(%s) in object, send rsp to simcom", imei);
+        LOG_INFO("succeed to find imei(%s) in object, send req to simcom", imei);
 
         MSG_GET_SETTING_REQ *req4simcom = (MSG_GET_SETTING_REQ *)alloc_simcomManagerReq(CMD_GET_SETTING);
         if(!req4simcom)
@@ -409,11 +413,12 @@ static int manager_getSetting(const void *msg, SESSION_MANAGER *sessionManager)
             LOG_ERROR("device offline");
             return -1;
         }
+        LOG_HEX(req4simcom, sizeof(MSG_GET_SETTING_REQ));
         pfn(simcomSession->bev, req4simcom, sizeof(MSG_GET_SETTING_REQ)); //simcom_sendMsg
     }
     else
     {
-        LOG_INFO("failed to find imei(%s) in object, don't send rsp", imei);
+        LOG_INFO("failed to find imei(%s) in object, don't send req", imei);
         return -1;
     }
 
@@ -439,7 +444,7 @@ static int manager_getBattery(const void *msg, SESSION_MANAGER *sessionManager)
     OBJECT *obj = obj_get(imei);
     if(obj)
     {
-        LOG_INFO("succeed to find imei(%s) in object, send rsp to simcom", imei);
+        LOG_INFO("succeed to find imei(%s) in object, send req to simcom", imei);
 
         MSG_GET_BATTERY_REQ *req4simcom = (MSG_GET_BATTERY_REQ *)alloc_simcomManagerReq(CMD_GET_BATTERY);
         if(!req4simcom)
@@ -461,11 +466,12 @@ static int manager_getBattery(const void *msg, SESSION_MANAGER *sessionManager)
             LOG_ERROR("device offline");
             return -1;
         }
+        LOG_HEX(req4simcom, sizeof(MSG_GET_BATTERY_REQ));
         pfn(simcomSession->bev, req4simcom, sizeof(MSG_GET_BATTERY_REQ)); //simcom_sendMsg
     }
     else
     {
-        LOG_INFO("failed to find imei(%s) in object, don't send rsp", imei);
+        LOG_INFO("failed to find imei(%s) in object, don't send req", imei);
         return -1;
     }
 
@@ -491,7 +497,7 @@ static int manager_reboot(const void *msg, SESSION_MANAGER *sessionManager)
     OBJECT *obj = obj_get(imei);
     if(obj)
     {
-        LOG_INFO("succeed to find imei(%s) in object, send rsp to simcom", imei);
+        LOG_INFO("succeed to find imei(%s) in object, send req to simcom", imei);
 
         MSG_REBOOT_REQ *req4simcom = (MSG_REBOOT_REQ *)alloc_simcomManagerReq(CMD_REBOOT);
         if(!req4simcom)
@@ -512,11 +518,12 @@ static int manager_reboot(const void *msg, SESSION_MANAGER *sessionManager)
             LOG_ERROR("device offline");
             return -1;
         }
+        LOG_HEX(req4simcom, sizeof(MSG_REBOOT_REQ));
         pfn(simcomSession->bev, req4simcom, sizeof(MSG_REBOOT_REQ)); //simcom_sendMsg
     }
     else
     {
-        LOG_INFO("failed to find imei(%s) in object, don't send rsp", imei);
+        LOG_INFO("failed to find imei(%s) in object, don't send req", imei);
         return -1;
     }
 
@@ -542,7 +549,7 @@ static int manager_upgrade(const void *msg, SESSION_MANAGER *sessionManager)
     OBJECT *obj = obj_get(imei);
     if(obj)
     {
-        LOG_INFO("succeed to find imei(%s) in object, send rsp to simcom", imei);
+        LOG_INFO("succeed to find imei(%s) in object, send req to simcom", imei);
 
         MSG_UPGRADE_REQ *req4simcom = (MSG_UPGRADE_REQ *)alloc_simcomManagerReq(CMD_UPGRADE);
         if(!req4simcom)
@@ -563,11 +570,12 @@ static int manager_upgrade(const void *msg, SESSION_MANAGER *sessionManager)
             LOG_ERROR("device offline");
             return -1;
         }
+        LOG_HEX(req4simcom, sizeof(MSG_UPGRADE_REQ));
         pfn(simcomSession->bev, req4simcom, sizeof(MSG_UPGRADE_REQ)); //simcom_sendMsg
     }
     else
     {
-        LOG_INFO("failed to find imei(%s) in object, don't send rsp", imei);
+        LOG_INFO("failed to find imei(%s) in object, don't send req", imei);
         return -1;
     }
 
