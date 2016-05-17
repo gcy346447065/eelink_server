@@ -197,26 +197,52 @@ void *alloc_simcomUpgradeEndReq(int checksum, int size)
 
 void *alloc_simcomManagerReq(int cmd)
 {
-    if(cmd == CMD_GET_LOG ||
-       cmd == CMD_GET_433 ||
-       cmd == CMD_GET_GSM ||
-       cmd == CMD_GET_GPS ||
-       cmd == CMD_GET_SETTING ||
-       cmd == CMD_GET_BATTERY ||
-       cmd == CMD_REBOOT ||
-       cmd == CMD_UPGRADE)
+    size_t msgLen = 0;
+    switch (cmd)
     {
-        MSG_HEADER *msg = malloc(MSG_HEADER_LEN);
-        msg->signature = htons(START_FLAG);
-        msg->cmd = cmd;
-        msg->seq = seq++;
-        msg->length = 0;
+        case CMD_GET_LOG:
+            msgLen = sizeof(MSG_GET_LOG_REQ);
+            break;
 
-        return msg;
+        case CMD_GET_433:
+            msgLen = sizeof(MSG_GET_433_REQ);
+            break;
+
+        case CMD_GET_GSM:
+            msgLen = sizeof(MSG_GET_GSM_REQ);
+            break;
+
+        case CMD_GET_GPS:
+            msgLen = sizeof(MSG_GET_GPS_REQ);
+            break;
+
+        case CMD_GET_SETTING:
+            msgLen = sizeof(MSG_GET_SETTING_REQ);
+            break;
+
+        case CMD_GET_BATTERY:
+            msgLen = sizeof(MSG_GET_BATTERY_REQ);
+            break;
+
+        case CMD_REBOOT:
+            msgLen = sizeof(MSG_REBOOT_REQ);
+            break;
+
+        case CMD_UPGRADE:
+            msgLen = sizeof(MSG_UPGRADE_REQ);
+            break;
+
+        default:
+            return NULL;
     }
-    else
-    {
-        return NULL;
-    }
+
+    MSG_HEADER* msg = malloc(msgLen);
+
+    msg->signature = htons(START_FLAG);
+    msg->cmd = cmd;
+    msg->seq = seq++;
+    msg->length = htons(msgLen - MSG_HEADER_LEN);
+
+    return msg;
 }
 

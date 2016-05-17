@@ -13,10 +13,10 @@ typedef void (*MSG_SEND)(struct bufferevent* bev, const void* buf, size_t n);
 
 typedef struct
 {
-    struct event_base* base;
-    struct bufferevent* bev;
+    struct event_base *base;
+    struct bufferevent *bev;
 
-    void* obj;
+    void *obj;
     MSG_SEND pSendMsg;
 }SESSION;
 

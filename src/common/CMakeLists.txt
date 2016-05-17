@@ -1,4 +1,7 @@
 SET(SOURCE_FILE
+    session_manager.h
+    session_manager.c
+
     jiguang_push.c
     jiguang_push.h
 

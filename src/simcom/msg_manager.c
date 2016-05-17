@@ -57,6 +57,57 @@ MANAGER_MSG_HEADER *alloc_manager_rspMsg(const MANAGER_MSG_HEADER *pMsg)
     return msg;
 }
 
+void *alloc_managerSimcomRsp(int cmd)
+{
+    size_t msgLen = 0;
+    switch (cmd)
+    {
+        case MANAGER_CMD_GET_LOG:
+            msgLen = sizeof(MANAGER_MSG_GET_LOG_RSP);
+            break;
+
+        case MANAGER_CMD_GET_433:
+            msgLen = sizeof(MANAGER_MSG_GET_433_REQ);
+            break;
+
+        case MANAGER_CMD_GET_GSM:
+            msgLen = sizeof(MANAGER_MSG_GET_GSM_REQ);
+            break;
+
+        case MANAGER_CMD_GET_GPS:
+            msgLen = sizeof(MANAGER_MSG_GET_GPS_REQ);
+            break;
+
+        case MANAGER_CMD_GET_SETTING:
+            msgLen = sizeof(MANAGER_MSG_GET_SETTING_REQ);
+            break;
+
+        case MANAGER_CMD_GET_BATTERY:
+            msgLen = sizeof(MANAGER_MSG_GET_BATTERY_REQ);
+            break;
+
+        case MANAGER_CMD_REBOOT:
+            msgLen = sizeof(MANAGER_MSG_REBOOT_REQ);
+            break;
+
+        case MANAGER_CMD_UPGRADE:
+            msgLen = sizeof(MANAGER_MSG_UPGRADE_REQ);
+            break;
+
+        default:
+            return NULL;
+    }
+
+    MANAGER_MSG_HEADER *msg = malloc(msgLen);
+
+    msg->signature = htons(MANAGER_START_FLAG);
+    msg->cmd = cmd;
+    msg->seq = 0; //TO DO
+    msg->length = htons(msgLen - MANAGER_MSG_HEADER_LEN);
+
+    return msg;
+}
+
 void free_manager_msg(void *msg)
 {
     free(msg);

@@ -15,7 +15,7 @@
 #include <arpa/inet.h>
 
 #include "log.h"
-#include "session.h"
+#include "session_manager.h"
 #include "server_manager.h"
 #include "msg_proc_manager.h"
 
@@ -55,10 +55,10 @@ static void write_cb(struct bufferevent* bev __attribute__((unused)), void *arg 
 
 static void event_cb(struct bufferevent *bev, short events, void *arg)
 {
-    SESSION *session = (SESSION *)arg;
-    if(!session)
+    SESSION_MANAGER *sessionManager = (SESSION_MANAGER *)arg;
+    if(!sessionManager)
     {
-        LOG_FATAL("session ptr null");
+        LOG_FATAL("sessionManager ptr null");
         return;
     }
 
@@ -69,6 +69,8 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
     else if (events & BEV_EVENT_TIMEOUT)
     {
         LOG_ERROR("BEV_EVENT_TIMEOUT");
+
+        sessionManager_del(sessionManager);
         evutil_socket_t socket = bufferevent_getfd(bev);
         EVUTIL_CLOSESOCKET(socket);
         bufferevent_free(bev);
@@ -89,6 +91,7 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
             LOG_ERROR("BEV_EVENT_EOF");
         }
 
+        sessionManager_del(sessionManager);
         evutil_socket_t socket = bufferevent_getfd(bev);
         EVUTIL_CLOSESOCKET(socket);
         bufferevent_free(bev);
@@ -116,19 +119,19 @@ static void accept_conn_cb(struct evconnlistener *listener,
         return;
     }
 
-    SESSION* session = malloc(sizeof(SESSION));
-    if (!session)
+    SESSION_MANAGER *sessionManager = malloc(sizeof(SESSION_MANAGER));
+    if(!sessionManager)
     {
         LOG_FATAL("memory alloc failed");
         return;
     }
-    session->base = base;
-    session->bev = bev;
-    session->obj = NULL;
-    session->pSendMsg = send_msg;
+    sessionManager->base = base;
+    sessionManager->bev = bev;
+    sessionManager->pSendMsg = send_msg;
+    sessionManager->sequence = 0;
 
     //TODO: set the water-mark and timeout
-    bufferevent_setcb(bev, read_cb, write_cb, event_cb, session);
+    bufferevent_setcb(bev, read_cb, write_cb, event_cb, sessionManager);
 
     bufferevent_enable(bev, EV_READ | EV_WRITE);
 

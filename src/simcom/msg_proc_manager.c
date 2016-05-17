@@ -9,34 +9,35 @@
 #include "log.h"
 #include "macro.h"
 #include "object.h"
-#include "session.h"
+//#include "session.h"
 #include "protocol.h"
 #include "msg_simcom.h"
 #include "msg_manager.h"
+#include "session_manager.h"
 #include "protocol_manager.h"
 #include "msg_proc_manager.h"
 
-typedef int (*MANAGER_MSG_PROC)(const void *msg, SESSION *ctx);
+typedef int (*MANAGER_MSG_PROC)(const void *msg, SESSION_MANAGER *ctx);
 typedef struct
 {
     char cmd;
     MANAGER_MSG_PROC pfn;
 } MANAGER_MSG_PROC_MAP;
 
-static int manager_sendMsg(void *msg, size_t len, SESSION *session)
+static int manager_sendMsg(void *msg, size_t len, SESSION_MANAGER *sessionManager)
 {
-    if (!session)
+    if (!sessionManager)
     {
         return -1;
     }
 
-    MSG_SEND pfn = session->pSendMsg;
+    MSG_SEND pfn = sessionManager->pSendMsg;
     if (!pfn)
     {
         LOG_ERROR("device offline");
         return -1;
     }
-    pfn(session->bev, msg, len);
+    pfn(sessionManager->bev, msg, len);
 
     LOG_DEBUG("send msg(cmd=%d), length(%ld)", get_manager_msg_cmd(msg), len);
     LOG_HEX(msg, len);
@@ -45,7 +46,7 @@ static int manager_sendMsg(void *msg, size_t len, SESSION *session)
     return 0;
 }
 
-int manager_sendImeiData(const void *msg, SESSION *ManagerSession, const char *imei, SESSION *deviceSession, int timestamp, float lon, float lat, char speed, short course)
+int manager_sendImeiData(const void *msg, SESSION_MANAGER *sessionManager, const char *imei, SESSION *deviceSession, int timestamp, float lon, float lat, char speed, short course)
 {
     char online_offline;
     if(deviceSession == NULL)
@@ -70,7 +71,7 @@ int manager_sendImeiData(const void *msg, SESSION *ManagerSession, const char *i
         rsp->imei_data.gps.speed = speed;
         rsp->imei_data.gps.course = course;
 
-        manager_sendMsg(rsp, sizeof(MANAGER_MSG_IMEI_DATA_RSP), ManagerSession);
+        manager_sendMsg(rsp, sizeof(MANAGER_MSG_IMEI_DATA_RSP), sessionManager);
         LOG_INFO("send imei data rsp");
     }
     else
@@ -83,7 +84,7 @@ int manager_sendImeiData(const void *msg, SESSION *ManagerSession, const char *i
     return 0;
 }
 
-static int manager_login(const void *msg, SESSION *session)
+static int manager_login(const void *msg, SESSION_MANAGER *sessionManager)
 {
     const MANAGER_MSG_LOGIN_REQ *req = (const MANAGER_MSG_LOGIN_REQ *)msg;
     if(ntohs(req->length) != sizeof(MANAGER_MSG_LOGIN_REQ) - MANAGER_MSG_HEADER_LEN)
@@ -96,7 +97,7 @@ static int manager_login(const void *msg, SESSION *session)
     MANAGER_MSG_LOGIN_RSP *rsp = (MANAGER_MSG_LOGIN_RSP *)alloc_manager_rspMsg((const MANAGER_MSG_HEADER *)msg);
     if(rsp)
     {
-        manager_sendMsg(rsp, sizeof(MANAGER_MSG_LOGIN_RSP), session);
+        manager_sendMsg(rsp, sizeof(MANAGER_MSG_LOGIN_RSP), sessionManager);
         LOG_INFO("send login rsp");
     }
     else
@@ -109,7 +110,7 @@ static int manager_login(const void *msg, SESSION *session)
     return 0;
 }
 
-static int manager_imeiData(const void *msg, SESSION *session)
+static int manager_imeiData(const void *msg, SESSION_MANAGER *sessionManager)
 {
     const MANAGER_MSG_IMEI_DATA_REQ *req = (const MANAGER_MSG_IMEI_DATA_REQ *)msg;
     if(ntohs(req->header.length) < sizeof(MANAGER_MSG_IMEI_DATA_REQ) - MANAGER_MSG_HEADER_LEN)
@@ -147,7 +148,7 @@ static int manager_imeiData(const void *msg, SESSION *session)
             LOG_INFO("failed to find imei(%s) in object, send null rsp", imei);
         }
         
-        manager_sendMsg(rsp, sizeof(MANAGER_MSG_IMEI_DATA_RSP), session);
+        manager_sendMsg(rsp, sizeof(MANAGER_MSG_IMEI_DATA_RSP), sessionManager);
         LOG_INFO("send imei data rsp");
     }
     else
@@ -159,7 +160,7 @@ static int manager_imeiData(const void *msg, SESSION *session)
     return 0;
 }
 
-static int manager_getLog(const void *msg, SESSION *session)
+static int manager_getLog(const void *msg, SESSION_MANAGER *sessionManager)
 {
     const MANAGER_MSG_GET_LOG_REQ *req = (const MANAGER_MSG_GET_LOG_REQ *)msg;
     if(ntohs(req->header.length) != sizeof(MANAGER_MSG_GET_LOG_REQ) - MANAGER_MSG_HEADER_LEN)
@@ -184,7 +185,9 @@ static int manager_getLog(const void *msg, SESSION *session)
         if(!req4simcom)
         {
             LOG_FATAL("insufficient memory");
+            return -1;
         }
+        req4simcom->managerSeq = sessionManager->sequence;
 
         SESSION *simcomSession = (SESSION *)obj->session;
         if (!simcomSession)
@@ -209,7 +212,7 @@ static int manager_getLog(const void *msg, SESSION *session)
     return 0;
 }
 
-static int manager_get433(const void *msg, SESSION *session)
+static int manager_get433(const void *msg, SESSION_MANAGER *sessionManager)
 {
     const MANAGER_MSG_GET_433_REQ *req = (const MANAGER_MSG_GET_433_REQ *)msg;
     if(ntohs(req->header.length) != sizeof(MANAGER_MSG_GET_433_REQ) - MANAGER_MSG_HEADER_LEN)
@@ -234,7 +237,9 @@ static int manager_get433(const void *msg, SESSION *session)
         if(!req4simcom)
         {
             LOG_FATAL("insufficient memory");
+            return -1;
         }
+        req4simcom->managerSeq = sessionManager->sequence;
 
         SESSION *simcomSession = (SESSION *)obj->session;
         if (!simcomSession)
@@ -259,7 +264,7 @@ static int manager_get433(const void *msg, SESSION *session)
     return 0;
 }
 
-static int manager_getGSM(const void *msg, SESSION *session)
+static int manager_getGSM(const void *msg, SESSION_MANAGER *sessionManager)
 {
     const MANAGER_MSG_GET_GSM_REQ *req = (const MANAGER_MSG_GET_GSM_REQ *)msg;
     if(ntohs(req->header.length) != sizeof(MANAGER_MSG_GET_GSM_REQ) - MANAGER_MSG_HEADER_LEN)
@@ -284,7 +289,9 @@ static int manager_getGSM(const void *msg, SESSION *session)
         if(!req4simcom)
         {
             LOG_FATAL("insufficient memory");
+            return -1;
         }
+        req4simcom->managerSeq = sessionManager->sequence;
 
         SESSION *simcomSession = (SESSION *)obj->session;
         if (!simcomSession)
@@ -309,7 +316,7 @@ static int manager_getGSM(const void *msg, SESSION *session)
     return 0;
 }
 
-static int manager_getGPS(const void *msg, SESSION *session)
+static int manager_getGPS(const void *msg, SESSION_MANAGER *sessionManager)
 {
     const MANAGER_MSG_GET_GPS_REQ *req = (const MANAGER_MSG_GET_GPS_REQ *)msg;
     if(ntohs(req->header.length) != sizeof(MANAGER_MSG_GET_GPS_REQ) - MANAGER_MSG_HEADER_LEN)
@@ -334,7 +341,9 @@ static int manager_getGPS(const void *msg, SESSION *session)
         if(!req4simcom)
         {
             LOG_FATAL("insufficient memory");
+            return -1;
         }
+        req4simcom->managerSeq = sessionManager->sequence;
 
         SESSION *simcomSession = (SESSION *)obj->session;
         if (!simcomSession)
@@ -359,7 +368,7 @@ static int manager_getGPS(const void *msg, SESSION *session)
     return 0;
 }
 
-static int manager_getSetting(const void *msg, SESSION *session)
+static int manager_getSetting(const void *msg, SESSION_MANAGER *sessionManager)
 {
     const MANAGER_MSG_GET_SETTING_REQ *req = (const MANAGER_MSG_GET_SETTING_REQ *)msg;
     if(ntohs(req->header.length) != sizeof(MANAGER_MSG_GET_SETTING_REQ) - MANAGER_MSG_HEADER_LEN)
@@ -384,7 +393,9 @@ static int manager_getSetting(const void *msg, SESSION *session)
         if(!req4simcom)
         {
             LOG_FATAL("insufficient memory");
+            return -1;
         }
+        req4simcom->managerSeq = sessionManager->sequence;
 
         SESSION *simcomSession = (SESSION *)obj->session;
         if (!simcomSession)
@@ -409,7 +420,7 @@ static int manager_getSetting(const void *msg, SESSION *session)
     return 0;
 }
 
-static int manager_getBattery(const void *msg, SESSION *session)
+static int manager_getBattery(const void *msg, SESSION_MANAGER *sessionManager)
 {
     const MANAGER_MSG_GET_BATTERY_REQ *req = (const MANAGER_MSG_GET_BATTERY_REQ *)msg;
     if(ntohs(req->header.length) != sizeof(MANAGER_MSG_GET_BATTERY_REQ) - MANAGER_MSG_HEADER_LEN)
@@ -434,7 +445,9 @@ static int manager_getBattery(const void *msg, SESSION *session)
         if(!req4simcom)
         {
             LOG_FATAL("insufficient memory");
+            return -1;
         }
+        req4simcom->managerSeq = sessionManager->sequence;
 
         SESSION *simcomSession = (SESSION *)obj->session;
         if (!simcomSession)
@@ -459,7 +472,7 @@ static int manager_getBattery(const void *msg, SESSION *session)
     return 0;
 }
 
-static int manager_reboot(const void *msg, SESSION *session)
+static int manager_reboot(const void *msg, SESSION_MANAGER *sessionManager)
 {
     const MANAGER_MSG_REBOOT_REQ *req = (const MANAGER_MSG_REBOOT_REQ *)msg;
     if(ntohs(req->header.length) != sizeof(MANAGER_MSG_REBOOT_REQ) - MANAGER_MSG_HEADER_LEN)
@@ -484,8 +497,9 @@ static int manager_reboot(const void *msg, SESSION *session)
         if(!req4simcom)
         {
             LOG_FATAL("insufficient memory");
+            return -1;
         }
-        
+
         SESSION *simcomSession = (SESSION *)obj->session;
         if (!simcomSession)
         {
@@ -509,7 +523,7 @@ static int manager_reboot(const void *msg, SESSION *session)
     return 0;
 }
 
-static int manager_upgrade(const void *msg, SESSION *session)
+static int manager_upgrade(const void *msg, SESSION_MANAGER *sessionManager)
 {
     const MANAGER_MSG_UPGRADE_REQ *req = (const MANAGER_MSG_UPGRADE_REQ *)msg;
     if(ntohs(req->header.length) != sizeof(MANAGER_MSG_UPGRADE_REQ) - MANAGER_MSG_HEADER_LEN)
@@ -523,6 +537,39 @@ static int manager_upgrade(const void *msg, SESSION *session)
     imei[IMEI_LENGTH] = '\0'; //add '\0' for string operaton
 
     LOG_INFO("get upgrade req, imei(%s)", imei);
+
+    //send req msg to simcom
+    OBJECT *obj = obj_get(imei);
+    if(obj)
+    {
+        LOG_INFO("succeed to find imei(%s) in object, send rsp to simcom", imei);
+
+        MSG_UPGRADE_REQ *req4simcom = (MSG_UPGRADE_REQ *)alloc_simcomManagerReq(CMD_UPGRADE);
+        if(!req4simcom)
+        {
+            LOG_FATAL("insufficient memory");
+            return -1;
+        }
+
+        SESSION *simcomSession = (SESSION *)obj->session;
+        if (!simcomSession)
+        {
+            LOG_ERROR("device offline");
+            return -1;
+        }
+        MSG_SEND pfn = simcomSession->pSendMsg;
+        if (!pfn)
+        {
+            LOG_ERROR("device offline");
+            return -1;
+        }
+        pfn(simcomSession->bev, req4simcom, sizeof(MSG_UPGRADE_REQ)); //simcom_sendMsg
+    }
+    else
+    {
+        LOG_INFO("failed to find imei(%s) in object, don't send rsp", imei);
+        return -1;
+    }
 
     return 0;
 }
@@ -541,7 +588,7 @@ static MANAGER_MSG_PROC_MAP msgProcs[] =
     {MANAGER_CMD_UPGRADE,           manager_upgrade}
 };
 
-static int handle_one_msg(const void *m, SESSION *ctx)
+static int handle_one_msg(const void *m, SESSION_MANAGER *ctx)
 {
     const MANAGER_MSG_HEADER *msg = (const MANAGER_MSG_HEADER *)m;
 
@@ -579,7 +626,7 @@ int handle_manager_msg(const char *m, size_t msgLen, void *arg)
             LOG_ERROR("receive message header signature error:%x", (unsigned)ntohs(msg->signature));
             return -1;
         }
-        handle_one_msg(msg, (SESSION *)arg);
+        handle_one_msg(msg, (SESSION_MANAGER *)arg);
         leftLen = leftLen - MANAGER_MSG_HEADER_LEN - ntohs(msg->length);
         msg = (const MANAGER_MSG_HEADER *)(m + msgLen - leftLen);
     }
