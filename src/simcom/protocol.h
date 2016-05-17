@@ -17,7 +17,7 @@
 
 enum
 {
-    CMD_UPGRADE         = -7,
+    CMD_REBOOT          = -7,
     CMD_GET_LOG         = -6,
     CMD_GET_433         = -5,
     CMD_GET_GSM         = -4,
@@ -51,7 +51,6 @@ enum
     CMD_UPGRADE_DATA    = 24,
     CMD_UPGRADE_END     = 25,
     CMD_SIM_INFO        = 26,
-    CMD_REBOOT          = 27,
     CMD_DEVICE_INFO_GET = 28,
     CMD_GPS_PACK        = 29
 };
@@ -79,11 +78,6 @@ typedef struct
  * reboot message structure
  */
 typedef MSG_HEADER MSG_REBOOT_REQ;
-
-/*
- * upgrade message structure
- */
-typedef MSG_HEADER MSG_UPGRADE_REQ;
 
 /*
  * get log message structure

@@ -551,27 +551,7 @@ static int manager_upgrade(const void *msg, SESSION_MANAGER *sessionManager)
     {
         LOG_INFO("succeed to find imei(%s) in object, send req to simcom", imei);
 
-        MSG_UPGRADE_REQ *req4simcom = (MSG_UPGRADE_REQ *)alloc_simcomManagerReq(CMD_UPGRADE);
-        if(!req4simcom)
-        {
-            LOG_FATAL("insufficient memory");
-            return -1;
-        }
-
-        SESSION *simcomSession = (SESSION *)obj->session;
-        if (!simcomSession)
-        {
-            LOG_ERROR("device offline");
-            return -1;
-        }
-        MSG_SEND pfn = simcomSession->pSendMsg;
-        if (!pfn)
-        {
-            LOG_ERROR("device offline");
-            return -1;
-        }
-        LOG_HEX(req4simcom, sizeof(MSG_UPGRADE_REQ));
-        pfn(simcomSession->bev, req4simcom, sizeof(MSG_UPGRADE_REQ)); //simcom_sendMsg
+        //send fake upgrade start msg
     }
     else
     {

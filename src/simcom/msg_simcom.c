@@ -228,10 +228,6 @@ void *alloc_simcomManagerReq(int cmd)
             msgLen = sizeof(MSG_REBOOT_REQ);
             break;
 
-        case CMD_UPGRADE:
-            msgLen = sizeof(MSG_UPGRADE_REQ);
-            break;
-
         default:
             return NULL;
     }
