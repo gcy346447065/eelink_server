@@ -10,10 +10,9 @@
 
 static GHashTable *session_table = NULL;
 
-
 void session_freeValue(gpointer value)
 {
-    SESSION * session = (SESSION *)value;
+    SESSION *session = (SESSION *)value;
 
     LOG_DEBUG("free value IMEI:%s of session_table", ((OBJECT *)session->obj)->IMEI);
 

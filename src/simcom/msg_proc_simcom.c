@@ -386,7 +386,7 @@ static int simcom_alarm(const void *msg, SESSION *session)
     app_sendAlarmMsg2App(req->alarmType, NULL, session);
 
     //send to ios APP by yunba
-    yunba_publish(obj->IMEI, YUNBA_CMD_ALARM, 0);
+    //yunba_publish(obj->IMEI, YUNBA_CMD_ALARM, 0);
 
     //send alarm by jiguang push
     jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, 0);
@@ -1211,7 +1211,7 @@ static int simcom_DefendNotify(const void *msg, SESSION *session)
         app_sendNotifyMsg2App(NOTIFY_AUTOLOCK, get_time(), rsp->status, session);
 
         //send to IOS APP by yunba
-        yunba_publish(obj->IMEI, YUNBA_CMD_AUTOLOCK_NOTIFY, rsp->status);
+        //yunba_publish(obj->IMEI, YUNBA_CMD_AUTOLOCK_NOTIFY, rsp->status);
 
         //send autolock notify by jiguang push
         jiguang_push(obj->IMEI, JIGUANG_CMD_AUTOLOCK_NOTIFY, rsp->status);
