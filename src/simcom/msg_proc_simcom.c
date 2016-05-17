@@ -1611,16 +1611,13 @@ static int simcom_getLog(const void *msg, SESSION *session)
         LOG_FATAL("session ptr null");
         return -1;
     }
-
     OBJECT *obj = session->obj;
     if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
     }
-    const char *strIMEI = obj->IMEI;
-
-    LOG_INFO("imei(%s) get log rsp send to manager", obj->IMEI);
+    LOG_INFO("imei(%s) get GPS rsp send to manager", obj->IMEI);
 
     int seq = ntohl(rsp->managerSeq);
     SESSION_MANAGER *sessionManager = sessionManager_get(seq);
@@ -1644,6 +1641,8 @@ static int simcom_getLog(const void *msg, SESSION *session)
     }
     memcpy(rsp4manager->data, rsp->data, strlen(rsp->data));
     pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_LOG_RSP)); //manager_sendMsg
+
+    return 0;
 }
 
 static int simcom_get433(const void *msg, SESSION *session)
@@ -1665,16 +1664,13 @@ static int simcom_get433(const void *msg, SESSION *session)
         LOG_FATAL("session ptr null");
         return -1;
     }
-
     OBJECT *obj = session->obj;
     if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
     }
-    const char *strIMEI = obj->IMEI;
-
-    LOG_INFO("imei(%s) get 433 rsp send to manager", obj->IMEI);
+    LOG_INFO("imei(%s) get GPS rsp send to manager", obj->IMEI);
 
     int seq = ntohl(rsp->managerSeq);
     SESSION_MANAGER *sessionManager = sessionManager_get(seq);
@@ -1698,6 +1694,8 @@ static int simcom_get433(const void *msg, SESSION *session)
     }
     memcpy(rsp4manager->data, rsp->data, strlen(rsp->data));
     pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_433_RSP)); //manager_sendMsg
+
+    return 0;
 }
 
 static int simcom_getGSM(const void *msg, SESSION *session)
@@ -1719,16 +1717,13 @@ static int simcom_getGSM(const void *msg, SESSION *session)
         LOG_FATAL("session ptr null");
         return -1;
     }
-
     OBJECT *obj = session->obj;
     if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
     }
-    const char *strIMEI = obj->IMEI;
-
-    LOG_INFO("imei(%s) get GSM rsp send to manager", obj->IMEI);
+    LOG_INFO("imei(%s) get GPS rsp send to manager", obj->IMEI);
 
     int seq = ntohl(rsp->managerSeq);
     SESSION_MANAGER *sessionManager = sessionManager_get(seq);
@@ -1752,6 +1747,8 @@ static int simcom_getGSM(const void *msg, SESSION *session)
     }
     memcpy(rsp4manager->data, rsp->data, strlen(rsp->data));
     pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_GSM_RSP)); //manager_sendMsg
+
+    return 0;
 }
 
 static int simcom_getGPS(const void *msg, SESSION *session)
@@ -1773,15 +1770,12 @@ static int simcom_getGPS(const void *msg, SESSION *session)
         LOG_FATAL("session ptr null");
         return -1;
     }
-
     OBJECT *obj = session->obj;
     if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
     }
-    const char *strIMEI = obj->IMEI;
-
     LOG_INFO("imei(%s) get GPS rsp send to manager", obj->IMEI);
 
     int seq = ntohl(rsp->managerSeq);
@@ -1806,6 +1800,8 @@ static int simcom_getGPS(const void *msg, SESSION *session)
     }
     memcpy(rsp4manager->data, rsp->data, strlen(rsp->data));
     pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_GPS_RSP)); //manager_sendMsg
+
+    return 0;
 }
 
 static int simcom_getSetting(const void *msg, SESSION *session)
@@ -1827,16 +1823,13 @@ static int simcom_getSetting(const void *msg, SESSION *session)
         LOG_FATAL("session ptr null");
         return -1;
     }
-
     OBJECT *obj = session->obj;
     if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
     }
-    const char *strIMEI = obj->IMEI;
-
-    LOG_INFO("imei(%s) get setting rsp send to manager", obj->IMEI);
+    LOG_INFO("imei(%s) get GPS rsp send to manager", obj->IMEI);
 
     int seq = ntohl(rsp->managerSeq);
     SESSION_MANAGER *sessionManager = sessionManager_get(seq);
@@ -1860,6 +1853,8 @@ static int simcom_getSetting(const void *msg, SESSION *session)
     }
     memcpy(rsp4manager->data, rsp->data, strlen(rsp->data));
     pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_SETTING_RSP)); //manager_sendMsg
+
+    return 0;
 }
 
 static int simcom_getBattery(const void *msg, SESSION *session)
@@ -1881,16 +1876,13 @@ static int simcom_getBattery(const void *msg, SESSION *session)
         LOG_FATAL("session ptr null");
         return -1;
     }
-
     OBJECT *obj = session->obj;
     if(!obj)
     {
         LOG_FATAL("internal error: obj null");
         return -1;
     }
-    const char *strIMEI = obj->IMEI;
-
-    LOG_INFO("imei(%s) get battery rsp send to manager", obj->IMEI);
+    LOG_INFO("imei(%s) get GPS rsp send to manager", obj->IMEI);
 
     int seq = ntohl(rsp->managerSeq);
     SESSION_MANAGER *sessionManager = sessionManager_get(seq);
@@ -1914,6 +1906,8 @@ static int simcom_getBattery(const void *msg, SESSION *session)
     }
     memcpy(rsp4manager->data, rsp->data, strlen(rsp->data));
     pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_BATTERY_RSP)); //manager_sendMsg
+
+    return 0;
 }
 
 static MSG_PROC_MAP msgProcs[] =
