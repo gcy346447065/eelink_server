@@ -66,7 +66,7 @@ MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER *pMsg)
     return msg;
 }
 
-void free_simcom_msg(void* msg)
+void free_simcom_msg(void *msg)
 {
     free(msg);
 }
@@ -76,7 +76,7 @@ char get_msg_cmd(void *msg)
     return ((MSG_HEADER*)msg)->cmd;
 }
 
-void *alloc_simcomWildMsg(const char* data, size_t length)
+void *alloc_simcomWildMsg(const char *data, size_t length)
 {
     MSG_HEADER *msg = alloc_simcom_msg(CMD_WILD, length);
 
