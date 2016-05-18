@@ -23,6 +23,8 @@
 
 static void send_msg(struct bufferevent* bev, const void* buf, size_t n)
 {
+    LOG_DEBUG("Send simcom message");
+
     bufferevent_write(bev, buf, n);
 
     return;
@@ -33,7 +35,7 @@ static void read_cb(struct bufferevent *bev, void *arg)
     char buf[1024] = {0};
     size_t n = 0;
 
-    LOG_DEBUG("Receive message");
+    LOG_DEBUG("Receive simcom message");
 
     while ((n = bufferevent_read(bev, buf, sizeof(buf))) > 0)
     {

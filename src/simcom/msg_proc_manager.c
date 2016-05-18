@@ -558,6 +558,29 @@ static int manager_upgrade(const void *msg, SESSION_MANAGER *sessionManager)
         LOG_INFO("succeed to find imei(%s) in object, send req to simcom", imei);
 
         //send fake upgrade start msg
+        unsigned int theLastVersion = getLastVersionWithFileNameAndSizeStored();
+        int theSize = 0;
+        if(theLastVersion)
+        {
+            unsigned int theFakeVersion = theLastVersion + 1;
+            theSize = getLastFileSize();
+            LOG_INFO("req->version is %d, theLastVersion is %d, theFakeVersion is %d, theSize is %d", obj->version, theLastVersion, theFakeVersion, theSize);
+            
+            if(ntohl(req->version) < theFakeVersion)
+            {
+                MSG_UPGRADE_START_REQ *req4upgrade = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theFakeVersion, theSize);
+                if(!req4upgrade)
+                {
+                    LOG_FATAL("insufficient memory");
+                }
+
+                simcom_sendMsg(req4upgrade, sizeof(MSG_UPGRADE_START_REQ), session);
+            }
+        }
+        else
+        {
+            LOG_ERROR("can't get valid theLastVersion");
+        }
     }
     else
     {
