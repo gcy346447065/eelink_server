@@ -22,6 +22,8 @@
 
 static void send_msg(struct bufferevent* bev, const void* buf, size_t n)
 {
+    LOG_DEBUG("Send message");
+    
     bufferevent_write(bev, buf, n);
 
     return;

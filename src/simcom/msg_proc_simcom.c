@@ -1643,7 +1643,9 @@ static int simcom_getLog(const void *msg, SESSION *session)
     }
     LOG_DEBUG("strlen(rsp->data)=%d", strlen(rsp->data));
     memcpy(rsp4manager->data, rsp->data, strlen(rsp->data));
+    LOG_DEBUG("memcpy");
     pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_LOG_RSP)); //manager_sendMsg
+    LOG_DEBUG("pfn");
 
     return 0;
 }
