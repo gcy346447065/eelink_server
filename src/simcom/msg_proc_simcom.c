@@ -1641,11 +1641,11 @@ static int simcom_getLog(const void *msg, SESSION *session)
         LOG_ERROR("failed to alloc rsp for manager");
         return -1;
     }
-    LOG_DEBUG("strlen(rsp->data)=%d", strlen(rsp->data));
-    memcpy(rsp4manager->data, rsp->data, strlen(rsp->data));
-    LOG_DEBUG("memcpy");
+    LOG_DEBUG("strlen(rsp->data)=%d", strlen(rsp->data)+1);
+    memcpy(rsp4manager->data, rsp->data, strlen(rsp->data)+1);
+    LOG_DEBUG("sizeof(MANAGER_MSG_GET_LOG_RSP)=%d", sizeof(MANAGER_MSG_GET_LOG_RSP));
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_GET_LOG_RSP)+strlen(rsp->data)+1);
     pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_LOG_RSP)); //manager_sendMsg
-    LOG_DEBUG("pfn");
 
     return 0;
 }
