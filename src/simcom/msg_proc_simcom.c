@@ -1635,17 +1635,17 @@ static int simcom_getLog(const void *msg, SESSION *session)
     }
 
     LOG_DEBUG("alloc manager rsp to get log");
-    MANAGER_MSG_GET_LOG_RSP *rsp4manager = (MANAGER_MSG_GET_LOG_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_LOG);
+    int data_length = strlen(rsp->data) + 1;
+    MANAGER_MSG_GET_LOG_RSP *rsp4manager = (MANAGER_MSG_GET_LOG_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_LOG, data_length);
     if(!rsp4manager)
     {
         LOG_ERROR("failed to alloc rsp for manager");
         return -1;
     }
-    LOG_DEBUG("strlen(rsp->data)=%d", strlen(rsp->data)+1);
-    memcpy(rsp4manager->data, rsp->data, strlen(rsp->data)+1);
-    LOG_DEBUG("sizeof(MANAGER_MSG_GET_LOG_RSP)=%d", sizeof(MANAGER_MSG_GET_LOG_RSP));
-    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_GET_LOG_RSP)+strlen(rsp->data)+1);
-    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_LOG_RSP)); //manager_sendMsg
+    memcpy(rsp4manager->data, rsp->data, data_length);
+
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_GET_LOG_RSP) + data_length);
+    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_LOG_RSP) + data_length); //manager_sendMsg
 
     return 0;
 }

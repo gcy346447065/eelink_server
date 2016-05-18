@@ -57,41 +57,33 @@ MANAGER_MSG_HEADER *alloc_manager_rspMsg(const MANAGER_MSG_HEADER *pMsg)
     return msg;
 }
 
-void *alloc_managerSimcomRsp(int cmd)
+void *alloc_managerSimcomRsp(int cmd, int data_length)
 {
     size_t msgLen = 0;
     switch (cmd)
     {
         case MANAGER_CMD_GET_LOG:
-            msgLen = sizeof(MANAGER_MSG_GET_LOG_RSP);
+            msgLen = sizeof(MANAGER_MSG_GET_LOG_RSP) + data_length;
             break;
 
         case MANAGER_CMD_GET_433:
-            msgLen = sizeof(MANAGER_MSG_GET_433_REQ);
+            msgLen = sizeof(MANAGER_MSG_GET_433_RSP) + data_length;
             break;
 
         case MANAGER_CMD_GET_GSM:
-            msgLen = sizeof(MANAGER_MSG_GET_GSM_REQ);
+            msgLen = sizeof(MANAGER_MSG_GET_GSM_RSP) + data_length;
             break;
 
         case MANAGER_CMD_GET_GPS:
-            msgLen = sizeof(MANAGER_MSG_GET_GPS_REQ);
+            msgLen = sizeof(MANAGER_MSG_GET_GPS_RSP) + data_length;
             break;
 
         case MANAGER_CMD_GET_SETTING:
-            msgLen = sizeof(MANAGER_MSG_GET_SETTING_REQ);
+            msgLen = sizeof(MANAGER_MSG_GET_SETTING_RSP) + data_length;
             break;
 
         case MANAGER_CMD_GET_BATTERY:
-            msgLen = sizeof(MANAGER_MSG_GET_BATTERY_REQ);
-            break;
-
-        case MANAGER_CMD_REBOOT:
-            msgLen = sizeof(MANAGER_MSG_REBOOT_REQ);
-            break;
-
-        case MANAGER_CMD_UPGRADE:
-            msgLen = sizeof(MANAGER_MSG_UPGRADE_REQ);
+            msgLen = sizeof(MANAGER_MSG_GET_BATTERY_RSP) + data_length;
             break;
 
         default:
