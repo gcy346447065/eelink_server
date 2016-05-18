@@ -16,6 +16,8 @@
 #include "msg_proc_app.h"
 #include "port.h"
 #include "sync.h"
+#include "session.h"
+#include "session_manager.h"
 
 static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
@@ -122,6 +124,7 @@ int main(int argc, char **argv)
 
     obj_table_initial(mqtt_subscribe);
     session_table_initial();
+    sessionManager_table_initial();
 
     struct evconnlistener *listener_simcom = server_simcom(base, simcom_port);
     if (listener_simcom)
