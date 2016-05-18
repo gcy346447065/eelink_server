@@ -578,21 +578,18 @@ static int manager_upgrade(const void *msg, SESSION_MANAGER *sessionManager)
         int theSize = 0;
         if(theLastVersion)
         {
-            unsigned int theFakeVersion = theLastVersion + 1;
+            unsigned int theFakeVersion = theLastVersion + 100;
             theSize = getLastFileSize();
             LOG_INFO("obj->version is %d, theLastVersion is %d, theFakeVersion is %d, theSize is %d", obj->version, theLastVersion, theFakeVersion, theSize);
             
-            if(obj->version < theFakeVersion)
+            MSG_UPGRADE_START_REQ *req4simcom = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theFakeVersion, theSize);
+            if(!req4simcom)
             {
-                MSG_UPGRADE_START_REQ *req4simcom = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theFakeVersion, theSize);
-                if(!req4simcom)
-                {
-                    LOG_FATAL("insufficient memory");
-                }
-
-                LOG_HEX(req4simcom, sizeof(MSG_UPGRADE_START_REQ));
-                pfn(simcomSession->bev, req4simcom, sizeof(MSG_UPGRADE_START_REQ)); //simcom_sendMsg
+                LOG_FATAL("insufficient memory");
             }
+
+            LOG_HEX(req4simcom, sizeof(MSG_UPGRADE_START_REQ));
+            pfn(simcomSession->bev, req4simcom, sizeof(MSG_UPGRADE_START_REQ)); //simcom_sendMsg
         }
         else
         {
