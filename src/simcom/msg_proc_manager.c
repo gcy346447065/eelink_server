@@ -26,13 +26,14 @@ typedef struct
 
 static int manager_sendMsg(void *msg, size_t len, SESSION_MANAGER *sessionManager)
 {
-    if (!sessionManager)
+    if(!sessionManager)
     {
+        LOG_ERROR("device offline");
         return -1;
     }
 
     MSG_SEND pfn = sessionManager->pSendMsg;
-    if (!pfn)
+    if(!pfn)
     {
         LOG_ERROR("device offline");
         return -1;

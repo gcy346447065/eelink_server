@@ -1617,9 +1617,10 @@ static int simcom_getLog(const void *msg, SESSION *session)
         LOG_FATAL("internal error: obj null");
         return -1;
     }
-    LOG_INFO("imei(%s) get GPS rsp send to manager", obj->IMEI);
+    LOG_INFO("imei(%s) get log rsp send to manager", obj->IMEI);
 
     int seq = ntohl(rsp->managerSeq);
+    LOG_DEBUG("rsp->managerSeq(%d), seq(%d)", rsp->managerSeq, seq);
     SESSION_MANAGER *sessionManager = sessionManager_get(seq);
     if(!sessionManager)
     {
