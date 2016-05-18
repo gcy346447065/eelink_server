@@ -9,13 +9,14 @@
 #include "log.h"
 #include "macro.h"
 #include "object.h"
-//#include "session.h"
+#include "session.h"
 #include "protocol.h"
 #include "msg_simcom.h"
 #include "msg_manager.h"
 #include "session_manager.h"
 #include "protocol_manager.h"
 #include "msg_proc_manager.h"
+#include "firmware_upgrade.h"
 
 typedef int (*MANAGER_MSG_PROC)(const void *msg, SESSION_MANAGER *ctx);
 typedef struct
@@ -486,6 +487,7 @@ static int manager_getBattery(const void *msg, SESSION_MANAGER *sessionManager)
 
 static int manager_reboot(const void *msg, SESSION_MANAGER *sessionManager)
 {
+    sessionManager = sessionManager;
     const MANAGER_MSG_REBOOT_REQ *req = (const MANAGER_MSG_REBOOT_REQ *)msg;
     if(ntohs(req->header.length) != sizeof(MANAGER_MSG_REBOOT_REQ) - MANAGER_MSG_HEADER_LEN)
     {
@@ -538,6 +540,7 @@ static int manager_reboot(const void *msg, SESSION_MANAGER *sessionManager)
 
 static int manager_upgrade(const void *msg, SESSION_MANAGER *sessionManager)
 {
+    sessionManager = sessionManager;
     const MANAGER_MSG_UPGRADE_REQ *req = (const MANAGER_MSG_UPGRADE_REQ *)msg;
     if(ntohs(req->header.length) != sizeof(MANAGER_MSG_UPGRADE_REQ) - MANAGER_MSG_HEADER_LEN)
     {
@@ -557,6 +560,19 @@ static int manager_upgrade(const void *msg, SESSION_MANAGER *sessionManager)
     {
         LOG_INFO("succeed to find imei(%s) in object, send req to simcom", imei);
 
+        SESSION *simcomSession = (SESSION *)obj->session;
+        if (!simcomSession)
+        {
+            LOG_ERROR("device offline");
+            return -1;
+        }
+        MSG_SEND pfn = simcomSession->pSendMsg;
+        if (!pfn)
+        {
+            LOG_ERROR("device offline");
+            return -1;
+        }
+
         //send fake upgrade start msg
         unsigned int theLastVersion = getLastVersionWithFileNameAndSizeStored();
         int theSize = 0;
@@ -564,17 +580,18 @@ static int manager_upgrade(const void *msg, SESSION_MANAGER *sessionManager)
         {
             unsigned int theFakeVersion = theLastVersion + 1;
             theSize = getLastFileSize();
-            LOG_INFO("req->version is %d, theLastVersion is %d, theFakeVersion is %d, theSize is %d", obj->version, theLastVersion, theFakeVersion, theSize);
+            LOG_INFO("obj->version is %d, theLastVersion is %d, theFakeVersion is %d, theSize is %d", obj->version, theLastVersion, theFakeVersion, theSize);
             
-            if(ntohl(req->version) < theFakeVersion)
+            if(obj->version < theFakeVersion)
             {
-                MSG_UPGRADE_START_REQ *req4upgrade = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theFakeVersion, theSize);
-                if(!req4upgrade)
+                MSG_UPGRADE_START_REQ *req4simcom = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theFakeVersion, theSize);
+                if(!req4simcom)
                 {
                     LOG_FATAL("insufficient memory");
                 }
 
-                simcom_sendMsg(req4upgrade, sizeof(MSG_UPGRADE_START_REQ), session);
+                LOG_HEX(req4simcom, sizeof(MSG_UPGRADE_START_REQ));
+                pfn(simcomSession->bev, req4simcom, sizeof(MSG_UPGRADE_START_REQ)); //simcom_sendMsg
             }
         }
         else
