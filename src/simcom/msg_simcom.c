@@ -232,7 +232,7 @@ void *alloc_simcomManagerReq(int cmd)
             return NULL;
     }
 
-    MSG_HEADER* msg = malloc(msgLen);
+    MSG_HEADER *msg = malloc(msgLen);
 
     msg->signature = htons(START_FLAG);
     msg->cmd = cmd;
