@@ -1675,7 +1675,7 @@ static int simcom_get433(const void *msg, SESSION *session)
         LOG_FATAL("internal error: obj null");
         return -1;
     }
-    LOG_INFO("imei(%s) get GPS rsp send to manager", obj->IMEI);
+    LOG_INFO("imei(%s) get 433 rsp send to manager", obj->IMEI);
 
     int seq = ntohl(rsp->managerSeq);
     SESSION_MANAGER *sessionManager = sessionManager_get(seq);
@@ -1691,14 +1691,18 @@ static int simcom_get433(const void *msg, SESSION *session)
         return -1;
     }
 
-    MANAGER_MSG_GET_433_RSP *rsp4manager = (MANAGER_MSG_GET_433_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_433);
+    LOG_DEBUG("alloc manager rsp to get 433");
+    int data_length = strlen(rsp->data) + 1;
+    MANAGER_MSG_GET_433_RSP *rsp4manager = (MANAGER_MSG_GET_433_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_433, data_length);
     if(!rsp4manager)
     {
         LOG_ERROR("failed to alloc rsp for manager");
         return -1;
     }
-    memcpy(rsp4manager->data, rsp->data, strlen(rsp->data));
-    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_433_RSP)); //manager_sendMsg
+    memcpy(rsp4manager->data, rsp->data, data_length);
+
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_GET_433_RSP) + data_length);
+    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_433_RSP) + data_length); //manager_sendMsg
 
     return 0;
 }
@@ -1728,7 +1732,7 @@ static int simcom_getGSM(const void *msg, SESSION *session)
         LOG_FATAL("internal error: obj null");
         return -1;
     }
-    LOG_INFO("imei(%s) get GPS rsp send to manager", obj->IMEI);
+    LOG_INFO("imei(%s) get GSM rsp send to manager", obj->IMEI);
 
     int seq = ntohl(rsp->managerSeq);
     SESSION_MANAGER *sessionManager = sessionManager_get(seq);
@@ -1744,14 +1748,18 @@ static int simcom_getGSM(const void *msg, SESSION *session)
         return -1;
     }
 
-    MANAGER_MSG_GET_GSM_RSP *rsp4manager = (MANAGER_MSG_GET_GSM_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_GSM);
+    LOG_DEBUG("alloc manager rsp to get GSM");
+    int data_length = strlen(rsp->data) + 1;
+    MANAGER_MSG_GET_GSM_RSP *rsp4manager = (MANAGER_MSG_GET_GSM_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_GSM, data_length);
     if(!rsp4manager)
     {
         LOG_ERROR("failed to alloc rsp for manager");
         return -1;
     }
-    memcpy(rsp4manager->data, rsp->data, strlen(rsp->data));
-    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_GSM_RSP)); //manager_sendMsg
+    memcpy(rsp4manager->data, rsp->data, data_length);
+
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_GET_GSM_RSP) + data_length);
+    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_GSM_RSP) + data_length); //manager_sendMsg
 
     return 0;
 }
@@ -1797,14 +1805,18 @@ static int simcom_getGPS(const void *msg, SESSION *session)
         return -1;
     }
 
-    MANAGER_MSG_GET_GPS_RSP *rsp4manager = (MANAGER_MSG_GET_GPS_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_GPS);
+    LOG_DEBUG("alloc manager rsp to get GPS");
+    int data_length = strlen(rsp->data) + 1;
+    MANAGER_MSG_GET_GPS_RSP *rsp4manager = (MANAGER_MSG_GET_GPS_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_GPS, data_length);
     if(!rsp4manager)
     {
         LOG_ERROR("failed to alloc rsp for manager");
         return -1;
     }
-    memcpy(rsp4manager->data, rsp->data, strlen(rsp->data));
-    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_GPS_RSP)); //manager_sendMsg
+    memcpy(rsp4manager->data, rsp->data, data_length);
+
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_GET_GPS_RSP) + data_length);
+    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_GPS_RSP) + data_length); //manager_sendMsg
 
     return 0;
 }
@@ -1834,7 +1846,7 @@ static int simcom_getSetting(const void *msg, SESSION *session)
         LOG_FATAL("internal error: obj null");
         return -1;
     }
-    LOG_INFO("imei(%s) get GPS rsp send to manager", obj->IMEI);
+    LOG_INFO("imei(%s) get setting rsp send to manager", obj->IMEI);
 
     int seq = ntohl(rsp->managerSeq);
     SESSION_MANAGER *sessionManager = sessionManager_get(seq);
@@ -1850,14 +1862,18 @@ static int simcom_getSetting(const void *msg, SESSION *session)
         return -1;
     }
 
-    MANAGER_MSG_GET_SETTING_RSP *rsp4manager = (MANAGER_MSG_GET_SETTING_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_SETTING);
+    LOG_DEBUG("alloc manager rsp to get setting");
+    int data_length = strlen(rsp->data) + 1;
+    MANAGER_MSG_GET_SETTING_RSP *rsp4manager = (MANAGER_MSG_GET_SETTING_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_SETTING, data_length);
     if(!rsp4manager)
     {
         LOG_ERROR("failed to alloc rsp for manager");
         return -1;
     }
-    memcpy(rsp4manager->data, rsp->data, strlen(rsp->data));
-    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_SETTING_RSP)); //manager_sendMsg
+    memcpy(rsp4manager->data, rsp->data, data_length);
+
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_GET_SETTING_RSP) + data_length);
+    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_SETTING_RSP) + data_length); //manager_sendMsg
 
     return 0;
 }
@@ -1887,7 +1903,7 @@ static int simcom_getBattery(const void *msg, SESSION *session)
         LOG_FATAL("internal error: obj null");
         return -1;
     }
-    LOG_INFO("imei(%s) get GPS rsp send to manager", obj->IMEI);
+    LOG_INFO("imei(%s) get battery rsp send to manager", obj->IMEI);
 
     int seq = ntohl(rsp->managerSeq);
     SESSION_MANAGER *sessionManager = sessionManager_get(seq);
@@ -1903,14 +1919,19 @@ static int simcom_getBattery(const void *msg, SESSION *session)
         return -1;
     }
 
-    MANAGER_MSG_GET_BATTERY_RSP *rsp4manager = (MANAGER_MSG_GET_BATTERY_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_BATTERY);
+    LOG_DEBUG("alloc manager rsp to get battery");
+    int data_length = strlen(rsp->data) + 1;
+    MANAGER_MSG_GET_BATTERY_RSP *rsp4manager = (MANAGER_MSG_GET_BATTERY_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_BATTERY, data_length);
     if(!rsp4manager)
     {
         LOG_ERROR("failed to alloc rsp for manager");
         return -1;
     }
-    memcpy(rsp4manager->data, rsp->data, strlen(rsp->data));
-    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_BATTERY_RSP)); //manager_sendMsg
+    memcpy(rsp4manager->data, rsp->data, data_length);
+
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_GET_BATTERY_RSP) + data_length);
+    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_BATTERY_RSP) + data_length); //manager_sendMsg
+
 
     return 0;
 }
