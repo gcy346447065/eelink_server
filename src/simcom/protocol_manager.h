@@ -22,7 +22,8 @@ enum
     MANAGER_CMD_GET_SETTING     =  7,
     MANAGER_CMD_GET_BATTERY     =  8,
     MANAGER_CMD_REBOOT          =  9,
-    MANAGER_CMD_UPGRADE         = 10
+    MANAGER_CMD_UPGRADE         = 10,
+    MANAGER_CMD_GET_AT       = 11,
 };
 
 #pragma pack(push, 1)
@@ -185,6 +186,24 @@ typedef struct
     MANAGER_MSG_HEADER header;
     char IMEI[MANAGER_MAX_IMEI_LENGTH];
 }__attribute__((__packed__)) MANAGER_MSG_UPGRADE_REQ;
+
+/*
+ * AT message structure
+ */
+typedef struct
+{
+    MANAGER_MSG_HEADER header;
+    char IMEI[MANAGER_MAX_IMEI_LENGTH];
+    char data[];
+}__attribute__((__packed__)) MANAGER_MSG_AT_REQ;
+
+typedef struct
+{
+    MANAGER_MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MANAGER_MSG_AT_RSP;
+
+
 
 #pragma pack(pop)
 
