@@ -85,6 +85,9 @@ void *alloc_managerSimcomRsp(int cmd, int data_length)
         case MANAGER_CMD_GET_BATTERY:
             msgLen = sizeof(MANAGER_MSG_GET_BATTERY_RSP) + data_length;
             break;
+        case MANAGER_CMD_GET_AT:
+            msgLen = sizeof(MANAGER_MSG_AT_RSP) + data_length;
+            break;
 
         default:
             return NULL;

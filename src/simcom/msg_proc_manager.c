@@ -312,7 +312,9 @@ static int manager_getAT(const void *msg, SESSION_MANAGER *sessionManager)
         LOG_INFO("succeed to find imei(%s) in object, send req to simcom", imei);
 
         strncpy(buf, req->data, MAX_AT_CMD_LEN);
-        msgLen = sizeof(MSG_GET_AT_REQ) + strlen(buf) - sizeof(char*);
+        LOG_INFO("%s",buf);
+        msgLen = sizeof(MSG_GET_AT_REQ) + strlen(buf);
+        LOG_INFO("%d",msgLen);
 
         MSG_GET_AT_REQ *req4simcom = (MSG_GET_AT_REQ *)alloc_simcomManagerMsg(CMD_GET_AT, msgLen);
         if(!req4simcom)
@@ -325,7 +327,7 @@ static int manager_getAT(const void *msg, SESSION_MANAGER *sessionManager)
 
 
         LOG_HEX(req4simcom, msgLen);
-        pfn(simcomSession->bev, req4simcom, msgLen; //simcom_sendMsg
+        pfn(simcomSession->bev, req4simcom, msgLen); //simcom_sendMsg
 
     }
     else
