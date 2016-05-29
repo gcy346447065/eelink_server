@@ -209,11 +209,12 @@ const char *get_IMEI_STRING(const char *IMEI)
 	}
 	for (int i = 0; i < ((IMEI_LENGTH + 1) / 2); i++)
 	{
-		sprintf(strIMEI + i * 2, "%02x", IMEI[i]);
+		sprintf(strIMEI + i * 2, "%02x", IMEI[i]&0xff);
+        LOG_INFO("%02x",IMEI[i]);
 	}
 	strIMEI[IMEI_LENGTH] = 0;
 
-	return strIMEI;
+	return strIMEI + 1;
 }
 
 /***** when IMEI_LENGTH changed to 15, this function becomes bad, do not use it! *****/
