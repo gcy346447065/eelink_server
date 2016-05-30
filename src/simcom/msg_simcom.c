@@ -242,3 +242,16 @@ void *alloc_simcomManagerReq(int cmd)
     return msg;
 }
 
+void *alloc_simcomManagerMsg(int cmd, size_t msgLen)
+{
+    MSG_HEADER *msg = malloc(msgLen);
+
+    msg->signature = htons(START_FLAG);
+    msg->cmd = cmd;
+    msg->seq = seq++;
+    msg->length = htons(msgLen - MSG_HEADER_LEN);
+
+    return msg;
+}
+
+

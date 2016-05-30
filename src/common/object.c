@@ -113,13 +113,13 @@ void obj_freeValue(gpointer value)
     g_free(obj);
 }
 
-void obj_table_initial(void (*mqtt_sub)(const char *))
+void obj_table_initial(void (*mqtt_sub)(const char *), int ObjectType)
 {
     /* create hash table */
     object_table = g_hash_table_new_full(g_str_hash, g_str_equal, obj_freeKey, obj_freeValue);
 
     /* read imei data from db */
-	db_doWithOBJ(obj_initial, mqtt_sub);
+	db_doWithOBJ(obj_initial, mqtt_sub, ObjectType);
 }
 
 void obj_table_destruct()
@@ -209,11 +209,12 @@ const char *get_IMEI_STRING(const char *IMEI)
 	}
 	for (int i = 0; i < ((IMEI_LENGTH + 1) / 2); i++)
 	{
-		sprintf(strIMEI + i * 2, "%02x", IMEI[i]);
+		sprintf(strIMEI + i * 2, "%02x", IMEI[i]&0xff);
+        LOG_INFO("%02x",IMEI[i]);
 	}
 	strIMEI[IMEI_LENGTH] = 0;
 
-	return strIMEI;
+	return strIMEI + 1;
 }
 
 /***** when IMEI_LENGTH changed to 15, this function becomes bad, do not use it! *****/

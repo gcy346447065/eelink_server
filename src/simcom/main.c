@@ -18,6 +18,7 @@
 #include "sync.h"
 #include "session.h"
 #include "session_manager.h"
+#include "macro.h"
 
 static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
@@ -122,7 +123,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    obj_table_initial(mqtt_subscribe);
+    obj_table_initial(mqtt_subscribe, ObjectType_simcom);
     session_table_initial();
     sessionManager_table_initial();
 

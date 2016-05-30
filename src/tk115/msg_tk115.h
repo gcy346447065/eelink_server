@@ -43,7 +43,7 @@ typedef struct
 typedef struct
 {
 	MC_MSG_HEADER header;
-	char IMEI[IMEI_LENGTH / 2];
+	char IMEI[(IMEI_LENGTH + 1)/ 2];
 	char language;
 	char locale;
 }__attribute__((__packed__))MC_MSG_LOGIN_REQ;

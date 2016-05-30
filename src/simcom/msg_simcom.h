@@ -31,5 +31,7 @@ void *alloc_simcomUpgradeDataReq(int offset, char *data, int length);
 void *alloc_simcomUpgradeEndReq(int checksum, int size);
 
 void *alloc_simcomManagerReq(int cmd);
+void *alloc_simcomManagerMsg(int cmd, size_t msgLen);
+
 
 #endif /* SRC_MSG_SIMCOM_H_ */

@@ -1936,8 +1936,67 @@ static int simcom_getBattery(const void *msg, SESSION *session)
     return 0;
 }
 
+static int simcom_getAT(const void *msg, SESSION *session)
+{
+    const MSG_GET_AT_RSP *rsp = (const MSG_GET_AT_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_GET_AT_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("get battery message length not enough");
+        return -1;
+    }
+
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    LOG_INFO("imei(%s) get AT rsp send to manager", obj->IMEI);
+
+    int seq = ntohl(rsp->managerSeq);
+    SESSION_MANAGER *sessionManager = sessionManager_get(seq);
+    if(!sessionManager)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+    MSG_SEND pfn = sessionManager->pSendMsg;
+    if(!pfn)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+
+    LOG_DEBUG("alloc manager rsp to get AT");
+    int data_length = strlen(rsp->data) + 1;
+    MANAGER_MSG_AT_RSP *rsp4manager = (MANAGER_MSG_AT_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_AT, data_length);
+    if(!rsp4manager)
+    {
+        LOG_ERROR("failed to alloc rsp for manager");
+        return -1;
+    }
+    memcpy(rsp4manager->data, rsp->data, data_length);
+
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_AT_RSP) + data_length);
+    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_AT_RSP) + data_length); //manager_sendMsg
+
+
+    return 0;
+}
+
+
 static MSG_PROC_MAP msgProcs[] =
-{   
+{
     {CMD_WILD,              simcom_wild},
     {CMD_LOGIN,             simcom_login},
     {CMD_PING,              simcom_ping},
@@ -1971,7 +2030,8 @@ static MSG_PROC_MAP msgProcs[] =
     {CMD_GET_GSM,           simcom_getGSM},
     {CMD_GET_GPS,           simcom_getGPS},
     {CMD_GET_SETTING,       simcom_getSetting},
-    {CMD_GET_BATTERY,       simcom_getBattery}
+    {CMD_GET_BATTERY,       simcom_getBattery},
+    {CMD_GET_AT,            simcom_getAT},
 };
 
 static int handle_one_msg(const void *m, SESSION *ctx)
