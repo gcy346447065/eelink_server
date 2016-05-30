@@ -247,76 +247,10 @@ int tk115_alarm(const void *msg, SESSION *ctx)
 		LOG_INFO("Alarm type = %#x", req->type);
 	}
 
-
-	obj->lat = ntohl(req->lat);
-	obj->lon = ntohl(req->lon);
-	obj->speed = req->speed;
-	obj->course = ntohs(req->course);
-
-	(obj->cell[0]).mcc = (req->cell).mcc;
-	(obj->cell[0]).mnc = (req->cell).mnc;
-	(obj->cell[0]).lac = (req->cell).lac;
-	(obj->cell[0]).ci = *(short *)(&((req->cell).ci[1]));
-
-	MC_MSG_ALARM_RSP* rsp = NULL;
-	size_t rspMsgLength = 0;
-	if(req->location & 0x01)
-	{
-		char alarm_message[]={0xE7,0x94,0xB5,0xE5,0x8A,0xA8,0xE8,0xBD,0xA6,0xe7,0xa7,0xbb,0xe5,0x8a,0xa8,0xe6,0x8a,0xa5,0xe8,0xad,0xa6};
-		rspMsgLength = sizeof(MC_MSG_ALARM_RSP) + sizeof(alarm_message);
-		rsp = (MC_MSG_ALARM_RSP *)alloc_msg(req->header.cmd, rspMsgLength);
-		if (rsp)
-		{
-			memcpy(rsp->sms,alarm_message,sizeof(alarm_message));
-		}
-	}
-	else
-	{
-		rspMsgLength = sizeof(MC_MSG_ALARM_RSP);
-		rsp = (MC_MSG_ALARM_RSP *)alloc_msg(req->header.cmd, rspMsgLength);
-	}
-
-	if (rsp)
-	{
-		set_msg_seq(&rsp->header, get_msg_seq((const MC_MSG_HEADER *)req));
-		msg_send(&rsp->header, rspMsgLength, ctx);
-	}
-	else
-	{
-		LOG_FATAL("no memory");
-	}
-
-	if (!(req->location & 0x01))
-	{
-		LOG_WARN("GPS not located, don't send alarm");
-		return 0;
-	}
-
-
-	//send the alarm to YUNBA
-	char topic[128];
-	memset(topic, 0, sizeof(topic));
-	snprintf(topic, 128, "e2link_%s", obj->IMEI);
-
-	cJSON *root = cJSON_CreateObject();
-
-	cJSON *alarm = cJSON_CreateObject();
-	cJSON_AddNumberToObject(alarm,"type", req->type);
-
-	cJSON_AddItemToObject(root, "alarm", alarm);
-
-	char* json = cJSON_PrintUnformatted(root);
-
-	//yunba_publish_old(topic, json, strlen(json));
-
     jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, 0);
-	LOG_INFO("send alarm: %s", topic);
 
     //add alarm log in db
     db_add_log(obj->IMEI, "alarm");
-
-	free(json);
-	cJSON_Delete(root);
 
 	return 0;
 }
