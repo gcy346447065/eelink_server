@@ -20,6 +20,7 @@
 #include "db.h"
 #include "sync.h"
 #include "macro.h"
+#include "msg_app.h"
 
 int msg_send(void *msg, size_t len, SESSION *ctx)
 {
@@ -51,16 +52,13 @@ int tk115_login(const void *msg, SESSION *ctx)
 	if (!obj)
 	{
 		const char* strIMEI = get_IMEI_STRING(req->IMEI);
-		LOG_DEBUG("mc IMEI(%s) login", strIMEI);
+		LOG_INFO("mc IMEI(%s) login", strIMEI);
 
 		obj = obj_get(strIMEI);
 
 		if (!obj)
 		{
-			LOG_INFO("the first time of object(%s) login: language(%s), locale(%d)",
-					strIMEI,
-					req->language ? "EN" : "CN",
-					req->locale / 4);
+            LOG_INFO("the first time of simcom IMEI(%s)'s login", strIMEI);
 
 			obj = obj_new();
 
@@ -75,17 +73,16 @@ int tk115_login(const void *msg, SESSION *ctx)
 			//add object to table and db
 			obj_add(obj);
 			mqtt_subscribe(obj->IMEI);
-		}
 
-		ctx->obj = obj;
+		}
+        ctx->obj = obj;
+        session_add(ctx);
+        obj->session = ctx;
 	}
 	else
 	{
 		LOG_DEBUG("mc IMEI(%s) already login", get_IMEI_STRING(req->IMEI));
 	}
-
-    session_add(ctx);
-
 
 	MC_MSG_LOGIN_RSP *rsp = (MC_MSG_LOGIN_RSP *)alloc_rspMsg(msg);
 	if (rsp)
@@ -367,6 +364,142 @@ int tk115_sms(const void *msg, SESSION *ctx)
 	return 0;
 }
 
+static int tk115_DefendOn(const void *msg, SESSION *session)
+{
+	const MC_MSG_OPERATOR_RSP* req = msg;
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    const char *strIMEI = obj->IMEI;
+
+    LOG_INFO("imei(%s) DefendOn result(%s)", obj->IMEI, req->data);
+
+    if(strstr(req->data,"SET FENCE OK"))
+    {
+        app_sendCmdRsp2App(APP_CMD_FENCE_ON, CODE_SUCCESS, strIMEI);
+    }
+    else
+    {
+        app_sendCmdRsp2App(APP_CMD_FENCE_ON, CODE_INTERNAL_ERR, strIMEI);
+    }
+
+    return 0;
+}
+
+static int tk115_DefendOff(const void *msg, SESSION *session)
+{
+	const MC_MSG_OPERATOR_RSP* req = msg;
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    const char *strIMEI = obj->IMEI;
+
+    LOG_INFO("imei(%s) DefendOn result(%s)", obj->IMEI, req->data);
+
+    if(strstr(req->data,"SET FENCE OK"))
+    {
+        app_sendCmdRsp2App(APP_CMD_FENCE_OFF, CODE_SUCCESS, strIMEI);
+    }
+    else
+    {
+        app_sendCmdRsp2App(APP_CMD_FENCE_OFF, CODE_INTERNAL_ERR, strIMEI);
+    }
+
+    return 0;
+}
+
+
+static int tk115_DefendGet(const void *msg, SESSION *session)
+{
+	const MC_MSG_OPERATOR_RSP* req = msg;
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    const char *strIMEI = obj->IMEI;
+
+    LOG_INFO("imei(%s) DefendOn result(%s)", obj->IMEI, req->data);
+
+    if(strstr(req->data,"SET FENCE OK"))
+    {
+        app_sendCmdRsp2App(APP_CMD_FENCE_GET, CODE_SUCCESS, strIMEI);
+    }
+    else
+    {
+        app_sendCmdRsp2App(APP_CMD_FENCE_GET, CODE_INTERNAL_ERR, strIMEI);
+    }
+
+    return 0;
+}
+
+static int tk115_Location(const void *msg, SESSION *session)
+{
+    int timestamp = 0;
+    float longitude = 0;
+    float latitude = 0;
+    float speed = 0;
+    float course = 0;
+    const MC_MSG_OPERATOR_RSP* req = msg;
+
+    if(!session)
+    {
+       LOG_FATAL("session ptr null");
+       return -1;
+    }
+
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+       LOG_FATAL("internal error: obj null");
+       return -1;
+    }
+
+// MC operator response: Lat:N30.51109,Lon:E114.42530,Course:354.70,Speed:0.00km/h,DateTime:2016-05-30 18:06:52
+    LOG_INFO("%s",req->data);
+    sscanf("MC operator response: Lat:N%f,Lon:E%f,,Course:%f,Speed:%f%*s",&latitude,&longitude,&course,&speed);
+
+    LOG_INFO("imei(%s) LOCATION GPS: timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
+       obj->IMEI, timestamp, latitude, longitude, (char)speed, (short)course);
+
+    obj->timestamp = timestamp;
+    obj->isGPSlocated = 0x01;
+    obj->lat = latitude;
+    obj->lon = longitude;
+    obj->speed = (char)speed;
+    obj->course = (short)course;
+
+    app_sendLocationRsp2App(CODE_SUCCESS, obj);
+    return 0;
+}
+
+
+
 int tk115_operator(const void *msg, SESSION *ctx)
 {
 	OBJECT * obj = ctx->obj;
@@ -377,11 +510,24 @@ int tk115_operator(const void *msg, SESSION *ctx)
 	{
 	case 0x01:
 	{
-		int session = req->token;
+        switch(req->token)
+        {
+            case CMD_DEFENCE_ON:
+                    tk115_DefendOn(msg, ctx);
+                    break;
 
-		short cmd = (session & 0xffff0000) >> 16;
-		short seq = session & 0xffff;
-		app_sendRspMsg2App(cmd, seq, (void *)req->data, sizeof(MC_MSG_HEADER) + ntohs(req->header.length) - sizeof(MC_MSG_OPERATOR_RSP), ctx);
+            case CMD_DEFENCE_OFF:
+                    tk115_DefendOff(msg, ctx);
+                    break;
+
+            case CMD_DEFENCE_GET:
+                    tk115_DefendGet(msg, ctx);
+                    break;
+
+            case CMD_LOCATION:
+                    tk115_Location(msg, ctx);
+                    break;
+        }
 		break;
 	}
 

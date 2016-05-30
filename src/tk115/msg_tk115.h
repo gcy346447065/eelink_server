@@ -26,6 +26,15 @@ enum PROTOCOL
 	CMD_DATA	= 0x81,
 };
 
+enum CMD_TOKEN
+{
+	CMD_DEFENCE_ON 	    = 0x01,
+	CMD_DEFENCE_OFF		= 0x02,
+	CMD_DEFENCE_GET	    = 0x03,
+	CMD_LOCATION        = 0x04,
+};
+
+
 #pragma pack(push,1)
 
 //Message header definitation
