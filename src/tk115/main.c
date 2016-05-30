@@ -15,6 +15,7 @@
 #include "msg_proc_app.h"
 #include "port.h"
 #include "sync.h"
+#include "macro.h"
 
 
 struct event_base *base = NULL;
@@ -104,7 +105,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    obj_table_initial(mqtt_subscribe);
+    obj_table_initial(mqtt_subscribe, ObjectType_tk115);
     session_table_initial();
 
     struct evconnlistener* listener = server_start(base, port);

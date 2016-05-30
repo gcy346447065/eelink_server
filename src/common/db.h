@@ -27,7 +27,7 @@ int db_createCGI(const char* tableName);
 int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char speed, short course);
 int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cellNo);
 
-int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *));
+int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *), int ObjectType);
 int db_insertOBJ(const char *imeiName, int ObjectType);
 int db_updateOBJIsPosted(const char *imeiName);
 int db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*));

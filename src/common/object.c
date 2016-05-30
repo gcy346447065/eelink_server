@@ -113,13 +113,13 @@ void obj_freeValue(gpointer value)
     g_free(obj);
 }
 
-void obj_table_initial(void (*mqtt_sub)(const char *))
+void obj_table_initial(void (*mqtt_sub)(const char *), int ObjectType)
 {
     /* create hash table */
     object_table = g_hash_table_new_full(g_str_hash, g_str_equal, obj_freeKey, obj_freeValue);
 
     /* read imei data from db */
-	db_doWithOBJ(obj_initial, mqtt_sub);
+	db_doWithOBJ(obj_initial, mqtt_sub, ObjectType);
 }
 
 void obj_table_destruct()

@@ -34,7 +34,7 @@ static int _db_initial()
         /* create database if not exists gps */
         char query[MAX_QUERY];
         snprintf(query, MAX_QUERY, "create database if not exists %s", DB_NAME);
-        
+
         if(mysql_ping(conn))
         {
             LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -49,7 +49,7 @@ static int _db_initial()
 
         /* use gps */
         snprintf(query, MAX_QUERY, "use %s", DB_NAME);
-        
+
         if(mysql_ping(conn))
         {
             LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -67,7 +67,7 @@ static int _db_initial()
                                     RegisterTime timestamp default CURRENT_TIMESTAMP, \
                                     IsPosted tinyint default '0', \
                                     ObjectType int(4) not null)");
-        
+
         if(mysql_ping(conn))
         {
             LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -83,7 +83,7 @@ static int _db_initial()
         /* creat table imei2objectID if not exists */
         snprintf(query, MAX_QUERY, "create table if not exists imei2objectID(imei char(15) not null primary key, \
                                     objectID char(24) not null)");
-        
+
         if(mysql_ping(conn))
         {
             LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -101,7 +101,7 @@ static int _db_initial()
                                     imei char(15) not null,  \
                                     event char(16) not null, \
                                     primary key(time, imei))");
-        
+
         if(mysql_ping(conn))
         {
             LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -121,7 +121,7 @@ static int _db_initial()
 #if 0
     if(!mysql_real_connect(conn, DB_HOST, DB_USER, DB_PWD, DB_NAME, DB_PORT, NULL, 0))
     {
-        if(mysql_errno(conn) == 1049) 
+        if(mysql_errno(conn) == 1049)
         {
             /* (1049, Unknown database 'gps'), connect to default database and creat database gps */
 
@@ -135,7 +135,7 @@ static int _db_initial()
                 /* create database gps */
                 char query[MAX_QUERY];
                 snprintf(query, MAX_QUERY, "create database %s", DB_NAME);
-                
+
                 if(mysql_ping(conn))
                 {
                     LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -150,7 +150,7 @@ static int _db_initial()
 
                 /* use gps */
                 snprintf(query, MAX_QUERY, "use %s", DB_NAME);
-                
+
                 if(mysql_ping(conn))
                 {
                     LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -168,7 +168,7 @@ static int _db_initial()
                                             RegisterTime timestamp default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP, \
                                             IsPosted tinyint default '0', \
                                             ObjectType int(4) not null)");
-                
+
                 if(mysql_ping(conn))
                 {
                     LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -184,7 +184,7 @@ static int _db_initial()
                 /* creat table imei2objectID if not exists */
                 snprintf(query, MAX_QUERY, "create table if not exists imei2objectID(imei char(15) not null primary key, \
                                             objectID char(24) not null)");
-                
+
                 if(mysql_ping(conn))
                 {
                     LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -217,7 +217,7 @@ static int _db_initial()
                                     RegisterTime timestamp default CURRENT_TIMESTAMP , \
                                     IsPosted tinyint default '0', \
                                     ObjectType int(4) not null)");
-        
+
         if(mysql_ping(conn))
         {
             LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -233,7 +233,7 @@ static int _db_initial()
         /* creat table imei2objectID if not exists */
         snprintf(query, MAX_QUERY, "create table  if not exists imei2objectID(imei char(15) not null primary key, \
                                     objectID char(24) not null)");
-        
+
         if(mysql_ping(conn))
         {
             LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -249,7 +249,7 @@ static int _db_initial()
         /* creat table log if not exists */
         snprintf(query, MAX_QUERY, "create table  if not exists log(imei char(15) not null primary key, \
                                     objectID char(24) not null)");
-        
+
         if(mysql_ping(conn))
         {
             LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -305,9 +305,9 @@ static int _db_isTableCreated(const char* imeiName, int *num)
 static int _db_createGPS(const char* tableName)
 {
     char query[MAX_QUERY];
-    
+
     snprintf(query, MAX_QUERY, "create table gps_%s(timestamp INT,lat DOUBLE(9,6),lon DOUBLE(9,6),speed TINYINT,course SMALLINT,primary key(timestamp))", tableName);
-    
+
     if(mysql_ping(conn))
     {
         LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -329,7 +329,7 @@ static int _db_createCGI(const char* tableName)
     char query[MAX_QUERY];
     //create table cgi_IMEI(timestamp INT, mcc SMALLINT, mnc SMALLINT, lac0 SMALLINT, ci0 SMALLINT, rxl0 SMALLINT...)
     snprintf(query, MAX_QUERY, "create table cgi_%s(timestamp INT,mcc SMALLINT,mnc SMALLINT,lac0 SMALLINT,ci0 SMALLINT,rxl0 SMALLINT,lac1 SMALLINT,ci1 SMALLINT,rxl1 SMALLINT,lac2 SMALLINT,ci2 SMALLINT,rxl2 SMALLINT,lac3 SMALLINT,ci3 SMALLINT,rxl3 SMALLINT,lac4 SMALLINT,ci4 SMALLINT,rxl4 SMALLINT,lac5 SMALLINT,ci5 SMALLINT,rxl5 SMALLINT,lac6 SMALLINT,ci6 SMALLINT,rxl6 SMALLINT)", tableName);
-    
+
     if(mysql_ping(conn))
     {
         LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -351,7 +351,7 @@ static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon
     //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
     char query[MAX_QUERY];
     snprintf(query, MAX_QUERY, "insert into gps_%s(timestamp,lat,lon,speed,course) values(%d,%f,%f,%d,%d)",imeiName, timestamp, lat, lon, speed, course);
-    
+
     if(mysql_ping(conn))
     {
         LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -402,10 +402,13 @@ static int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[],
     return 0;
 }
 
-static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *))
+static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *), int ObjectType)
 {
+#define MAX_QUERY_LEN 128
     char imei[IMEI_LENGTH];
-    char query[] = "select imei from object where length(imei)=15";
+    char query[MAX_QUERY_LEN] = {0};
+
+    snprintf(query,MAX_QUERY_LEN,"select imei from object where length(imei)=15 and ObjectType=%d",ObjectType);
 
     if(mysql_ping(conn))
     {
@@ -437,7 +440,7 @@ static int _db_insertOBJ(const char *imeiName, int ObjectType)
 {
     char query[MAX_QUERY];
     snprintf(query, MAX_QUERY, "insert into object(imei, ObjectType) values(\'%s\', %d)", imeiName, ObjectType);
-    
+
     if(mysql_ping(conn))
     {
         LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -533,7 +536,7 @@ static int _db_add_ObjectID(const char *imei, const char *objectID)
 {
     char query[MAX_QUERY];
     snprintf(query, MAX_QUERY, "insert into imei2objectID(imei, objectID) values(\'%s\', \'%s\')", imei, objectID);
-    
+
     if(mysql_ping(conn))
     {
         LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -552,7 +555,7 @@ static int _db_add_log(const char *imei, const char *event)
 {
     char query[MAX_QUERY];
     snprintf(query, MAX_QUERY, "insert into log(imei, event) values(\'%s\', \'%s\')", imei, event);
-    
+
     if(mysql_ping(conn))
     {
         LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -629,10 +632,10 @@ int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cel
 #endif
 }
 
-int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *))
+int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *), int ObjectType)
 {
 #ifdef WITH_DB
-    return _db_doWithOBJ(func, func2);
+    return _db_doWithOBJ(func, func2, ObjectType);
 #else
     return 0;
 #endif
