@@ -21,6 +21,7 @@
 #include "sync.h"
 #include "macro.h"
 #include "msg_app.h"
+#include "jiguang_push.h"
 
 int msg_send(void *msg, size_t len, SESSION *ctx)
 {
@@ -306,8 +307,13 @@ int tk115_alarm(const void *msg, SESSION *ctx)
 
 	char* json = cJSON_PrintUnformatted(root);
 
-	yunba_publish_old(topic, json, strlen(json));
+	//yunba_publish_old(topic, json, strlen(json));
+
+    jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, 0);
 	LOG_INFO("send alarm: %s", topic);
+
+    //add alarm log in db
+    db_add_log(obj->IMEI, "alarm");
 
 	free(json);
 	cJSON_Delete(root);
@@ -465,6 +471,9 @@ static int tk115_Location(const void *msg, SESSION *session)
     float latitude = 0;
     float speed = 0;
     float course = 0;
+    char *TimeString = NULL;
+    time_t rawtime;
+    int rc = 0;
     const MC_MSG_OPERATOR_RSP* req = msg;
 
     if(!session)
@@ -482,12 +491,18 @@ static int tk115_Location(const void *msg, SESSION *session)
 
 // MC operator response: Lat:N30.51109,Lon:E114.42530,Course:354.70,Speed:0.00km/h,DateTime:2016-05-30 18:06:52
     LOG_INFO("%s",req->data);
-    sscanf("MC operator response: Lat:N%f,Lon:E%f,,Course:%f,Speed:%f%*s",&latitude,&longitude,&course,&speed);
+    rc = sscanf(req->data, "Lat:N%f,Lon:E%f,Course:%f,Speed%f%*s",&latitude,&longitude,&course,&speed);
+    if(rc != 4)
+    {
+        LOG_ERROR("gps get error: %d", rc);
+    }
+
+    time ( &rawtime );
 
     LOG_INFO("imei(%s) LOCATION GPS: timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
-       obj->IMEI, timestamp, latitude, longitude, (char)speed, (short)course);
+       obj->IMEI, rawtime, latitude, longitude, (char)speed, (short)course);
 
-    obj->timestamp = timestamp;
+    obj->timestamp = rawtime;
     obj->isGPSlocated = 0x01;
     obj->lat = latitude;
     obj->lon = longitude;

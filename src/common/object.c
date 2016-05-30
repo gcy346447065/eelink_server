@@ -210,7 +210,6 @@ const char *get_IMEI_STRING(const char *IMEI)
 	for (int i = 0; i < ((IMEI_LENGTH + 1) / 2); i++)
 	{
 		sprintf(strIMEI + i * 2, "%02x", IMEI[i]&0xff);
-        //LOG_INFO("%02x",IMEI[i]);
 	}
 	//strIMEI[IMEI_LENGTH] = 0;
 
