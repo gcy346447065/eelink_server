@@ -115,9 +115,12 @@ static int app_sendWildMsg2Device(cJSON* appMsg, OBJECT* obj)
         LOG_ERROR("wild cmd with no data");
         return -1;
     }
-    char* data = dataItem->string;
 
-    void *msg = alloc_simcomWildMsg(data, strlen(data));
+    int length = strlen(dataItem->valuestring);
+    char *data = malloc(length);
+    memcpy(data, dataItem->valuestring, length);
+
+    void *msg = alloc_simcomWildMsg(data, length);
     if(!msg)
     {
         LOG_FATAL("insufficient memory");
@@ -125,7 +128,7 @@ static int app_sendWildMsg2Device(cJSON* appMsg, OBJECT* obj)
         return -1;
     }
 
-    app_sendMsg2Device(msg, MSG_HEADER_LEN + strlen(data), obj);
+    app_sendMsg2Device(msg, MSG_HEADER_LEN + length, obj);
     return 0;
 }
 
@@ -329,9 +332,21 @@ static int app_sendStatusGetMsg2Device(cJSON* appMsg, OBJECT* obj)
     return 0;
 }
 
+static int app_gpsSwitch(cJSON* appMsg, OBJECT* obj)
+{
+    int cmd = getMsgCmd(appMsg);
+
+    cJSON *gpsItem = cJSON_GetObjectItem(appMsg, "gps");
+
+    obj->gps_switch = gpsItem->valueint;
+
+
+    app_sendCmdRsp2App(cmd, CODE_SUCCESS, obj->IMEI);
+    return 0;
+}
+
 static void getImeiFromTopic(const char* topic, char* IMEI)
 {
-
     const char* pStart = &topic[strlen("app2dev/")];
     const char* pEnd = strstr(pStart, "/");
 
@@ -367,7 +382,8 @@ APP_MSG_PROC_MAP msg_proc_map[] =
     {APP_CMD_AUTOPERIOD_GET,    app_sendAutoPeriodGetMsg2Device},
     {APP_CMD_AUTOLOCK_GET,      app_sendAutoLockGetMsg2Device},
     {APP_CMD_BATTERY,           app_sendBatteryMsg2Device},
-    {APP_CMD_STATUS_GET,        app_sendStatusGetMsg2Device}
+    {APP_CMD_STATUS_GET,        app_sendStatusGetMsg2Device},
+    {APP_CMD_GPS_SWITCH,        app_gpsSwitch}
 };
 
 int app_handleApp2devMsg(const char* topic, const char* data, const int len __attribute__((unused)))
@@ -406,7 +422,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len __at
     int cmd = cmdItem->valueint;
 
     /* if offline, send CODE_DEVICE_OFFLINE;
-       if offline with APP_CMD_LOCATION, send CODE_DEVICE_OFFLINE with GPS;
+     * if offline with APP_CMD_LOCATION, send CODE_DEVICE_OFFLINE with GPS;
      */
     if(!(obj->session))
     {

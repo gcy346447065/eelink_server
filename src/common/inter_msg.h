@@ -19,6 +19,7 @@ enum
 #define TAG_LNG "LNG"
 #define TAG_SPEED "SPEED"
 #define TAG_COURSE "COURSE"
+#define TAG_DID "DID"
 
 #define TAG_CCID "CCID"
 #define TAG_IMSI "IMSI"

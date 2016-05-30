@@ -11,12 +11,20 @@
 #define START_FLAG (0xAA55)
 #define MAX_IMEI_LENGTH 15
 #define MAX_CCID_LENGTH 20
-#define MAX_IMSI_LENGTH 16
+#define MAX_IMSI_LENGTH 15
 #define MAX_CELL_NUM 7
 #define TEL_NO_LENGTH 11
 
 enum
 {
+    CMD_GET_AT          = -8,
+    CMD_REBOOT          = -7,
+    CMD_GET_LOG         = -6,
+    CMD_GET_433         = -5,
+    CMD_GET_GSM         = -4,
+    CMD_GET_GPS         = -3,
+    CMD_GET_SETTING     = -2,
+    CMD_GET_BATTERY     = -1,
     CMD_WILD            =  0,
     CMD_LOGIN           =  1,
     CMD_PING            =  2,
@@ -44,7 +52,6 @@ enum
     CMD_UPGRADE_DATA    = 24,
     CMD_UPGRADE_END     = 25,
     CMD_SIM_INFO        = 26,
-    CMD_REBOOT          = 27,
     CMD_DEVICE_INFO_GET = 28,
     CMD_GPS_PACK        = 29
 };
@@ -67,6 +74,125 @@ typedef struct
 }__attribute__((__packed__)) MSG_HEADER;
 
 #define MSG_HEADER_LEN sizeof(MSG_HEADER)
+
+/*
+ * get log message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_AT_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_AT_RSP;
+
+
+/*
+ * reboot message structure
+ */
+typedef MSG_HEADER MSG_REBOOT_REQ;
+
+/*
+ * get log message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+}__attribute__((__packed__)) MSG_GET_LOG_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_LOG_RSP;
+
+/*
+ * get 433 message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+}__attribute__((__packed__)) MSG_GET_433_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_433_RSP;
+
+/*
+ * get GSM message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+}__attribute__((__packed__)) MSG_GET_GSM_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_GSM_RSP;
+
+/*
+ * get GPS message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+}__attribute__((__packed__)) MSG_GET_GPS_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_GPS_RSP;
+
+/*
+ * get setting message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+}__attribute__((__packed__)) MSG_GET_SETTING_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_SETTING_RSP;
+
+/*
+ * get battery message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+}__attribute__((__packed__)) MSG_GET_BATTERY_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+    char data[];
+}__attribute__((__packed__)) MSG_GET_BATTERY_RSP;
 
 /*
  * Login message structure
@@ -170,7 +296,7 @@ typedef struct
     char sms[];
 }__attribute__((__packed__)) MSG_SMS_REQ;
 
-typedef MSG_SMS_REQ MSG_SMS_RSP;
+typedef MSG_HEADER MSG_SMS_RSP;
 
 /*
  * 433 message structure
@@ -338,6 +464,8 @@ typedef struct
     int miles;    //unit: meters
 }__attribute__((__packed__)) MSG_ITINERARY_REQ;
 
+typedef MSG_HEADER MSG_ITINERARY_RSP;
+
 /*
  * battery message structure
  */
@@ -426,6 +554,8 @@ typedef struct
     char CCID[MAX_CCID_LENGTH];
     char IMSI[MAX_IMSI_LENGTH]; //MCC+MNC+MSIN
 }__attribute__((__packed__)) MSG_SIM_INFO_REQ;
+
+typedef MSG_HEADER MSG_SIM_INFO_RSP;
 
 /*
  * GPS PACK message structure

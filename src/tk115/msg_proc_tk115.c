@@ -192,6 +192,7 @@ int tk115_gps(const void *msg, SESSION *ctx)
     {
         //int db_saveGPS(const char *name, int timestamp, int lat, int lon, char speed, short course)
         db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
+        sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course, obj->gps_switch);
     }
     else
     {
@@ -308,7 +309,7 @@ int tk115_alarm(const void *msg, SESSION *ctx)
 
 	char* json = cJSON_PrintUnformatted(root);
 
-	yunba_publish(topic, json, strlen(json));
+	yunba_publish_old(topic, json, strlen(json));
 	LOG_INFO("send alarm: %s", topic);
 
 	free(json);

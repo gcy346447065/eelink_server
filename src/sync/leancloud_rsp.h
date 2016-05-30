@@ -18,6 +18,8 @@ size_t leancloud_onSaveItinerary(void *contents, size_t size, size_t nmemb, void
 
 size_t leancloud_onSaveSimInfo(void *contents, size_t size, size_t nmemb, void *userdata);
 
+size_t leancloud_onGetObjectIDWithImei(void *contents, size_t size, size_t nmemb, void *userdata);
+
 size_t leancloud_onRev(void *contents, size_t size, size_t nmemb, void *userp);
 
 #endif /* SRC_LEANCLOUD_RSP_H_ */

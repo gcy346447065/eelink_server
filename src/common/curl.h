@@ -16,7 +16,7 @@ CURL* initCurlHandleOfYeelink();
 #define cleanupLeancloudCurlHandle(curl) curl_easy_cleanup(curl)
 #define cleanupYeelinkCurlHandle(curl) curl_easy_cleanup(curl)
 
-void clcanupLeancloudHeader();
+void cleanupLeancloudHeader();
 void cleanupYeelinkHeader();
 
 #endif /* SRC_CURL_H_ */

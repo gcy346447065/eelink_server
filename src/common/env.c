@@ -33,7 +33,7 @@ void env_initial()
 void env_cleanup()
 {
     //cleanup all resource
-    clcanupLeancloudHeader();
+    cleanupLeancloudHeader();
     cleanupYeelinkHeader();
 
     cleanupLeancloudCurlHandle(env.curl_leancloud);

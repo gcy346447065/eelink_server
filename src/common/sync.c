@@ -187,7 +187,7 @@ void sync_newIMEI(const char *imei)
     return;
 }
 
-void sync_gps(const char* imei, int timestamp, float lat, float lng, char speed, short course)
+void sync_gps(const char* imei, int timestamp, float lat, float lng, char speed, short course, int gps_switch)
 {
     cJSON* root = cJSON_CreateObject();
 
@@ -198,6 +198,11 @@ void sync_gps(const char* imei, int timestamp, float lat, float lng, char speed,
     cJSON_AddNumberToObject(root, TAG_LNG, lng);
     cJSON_AddNumberToObject(root, TAG_SPEED, speed);
     cJSON_AddNumberToObject(root, TAG_COURSE, course);
+
+    if (!gps_switch)
+    {
+        cJSON_AddStringToObject(root, TAG_DID, "\"gps\"=0");
+    }
 
     char *data = cJSON_PrintUnformatted(root);
     if (!data)

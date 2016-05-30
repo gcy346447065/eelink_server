@@ -31,18 +31,33 @@ static void msg_saveGPS(cJSON* json)
     cJSON* speed = cJSON_GetObjectItem(json, TAG_SPEED);
     cJSON* course = cJSON_GetObjectItem(json, TAG_COURSE);
 
+    cJSON* did = cJSON_GetObjectItem(json, TAG_DID);
+
     if (!timestamp || !imei || !lat || !lng || !speed || !course)
     {
         LOG_ERROR("save GPS failed");
         return;
     }
 
-    leancloud_saveGPS(timestamp->valueint,
-                      imei->valuestring,
-                      lat->valuedouble,
-                      lng->valuedouble,
-                      speed->valueint,
-                      course->valueint);
+    if (did)
+    {
+        leancloud_saveGPSWithDID(timestamp->valueint,
+                                 imei->valuestring,
+                                 lat->valuedouble,
+                                 lng->valuedouble,
+                                 speed->valueint,
+                                 course->valueint,
+                                 did->valuestring);
+    }
+    else
+    {
+        leancloud_saveGPS(timestamp->valueint,
+                          imei->valuestring,
+                          lat->valuedouble,
+                          lng->valuedouble,
+                          speed->valueint,
+                          course->valueint);
+    }
 
     return;
 }
@@ -86,6 +101,7 @@ static void msg_saveSimInfo(cJSON* json)
     return;
 }
 
+#if 0
 int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
 {
     cJSON* root = cJSON_Parse(m);
@@ -120,6 +136,44 @@ int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
     }
 
     cJSON_Delete(root);
+
+    return 0;
+}
+#endif
+
+int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
+{
+    const char *msg = m;
+    cJSON *root;
+
+    while(root = cJSON_ParseWithOpts(msg, &msg, 0))
+    {
+        cJSON* cmd = cJSON_GetObjectItem(root, TAG_CMD);
+
+        switch (cmd->valueint)
+        {
+            case CMD_SYNC_NEW_DID:
+                msg_saveDid(root);
+                break;
+
+            case CMD_SYNC_NEW_GPS:
+                msg_saveGPS(root);
+                break;
+
+            case CMD_SYNC_NEW_ITINERARY:
+                msg_saveItinerary(root);
+                break;
+
+            case CMD_SYNC_NEW_SIM_INFO:
+                msg_saveSimInfo(root);
+                break;
+
+            default:
+                break;
+        }
+
+        cJSON_Delete(root);
+    }
 
     return 0;
 }

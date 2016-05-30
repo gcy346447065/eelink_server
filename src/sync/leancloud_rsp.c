@@ -31,7 +31,7 @@ size_t leancloud_onSaveGPS(void *contents, size_t size, size_t nmemb, void *user
 	}
 	else
 	{
-		LOG_INFO("get save GPS response: %s", rsp);
+		LOG_DEBUG("get save GPS response: %s", rsp);
 	}
 
 	cJSON_Delete(json);
@@ -69,7 +69,7 @@ size_t leancloud_onSaveDID(void *contents, size_t size, size_t nmemb, void *user
 		int rc = objectID_add_HashAndDb(imei, objectID->valuestring);
 		if(rc)
 		{
-			LOG_ERROR("can't add objectId hash");
+			LOG_ERROR("can't add objectId into hash and db");
 			return 0;
 		}
 	}
@@ -96,7 +96,7 @@ size_t leancloud_onSaveItinerary(void *contents, size_t size, size_t nmemb, void
 	}
 	else
 	{
-		LOG_INFO("get save Itinerary response: %s", rsp);
+		LOG_DEBUG("get save Itinerary response: %s", rsp);
 	}
 
 	cJSON_Delete(json);
@@ -121,7 +121,67 @@ size_t leancloud_onSaveSimInfo(void *contents, size_t size, size_t nmemb, void *
 	}
 	else
 	{
-		LOG_INFO("get save SimInfo response: %s", rsp);
+		LOG_DEBUG("get save SimInfo response: %s", rsp);
+	}
+
+	cJSON_Delete(json);
+	free(rsp);
+
+	return size * nmemb;
+}
+
+size_t leancloud_onGetObjectIDWithImei(void *contents, size_t size, size_t nmemb, void *userdata)
+{
+	userdata = userdata;
+
+	char* rsp = malloc(size * nmemb + 1);
+	memcpy(rsp, contents, size * nmemb);
+	rsp[size * nmemb] = 0;
+
+	cJSON* json = cJSON_Parse(rsp);
+
+	if (!json)
+	{
+		LOG_ERROR("error objectID with imei response: %s", rsp);
+	}
+	else
+	{
+		LOG_DEBUG("get objectID with imei response: %s", rsp);
+
+		cJSON* results = cJSON_GetObjectItem(json, "results");
+		if(!results)
+		{
+			LOG_ERROR("can't get results in leancloud_onGetObjectIDWithImei");
+			return 0;
+		}
+
+		cJSON* result = cJSON_GetArrayItem(results, 0);
+		if(!result)
+		{
+			LOG_ERROR("can't get result in leancloud_onGetObjectIDWithImei");
+			return 0;
+		}
+
+		cJSON* IMEI = cJSON_GetObjectItem(result, "IMEI");
+		if(!IMEI)
+		{
+			LOG_ERROR("can't get IMEI in leancloud_onGetObjectIDWithImei");
+			return 0;
+		}
+
+		cJSON* objectID = cJSON_GetObjectItem(result, "objectId");
+		if(!objectID)
+		{
+			LOG_ERROR("can't get objectId in leancloud_onGetObjectIDWithImei");
+			return 0;
+		}
+
+		int rc = objectID_add_HashAndDb(IMEI->valuestring, objectID->valuestring);
+		if(rc)
+		{
+			LOG_ERROR("can't add objectId into hash and db");
+			return 0;
+		}
 	}
 
 	cJSON_Delete(json);
