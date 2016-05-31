@@ -49,21 +49,43 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
         switch(jiguang_cmd)
         {
             case JIGUANG_CMD_ALARM:
-                cJSON_AddStringToObject(android, "alert", "alarm: moved");
-                cJSON_AddStringToObject(ios, "alert", "alarm: moved");
-                cJSON_AddStringToObject(ios, "sound", "alarm.mp3");
+                switch(status)
+                {
+                    case 1:
+                    case 2:
+                    case 3:
+                        cJSON_AddStringToObject(android, "alert", "alarm: moved");
+                        cJSON_AddStringToObject(ios, "alert", "alarm: moved");
+                        cJSON_AddStringToObject(ios, "sound", "alarm.mp3");
+                        break;
+
+                    case 4:
+                        cJSON_AddStringToObject(android, "alert", "battery below50%");
+                        cJSON_AddStringToObject(ios, "alert", "battery below50%%");
+                        cJSON_AddStringToObject(ios, "sound", "default");
+                        break;
+
+                    case 5:
+                        cJSON_AddStringToObject(android, "alert", "battery below 30%");
+                        cJSON_AddStringToObject(ios, "alert", "battery below 50%");
+                        cJSON_AddStringToObject(ios, "sound", "default");
+                        break;
+
+                    default:
+                        break;
+                }
                 break;
 
             case JIGUANG_CMD_AUTOLOCK_NOTIFY:
-                if(status == 1)
+                switch(status)
                 {
-                    alert = cJSON_CreateString("autolock notify: on");
+                    case 0:
+                        alert = cJSON_CreateString("autolock notify: off");
+                        break;
+                    case 1:
+                        alert = cJSON_CreateString("autolock notify: on");
+                        break;
                 }
-                else if(status == 0)
-                {
-                    alert = cJSON_CreateString("autolock notify: off");
-                }
-
                 cJSON_AddItemToObject(android, "alert", alert);
                 cJSON_AddItemToObject(ios, "alert", alert);
                 cJSON_AddStringToObject(ios, "sound", "default");
