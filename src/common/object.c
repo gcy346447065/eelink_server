@@ -200,7 +200,7 @@ const char* getMacFromIMEI(const unsigned char* IMEI)
 //imei of 8 bits to imei of 16 bits, the result ends by '\0'
 const char *get_IMEI_STRING(const char *IMEI)
 {
-	static char strIMEI[IMEI_LENGTH + 1];
+	static char strIMEI[IMEI_LENGTH + 2];
 	strcpy(strIMEI, "unknown imei");
 
 	if (!IMEI)
@@ -211,7 +211,7 @@ const char *get_IMEI_STRING(const char *IMEI)
 	{
 		sprintf(strIMEI + i * 2, "%02x", IMEI[i]&0xff);
 	}
-	//strIMEI[IMEI_LENGTH] = 0;
+	strIMEI[IMEI_LENGTH + 1] = 0;
 
 	return strIMEI + 1;
 }
