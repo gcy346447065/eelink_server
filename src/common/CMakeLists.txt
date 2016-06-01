@@ -52,6 +52,10 @@ SET(SOURCE_FILE
 
     ../3rd/cJSON/cJSON.c
     ../3rd/cJSON/cJSON.h
+
+    sms_message.c
+    sms_message.h
+
     )
 
 MESSAGE(STATUS "configure common library")
