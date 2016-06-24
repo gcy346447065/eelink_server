@@ -78,7 +78,9 @@ void app_sendFenceGetRsp2App(int cmd, int code, int state, void *session)
 
     app_sendMsg2App(topic, json, strlen(json));
 
-    LOG_INFO("send fence get response to APP, imei(%s), code(%d)", obj->IMEI, code);
+    LOG_INFO("send fence get response to APP, imei(%s), code(%d), state(%d)", 
+             obj->IMEI, code, state);
+
     free(json);
     cJSON_Delete(root);
 
@@ -107,7 +109,9 @@ void app_sendLocationRsp2App(int code, OBJECT *obj)
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send location response to APP, imei(%s), code(%d)", obj->IMEI, code);
+    LOG_INFO("send location response to APP, imei(%s), code(%d), timestamp(%d), isGPSlocated(%d), lat(%f), lng(%f)",
+             obj->IMEI, code, obj->timestamp, obj->isGPSlocated, obj->lat, obj->lon);
+
     free(json);
     cJSON_Delete(root);
 
@@ -137,7 +141,9 @@ void app_sendAutoPeriodGetRsp2App(int cmd, int code, int period, void *session)
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send auto period get response to APP, imei(%s), code(%d)", obj->IMEI, code);
+    LOG_INFO("send auto period get response to APP, imei(%s), code(%d), period(%d)", 
+             obj->IMEI, code, period);
+
     free(json);
     cJSON_Delete(root);
 
@@ -167,7 +173,9 @@ void app_sendAutoLockGetRsp2App(int cmd, int code, int state, void *session)
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send auto lock get response to APP, imei(%s), code(%d)", obj->IMEI, code);
+    LOG_INFO("send auto lock get response to APP, imei(%s), code(%d), state(%d)",
+             obj->IMEI, code, state);
+
     free(json);
     cJSON_Delete(root);
 
@@ -198,7 +206,9 @@ void app_sendBatteryRsp2App(int cmd, int code, int percent, int miles, void *ses
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send battery response to APP, imei(%s), code(%d)", obj->IMEI, code);
+    LOG_INFO("send battery response to APP, imei(%s), code(%d), percent(%d), miles(%d)",
+             obj->IMEI, code, percent, miles);
+
     free(json);
     cJSON_Delete(root);
 
@@ -243,7 +253,12 @@ void app_sendStatusGetRsp2App(int cmd, int code, OBJECT *obj, char autolock, cha
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send status get response to APP, imei(%s), code(%d)", obj->IMEI, code);
+    LOG_INFO("send status get response to APP, imei(%s), code(%d)," 
+             "isGPSlocated(%d), timestamp(%d), lat(%f), lng(%f), speed(%d), course(%d),"
+             "lock(%d), isOn(%d), period(%d), percent(%d), miles(%d)",
+              obj->IMEI, code, obj->isGPSlocated, obj->timestamp, obj->lat, obj->lon, 
+              obj->speed, obj->course, status, autolock, autoperiod, percent, miles);
+
     free(json);
     cJSON_Delete(root);
 
@@ -281,7 +296,9 @@ void app_sendGpsMsg2App(void* session)
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send gps msg to APP, imei(%s)", obj->IMEI);
+    LOG_INFO("send gps msg to APP, imei(%s), isGPSlocated(%d), timestamp(%d), lat(%f), lng(%f), speed(%d), course(%d),",
+             obj->IMEI, obj->isGPSlocated, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
+
     free(json);
     cJSON_Delete(root);
 }
@@ -306,7 +323,7 @@ void app_send433Msg2App(int timestamp, int intensity, void * session)
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send 433 msg to APP, imei(%s)", obj->IMEI);
+    LOG_INFO("send 433 msg to APP, imei(%s), timestamp(%d), intensity(%d)", obj->IMEI, timestamp, intensity);
     free(json);
     cJSON_Delete(root);
 }
@@ -334,7 +351,8 @@ void app_sendAlarmMsg2App(int type, const char *msg, void *session)
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send alarm msg to APP, imei(%s)", obj->IMEI);
+    LOG_INFO("send alarm msg to APP, imei(%s), type(%d)", obj->IMEI, type);
+
     free(json);
     cJSON_Delete(root);
 
@@ -355,7 +373,7 @@ void app_sendDebugMsg2App(const char *msg, size_t length, void *session)
     snprintf(topic, IMEI_LENGTH + 15, "dev2app/%s/debug", obj->IMEI);
 
     app_sendMsg2App(topic, msg, length);
-    LOG_INFO("send debug msg to APP");
+    LOG_INFO("send debug msg to APP, imei(%s)", obj->IMEI);
 
     return;
 }
@@ -391,7 +409,11 @@ void app_sendNotifyMsg2App(int notify, int timestamp, int lock_status, void *ses
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send notify msg to APP");
+    LOG_INFO("send notify msg to APP, imei(%s), notify(%d), timestamp(%d), lock_status(%d)",
+             obj->IMEI, notify, timestamp, lock_status);
+
+    free(json);
+    cJSON_Delete(root);
 
     return;
 }

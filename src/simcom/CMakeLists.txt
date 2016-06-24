@@ -2,14 +2,21 @@ SET(SOURCE_FILE
     main.c
     firmware_upgrade.c
     firmware_upgrade.h
+    server_manager.c
+    server_manager.h
     server_simcom.c
     server_simcom.h
     msg_proc_app.c
     msg_proc_app.h
+    msg_proc_manager.c
+    msg_proc_manager.h
     msg_proc_simcom.c
     msg_proc_simcom.h
     msg_simcom.c
-    msg_simcom.h)
+    msg_simcom.h
+    msg_manager.c
+    msg_manager.h
+    )
 
 MESSAGE(STATUS "configure Server for SIMCOM")
 link_directories(/usr/lib64/mysql)

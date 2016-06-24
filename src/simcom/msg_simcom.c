@@ -37,7 +37,19 @@ MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER *pMsg)
             break;
 
         case CMD_SMS:
-            msgLen = sizeof(MSG_SMS_RSP);    //FIXME: without any sms contents
+            msgLen = sizeof(MSG_SMS_RSP);
+            break;
+
+        case CMD_ITINERARY:
+            msgLen = sizeof(MSG_ITINERARY_RSP);
+            break;
+
+        case CMD_SIM_INFO:
+            msgLen = sizeof(MSG_SIM_INFO_RSP);
+            break;
+
+        case CMD_ALARM:
+            msgLen = sizeof(MSG_ALARM_RSP);
             break;
 
         default:
@@ -54,7 +66,7 @@ MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER *pMsg)
     return msg;
 }
 
-void free_simcom_msg(void* msg)
+void free_simcom_msg(void *msg)
 {
     free(msg);
 }
@@ -64,7 +76,7 @@ char get_msg_cmd(void *msg)
     return ((MSG_HEADER*)msg)->cmd;
 }
 
-void *alloc_simcomWildMsg(const char* data, size_t length)
+void *alloc_simcomWildMsg(const char *data, size_t length)
 {
     MSG_HEADER *msg = alloc_simcom_msg(CMD_WILD, length);
 
@@ -182,4 +194,64 @@ void *alloc_simcomUpgradeEndReq(int checksum, int size)
 
     return req;
 }
+
+void *alloc_simcomManagerReq(int cmd)
+{
+    size_t msgLen = 0;
+    switch (cmd)
+    {
+        case CMD_GET_LOG:
+            msgLen = sizeof(MSG_GET_LOG_REQ);
+            break;
+
+        case CMD_GET_433:
+            msgLen = sizeof(MSG_GET_433_REQ);
+            break;
+
+        case CMD_GET_GSM:
+            msgLen = sizeof(MSG_GET_GSM_REQ);
+            break;
+
+        case CMD_GET_GPS:
+            msgLen = sizeof(MSG_GET_GPS_REQ);
+            break;
+
+        case CMD_GET_SETTING:
+            msgLen = sizeof(MSG_GET_SETTING_REQ);
+            break;
+
+        case CMD_GET_BATTERY:
+            msgLen = sizeof(MSG_GET_BATTERY_REQ);
+            break;
+
+        case CMD_REBOOT:
+            msgLen = sizeof(MSG_REBOOT_REQ);
+            break;
+
+        default:
+            return NULL;
+    }
+
+    MSG_HEADER *msg = malloc(msgLen);
+
+    msg->signature = htons(START_FLAG);
+    msg->cmd = cmd;
+    msg->seq = seq++;
+    msg->length = htons(msgLen - MSG_HEADER_LEN);
+
+    return msg;
+}
+
+void *alloc_simcomManagerMsg(int cmd, size_t msgLen)
+{
+    MSG_HEADER *msg = malloc(msgLen);
+
+    msg->signature = htons(START_FLAG);
+    msg->cmd = cmd;
+    msg->seq = seq++;
+    msg->length = htons(msgLen - MSG_HEADER_LEN);
+
+    return msg;
+}
+
 

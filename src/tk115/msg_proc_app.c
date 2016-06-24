@@ -19,7 +19,9 @@
 #include "session.h"
 #include "object.h"
 #include "mqtt.h"
+#include "cJSON.h"
 
+typedef int (*APP_MSG_PROC)(cJSON*, OBJECT*);
 
 static void app_sendRawData2TK115(const void* msg, int len, const char *imei, int token)
 {
@@ -45,132 +47,159 @@ static void app_sendRawData2TK115(const void* msg, int len, const char *imei, in
 	}
 }
 
-static void app_sendRawData2App(const char* topic, char *data, int len)
+static int app_sendFenceOnMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
-	LOG_HEX(data, len);
+    appMsg = appMsg;
+    const char data[]="FENCE,1,OR,,,100#";
 
-	mqtt_publish(topic, data, len);
-	free(data);
+    LOG_INFO("%s",data);
+
+    app_sendRawData2TK115(data, strlen(data), obj->IMEI, CMD_DEFENCE_ON);
+    app_sendCmdRsp2App(APP_CMD_FENCE_ON, CODE_WAITING, obj->IMEI);
+
+    return 0;
 }
 
-void app_sendRspMsg2App(short cmd, short seq, void* data, int len, void* session)
+static int app_sendFenceOffMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
-	if (!session)
-	{
-		LOG_FATAL("internal error: session null");
-		return;
-	}
+    appMsg = appMsg;
+    const char data[]="FENCE,0#";
 
-	OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
-	if (!obj)
-	{
-		LOG_FATAL("internal error: obj null");
-		return;
-	}
+    LOG_INFO("%s",data);
 
-	APP_MSG* msg = malloc(sizeof(APP_MSG) + len);
-	if (!msg)
-	{
-		LOG_FATAL("insufficient memory");
-		return;
-	}
+    app_sendRawData2TK115(data, strlen(data), obj->IMEI, CMD_DEFENCE_OFF);
+    app_sendCmdRsp2App(APP_CMD_FENCE_OFF, CODE_WAITING, obj->IMEI);
 
-	msg->header = htons(0xAA55);
-	msg->cmd = htons(cmd);
-	msg->length = htons(len + sizeof(msg->seq));
-	msg->seq = htons(seq);
-	memcpy(msg->data, data, len);
-
-	char topic[IMEI_LENGTH + 20] = {0};
-
-	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/e2link/cmd", obj->IMEI);
-
-	app_sendRawData2App(topic, (char *)msg, sizeof(APP_MSG) + len);
+    return 0;
 }
 
-
-
-void app_sendGpsMsg2App(void* session)
+static int app_sendFenceGetMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
-	OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
-	if (!obj)
-	{
-		LOG_ERROR("obj null, no data to upload");
-		return;
-	}
+    appMsg = appMsg;
+    const char data[]="FENCE,1?";
 
-	GPS_MSG* msg = malloc(sizeof(GPS_MSG));
-	if (!msg)
-	{
-		LOG_FATAL("insufficient memory");
-		return;
-	}
+    LOG_INFO("%s",data);
 
-	msg->header = htons(0xAA55);
-	msg->timestamp = htonl(obj->timestamp);
-	msg->lat = htonl(obj->lat);
-	msg->lon = htonl(obj->lon);
-	msg->course = htons(obj->course);
-	msg->speed = obj->speed;
-	msg->isGPS = obj->isGPSlocated;
+    app_sendRawData2TK115(data, strlen(data), obj->IMEI, CMD_DEFENCE_GET);
+    app_sendCmdRsp2App(APP_CMD_FENCE_GET, CODE_WAITING, obj->IMEI);
 
-	char topic[IMEI_LENGTH + 20] = {0};
-	snprintf(topic, IMEI_LENGTH + 20, "dev2app/%s/e2link/gps", obj->IMEI);
-
-	app_sendRawData2App(topic, (char *)msg, sizeof(GPS_MSG));
+    return 0;
 }
 
-int app_handleApp2devMsg(const char* topic, const char* data, const int len)
+static int app_sendLocationMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
-	LOG_HEX(data, len);
+    appMsg = appMsg;
+    const char data[]="WHERE#";
 
-	//check the IMEI
-	const char* pStart = &topic[strlen("app2dev/")];
-	const char* pEnd = strstr(pStart, "/");
-	char strIMEI[IMEI_LENGTH + 1] = {0};
-	if (pEnd - pStart != IMEI_LENGTH)
-	{
-		LOG_ERROR("app2dev: imei length has a problem");
-		return -1;
-	}
+    LOG_INFO("location");
 
-	strncpy(strIMEI, pStart, IMEI_LENGTH);
+    app_sendRawData2TK115(data, strlen(data), obj->IMEI, CMD_LOCATION);
+    app_sendCmdRsp2App(APP_CMD_LOCATION, CODE_WAITING, obj->IMEI);
 
-	// OBJECT* obj = obj_get(strIMEI);
-	// if (!obj)
-	// {
-	// 	LOG_ERROR("obj %s not exist", strIMEI);
-	// 	return -1;
-	// }
-
-	APP_MSG* pMsg = (APP_MSG *)data;
-	if (!pMsg)
-	{
-		LOG_FATAL("internal error: msg null");
-		return -1;
-	}
-
-	//check the msg header
-	if (ntohs(pMsg->header) != 0xAA55)
-	{
-		LOG_ERROR("App2dev msg header error");
-		return -1;
-	}
-
-	//check the msg length
-	if ((ntohs(pMsg->length) + sizeof(short) * 3) != len)
-	{
-		LOG_ERROR("App2dev msg length error");
-		return -1;
-	}
-
-	short cmd = ntohs(pMsg->cmd);
-	short seq = ntohs(pMsg->seq);
-	int token = (cmd << 16) + seq;
-
-	LOG_INFO("receive app CMD:%#x", cmd);
-	app_sendRawData2TK115(pMsg->data, ntohs(pMsg->length) - sizeof(pMsg->seq), strIMEI, token);
-
-	return 0;
+    return 0;
 }
+
+static void getImeiFromTopic(const char* topic, char* IMEI)
+{
+    const char* pStart = &topic[strlen("app2dev/")];
+    const char* pEnd = strstr(pStart, "/");
+
+    if (pEnd - pStart > IMEI_LENGTH)
+    {
+        LOG_ERROR("app2dev: imei length too long");
+        return;
+    }
+
+    strncpy(IMEI, pStart, pEnd - pStart);
+
+    return;
+}
+
+typedef struct
+{
+    char cmd;
+    APP_MSG_PROC pfn;
+} APP_MSG_PROC_MAP;
+
+APP_MSG_PROC_MAP msg_proc_map[] =
+{
+    {APP_CMD_FENCE_ON,          app_sendFenceOnMsg2Device},
+    {APP_CMD_FENCE_OFF,         app_sendFenceOffMsg2Device},
+    {APP_CMD_FENCE_GET,         app_sendFenceGetMsg2Device},
+    {APP_CMD_LOCATION,          app_sendLocationMsg2Device},
+};
+
+int app_handleApp2devMsg(const char* topic, const char* data, const int len __attribute__((unused)))
+{
+    if (!data)
+    {
+        LOG_FATAL("internal error: payload null");
+        return -1;
+    }
+
+    LOG_DEBUG("topic = %s, payload = %s", topic, data);
+
+    /* get imei and object from topic */
+    char strIMEI[IMEI_LENGTH + 1] = {0};
+    getImeiFromTopic(topic, strIMEI);
+    OBJECT* obj = obj_get(strIMEI);
+    if (!obj)
+    {
+        LOG_ERROR("obj %s not exist", strIMEI);
+        return -1;
+    }
+
+    /* get appMsg and cmd from data */
+    cJSON* appMsg = cJSON_Parse(data);
+    if (!appMsg)
+    {
+        LOG_ERROR("app message format not json: %s", cJSON_GetErrorPtr());
+        return -1;
+    }
+    cJSON* cmdItem = cJSON_GetObjectItem(appMsg, "cmd");
+    if (!cmdItem)
+    {
+        LOG_ERROR("no cmd item");
+        return -1;
+    }
+    int cmd = cmdItem->valueint;
+
+    /* if offline, send CODE_DEVICE_OFFLINE;
+     * if offline with APP_CMD_LOCATION, send CODE_DEVICE_OFFLINE with GPS;
+     */
+    if(!(obj->session))
+    {
+        LOG_WARN("simcom %s offline", strIMEI);
+
+        if(cmd != APP_CMD_LOCATION)
+        {
+            app_sendCmdRsp2App(cmd, CODE_DEVICE_OFFLINE, strIMEI);
+        }
+        else
+        {
+            app_sendLocationRsp2App(CODE_DEVICE_OFFLINE, obj);
+        }
+
+        return 0;
+    }
+
+    LOG_INFO("receive app cmd:%d", cmd);
+
+    for (size_t i = 0; i < sizeof(msg_proc_map) / sizeof(msg_proc_map[0]); i++)
+    {
+        if (msg_proc_map[i].cmd == cmd)
+        {
+            APP_MSG_PROC pfn = msg_proc_map[i].pfn;
+            if (pfn)
+            {
+                return pfn(appMsg, obj);
+            }
+        }
+    }
+
+    LOG_ERROR("unknown app cmd:%d", cmd);
+
+    return -1;
+}
+
 

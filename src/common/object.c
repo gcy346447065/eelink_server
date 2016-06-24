@@ -10,9 +10,9 @@
 #include <time.h>
 #include <glib.h>
 
+#include "db.h"
 #include "log.h"
 #include "object.h"
-#include "db.h"
 
 /* global hash table */
 static GHashTable *object_table = NULL;
@@ -35,20 +35,67 @@ static void obj_initial(const char *imei)
 {
 	OBJECT *obj = obj_new();
 	memcpy(obj->IMEI, imei, IMEI_LENGTH);
+
 	obj_add_hash(obj);
 }
 
 //it is a callback to update obj into db
 static void obj_update(gpointer key, gpointer value, gpointer user_data)
 {
-	OBJECT *obj = (OBJECT *)value;
+	//OBJECT *obj = (OBJECT *)value;
 	//db_updateOBJ(obj->IMEI, obj->timestamp);
+    key = key;
+    value = value;
+    user_data = user_data;
 }
 
 static void obj_table_save()
 {
     /* foreach hash */
     //g_hash_table_foreach(object_table, obj_update, NULL);
+}
+
+typedef struct 
+{
+    const void *msg;
+    SESSION *session;
+    MANAGER_SEND_PROC proc;
+}MANAGER_SEND_S;
+
+//it is a callback for sending imei data to manager
+static void obj_sendImeiData2Manager(gpointer key, gpointer value, gpointer user_data)
+{
+    key = key;
+    OBJECT *obj = (OBJECT *)value;
+    MANAGER_SEND_S *pstManagerSend = (MANAGER_SEND_S *)user_data;
+
+    LOG_INFO("obj_sendImeiData2Manager imei(%s)", obj->IMEI);
+
+    //manager_sendImeiData
+    pstManagerSend->proc(pstManagerSend->msg, pstManagerSend->session, obj->IMEI, obj->session, obj->timestamp, obj->lon, obj->lat, obj->speed, obj->course);
+
+    return;
+}
+
+void obj_sendImeiData2ManagerLoop(const void *msg, SESSION *session, MANAGER_SEND_PROC proc)
+{
+    MANAGER_SEND_S *pstManagerSend = malloc(sizeof(MANAGER_SEND_S));
+    if(!pstManagerSend)
+    {
+        return;
+    }
+
+    LOG_INFO("obj_sendImeiData2ManagerLoop");
+
+    pstManagerSend->msg = msg;
+    pstManagerSend->session = session;
+    pstManagerSend->proc = proc; //manager_sendImeiData
+    
+    /* foreach hash */
+    g_hash_table_foreach(object_table, obj_sendImeiData2Manager, pstManagerSend);
+
+    free(pstManagerSend);
+    return;
 }
 
 void obj_freeKey(gpointer key)
@@ -59,20 +106,20 @@ void obj_freeKey(gpointer key)
 
 void obj_freeValue(gpointer value)
 {
-    OBJECT * obj = (OBJECT *)value;
+    OBJECT *obj = (OBJECT *)value;
 
     LOG_DEBUG("free value IMEI:%s of object_table", get_IMEI_STRING(obj->IMEI));
 
     g_free(obj);
 }
 
-void obj_table_initial(void (*mqtt_sub)(const char *))
+void obj_table_initial(void (*mqtt_sub)(const char *), int ObjectType)
 {
     /* create hash table */
     object_table = g_hash_table_new_full(g_str_hash, g_str_equal, obj_freeKey, obj_freeValue);
 
-    /* read imei data from db*/
-	db_doWithOBJ(obj_initial, mqtt_sub);
+    /* read imei data from db */
+	db_doWithOBJ(obj_initial, mqtt_sub, ObjectType);
 }
 
 void obj_table_destruct()
@@ -100,6 +147,7 @@ OBJECT *obj_new()
 	memset(obj, 0, sizeof(OBJECT));
 
 	make_pwd(obj->pwd);
+    obj->gps_switch = 1;
 
 	return obj;
 }
@@ -150,9 +198,9 @@ const char* getMacFromIMEI(const unsigned char* IMEI)
 
 /***** when IMEI_LENGTH changed to 15, this function becomes bad, do not use it! *****/
 //imei of 8 bits to imei of 16 bits, the result ends by '\0'
-const char* get_IMEI_STRING(const unsigned char* IMEI)
+const char *get_IMEI_STRING(const char *IMEI)
 {
-	static char strIMEI[IMEI_LENGTH + 1];
+	static char strIMEI[IMEI_LENGTH + 2];
 	strcpy(strIMEI, "unknown imei");
 
 	if (!IMEI)
@@ -161,11 +209,11 @@ const char* get_IMEI_STRING(const unsigned char* IMEI)
 	}
 	for (int i = 0; i < ((IMEI_LENGTH + 1) / 2); i++)
 	{
-		sprintf(strIMEI + i * 2, "%02x", IMEI[i]);
+		sprintf(strIMEI + i * 2, "%02x", IMEI[i]&0xff);
 	}
-	strIMEI[IMEI_LENGTH] = 0;
+	strIMEI[IMEI_LENGTH + 1] = 0;
 
-	return strIMEI;
+	return strIMEI + 1;
 }
 
 /***** when IMEI_LENGTH changed to 15, this function becomes bad, do not use it! *****/

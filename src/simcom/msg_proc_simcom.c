@@ -22,10 +22,13 @@
 #include "mqtt.h"
 #include "cJSON.h"
 #include "yunba_push.h"
+#include "jiguang_push.h"
 #include "msg_app.h"
 #include "cgi2gps.h"
 #include "sync.h"
 #include "firmware_upgrade.h"
+#include "session_manager.h"
+#include "msg_manager.h"
 
 typedef int (*MSG_PROC)(const void *msg, SESSION *ctx);
 typedef struct
@@ -139,6 +142,7 @@ static int simcom_login(const void *msg, SESSION *session)
     {
         LOG_INFO("simcom IMEI(%s) already login", imei);
     }
+    obj->version = ntohl(req->version); //remember the version of firmware of the device
 
     //login rsp
     MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
@@ -154,6 +158,9 @@ static int simcom_login(const void *msg, SESSION *session)
         return -1;
     }
 
+    //add login log in db
+    db_add_log(obj->IMEI, "login");
+
     int ret = 0;
     if(!db_isTableCreated(obj->IMEI, &ret) && !ret)
     {
@@ -168,7 +175,7 @@ static int simcom_login(const void *msg, SESSION *session)
     if(theLastVersion)
     {
         theSize = getLastFileSize();
-        LOG_INFO("req->version is %d, theLastVersion is %d, theSize is %d", ntohl(req->version), theLastVersion, theSize);
+        LOG_INFO("req->version is %d, theLastVersion is %d, theSize is %d", obj->version, theLastVersion, theSize);
         
         if(ntohl(req->version) < theLastVersion)
         {
@@ -262,7 +269,7 @@ static int simcom_gps(const void *msg, SESSION *session)
     app_sendGpsMsg2App(session);
 
     db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
-    sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
+    sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course, obj->gps_switch);
 
     return 0;
 }
@@ -303,7 +310,6 @@ static int simcom_cell(const void *msg, SESSION *session)
 
     LOG_INFO("imei(%s) CGI: mcc(%d), mnc(%d)", obj->IMEI, ntohs(cgi->mcc), ntohs(cgi->mnc));
 
-    obj->timestamp = get_time();
     obj->isGPSlocated = 0x00;
 
     int num = (int)cgi->cellNo;
@@ -328,7 +334,7 @@ static int simcom_cell(const void *msg, SESSION *session)
         (obj->cell[i]).ci  = ntohs((cell[i]).cellid);
         (obj->cell[i]).rxl = ntohs((cell[i]).rxl);
     }
-    db_saveCGI(obj->IMEI, obj->timestamp, obj->cell, num);
+    db_saveCGI(obj->IMEI, get_time(), obj->cell, num);
 
 #if 0
     float lat, lon;
@@ -381,22 +387,30 @@ static int simcom_alarm(const void *msg, SESSION *session)
     //send to APP by MQTT
     app_sendAlarmMsg2App(req->alarmType, NULL, session);
 
-    //send to APP by yunba
-    char topic[128];
-    memset(topic, 0, sizeof(topic));
-    snprintf(topic, 128, "simcom_%s", obj->IMEI);
+    //send to ios APP by yunba
+    //yunba_publish(obj->IMEI, YUNBA_CMD_ALARM, 0);
 
-    cJSON *root = cJSON_CreateObject();
-    cJSON *alarm = cJSON_CreateObject();
-    cJSON_AddNumberToObject(alarm, "type", req->alarmType);
-    cJSON_AddItemToObject(root, "alarm", alarm);
-    char* json = cJSON_PrintUnformatted(root);
+    //send alarm by jiguang push
+    jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, 0);
 
-    yunba_publish(topic, json, strlen(json));
     LOG_INFO("imei(%s) send alarm(%d)", obj->IMEI, req->alarmType);
 
-    free(json);
-    cJSON_Delete(root);
+    //add alarm log in db
+    db_add_log(obj->IMEI, "alarm");
+
+    //alarm rsp
+    MSG_ALARM_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
+    if(rsp)
+    {
+        simcom_sendMsg(rsp, sizeof(MSG_ALARM_RSP), session);
+        LOG_INFO("send alarm rsp");
+    }
+    else
+    {
+        free(rsp);
+        LOG_ERROR("insufficient memory");
+        return -1;
+    }
 
     return 0;
 }
@@ -430,7 +444,21 @@ static int simcom_sms(const void *msg , SESSION *session)
 
     LOG_INFO("imei(%s) SMS telphone(%s)", obj->IMEI, req->telphone);
 
-    //TO DO: sms
+    //TO DO: send sms
+
+    //sms rsp
+    MSG_SMS_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
+    if(rsp)
+    {
+        simcom_sendMsg(rsp, sizeof(MSG_SMS_RSP), session);
+        LOG_INFO("send sms rsp");
+    }
+    else
+    {
+        free(rsp);
+        LOG_ERROR("insufficient memory");
+        return -1;
+    }
 
     return 0;
 }
@@ -652,7 +680,6 @@ static int simcom_locate(const void *msg, SESSION *session)
 
         LOG_INFO("imei(%s) LOCATION CGI: mcc(%d), mnc(%d)", obj->IMEI, ntohs(cgi->mcc), ntohs(cgi->mnc));
 
-        obj->timestamp = get_time();
         obj->isGPSlocated = 0x00;
 
         int num = cgi->cellNo;
@@ -672,11 +699,6 @@ static int simcom_locate(const void *msg, SESSION *session)
             (obj->cell[i]).ci  = ntohs((cell[i]).cellid);
             (obj->cell[i]).rxl = ntohs((cell[i]).rxl);
         }
-
-        obj->lat = 0;
-        obj->lon = 0;
-        obj->speed = 0;
-        obj->course = 0;
 
         app_sendLocationRsp2App(CODE_SUCCESS, obj);
     }
@@ -947,10 +969,39 @@ static int simcom_itinerary(const void *msg, SESSION *session)
         return -1;
     }
 
+    //itinerary rsp
+    MSG_ITINERARY_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
+    if(rsp)
+    {
+        simcom_sendMsg(rsp, sizeof(MSG_ITINERARY_RSP), session);
+        LOG_INFO("send itinerary rsp");
+    }
+    else
+    {
+        free(rsp);
+        LOG_ERROR("insufficient memory");
+        return -1;
+    }
+
     LOG_INFO("imei(%s) itinerary: start(%d), end(%d), miles(%d)",
          obj->IMEI, ntohl(req->start), ntohl(req->end), ntohl(req->miles));
 
-    sync_itinerary(obj->IMEI, ntohl(req->start), ntohl(req->end), ntohl(req->miles));
+    static int last_start = 0;
+    static int last_end = 0;
+    static int last_miles = 0;
+
+    if(last_start != ntohl(req->start) || last_end != ntohl(req->end) || last_miles != ntohl(req->miles))
+    {
+        last_start = ntohl(req->start);
+        last_end = ntohl(req->end);
+        last_miles = ntohl(req->miles);
+
+        sync_itinerary(obj->IMEI, last_start, last_end, last_miles);
+    }
+    else
+    {
+        LOG_INFO("get repetitive itinerary");
+    }
 
     return 0;
 }
@@ -1153,9 +1204,19 @@ static int simcom_DefendNotify(const void *msg, SESSION *session)
 
     LOG_INFO("imei(%s) DefendNotify status(%d)", obj->IMEI, rsp->status);
 
+    //add autolock log in db
+    db_add_log(obj->IMEI, "autolock");
+
     if(rsp->status == 0 || rsp->status == 1)
     {
+        //send to Android APP
         app_sendNotifyMsg2App(NOTIFY_AUTOLOCK, get_time(), rsp->status, session);
+
+        //send to IOS APP by yunba
+        //yunba_publish(obj->IMEI, YUNBA_CMD_AUTOLOCK_NOTIFY, rsp->status);
+
+        //send autolock notify by jiguang push
+        jiguang_push(obj->IMEI, JIGUANG_CMD_AUTOLOCK_NOTIFY, rsp->status);
     }
     else
     {
@@ -1358,14 +1419,40 @@ static int simcom_SimInfo(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("imei(%s) SimInfo: ccid(%s), imsi(%s)", obj->IMEI, req->CCID, req->IMSI);
+    char ccid[CCID_LENGTH + 1];
+    memcpy(ccid, req->CCID, CCID_LENGTH);
+    ccid[CCID_LENGTH] = '\0'; //add '\0' for string operaton
 
-    if(strlen(req->CCID) == MAX_CCID_LENGTH && strlen(req->IMSI) == MAX_IMSI_LENGTH)
+    char imsi[IMSI_LENGTH + 1];
+    memcpy(imsi, req->IMSI, IMSI_LENGTH);
+    imsi[IMSI_LENGTH] = '\0'; //add '\0' for string operaton
+
+    LOG_INFO("imei(%s) SimInfo: ccid(%s), imsi(%s)", obj->IMEI, ccid, imsi);
+
+    if(strlen(ccid) == MAX_CCID_LENGTH && strlen(imsi) == MAX_IMSI_LENGTH)
     {
-        memcpy(obj->CCID, req->CCID, MAX_CCID_LENGTH);
-        memcpy(obj->IMSI, req->IMSI, MAX_IMSI_LENGTH);
+        memcpy(obj->CCID, ccid, CCID_LENGTH + 1);
+        memcpy(obj->IMSI, imsi, IMSI_LENGTH + 1);
 
         sync_SimInfo(obj->IMEI, obj->CCID, obj->IMSI);
+    }
+    else
+    {
+        LOG_ERROR("sim info ccid or imsi length error");
+    }
+
+    //sim info rsp
+    MSG_SIM_INFO_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
+    if(rsp)
+    {
+        simcom_sendMsg(rsp, sizeof(MSG_SIM_INFO_RSP), session);
+        LOG_INFO("send sim info rsp");
+    }
+    else
+    {
+        free(rsp);
+        LOG_ERROR("insufficient memory");
+        return -1;
     }
     
     return 0;
@@ -1495,7 +1582,7 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
                 obj->IMEI, i+1, num, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
 
         db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
-        sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
+        sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course, obj->gps_switch);
     }
     obj->isGPSlocated = 0x01;
 
@@ -1504,6 +1591,409 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
 
     return 0;
 }
+
+static int simcom_getLog(const void *msg, SESSION *session)
+{
+    const MSG_GET_LOG_RSP *rsp = (const MSG_GET_LOG_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_GET_LOG_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("get log message length not enough");
+        return -1;
+    }
+
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    LOG_INFO("imei(%s) get log rsp send to manager", obj->IMEI);
+
+    int seq = ntohl(rsp->managerSeq);
+    LOG_DEBUG("rsp->managerSeq(%d), seq(%d)", rsp->managerSeq, seq);
+    SESSION_MANAGER *sessionManager = sessionManager_get(seq);
+    if(!sessionManager)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+    MSG_SEND pfn = sessionManager->pSendMsg;
+    if(!pfn)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+
+    LOG_DEBUG("alloc manager rsp to get log");
+    int data_length = strlen(rsp->data) + 1;
+    MANAGER_MSG_GET_LOG_RSP *rsp4manager = (MANAGER_MSG_GET_LOG_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_LOG, data_length);
+    if(!rsp4manager)
+    {
+        LOG_ERROR("failed to alloc rsp for manager");
+        return -1;
+    }
+    memcpy(rsp4manager->data, rsp->data, data_length);
+
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_GET_LOG_RSP) + data_length);
+    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_LOG_RSP) + data_length); //manager_sendMsg
+
+    return 0;
+}
+
+static int simcom_get433(const void *msg, SESSION *session)
+{
+    const MSG_GET_433_RSP *rsp = (const MSG_GET_433_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_GET_LOG_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("get 433 message length not enough");
+        return -1;
+    }
+
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    LOG_INFO("imei(%s) get 433 rsp send to manager", obj->IMEI);
+
+    int seq = ntohl(rsp->managerSeq);
+    SESSION_MANAGER *sessionManager = sessionManager_get(seq);
+    if(!sessionManager)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+    MSG_SEND pfn = sessionManager->pSendMsg;
+    if(!pfn)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+
+    LOG_DEBUG("alloc manager rsp to get 433");
+    int data_length = strlen(rsp->data) + 1;
+    MANAGER_MSG_GET_433_RSP *rsp4manager = (MANAGER_MSG_GET_433_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_433, data_length);
+    if(!rsp4manager)
+    {
+        LOG_ERROR("failed to alloc rsp for manager");
+        return -1;
+    }
+    memcpy(rsp4manager->data, rsp->data, data_length);
+
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_GET_433_RSP) + data_length);
+    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_433_RSP) + data_length); //manager_sendMsg
+
+    return 0;
+}
+
+static int simcom_getGSM(const void *msg, SESSION *session)
+{
+    const MSG_GET_GSM_RSP *rsp = (const MSG_GET_GSM_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_GET_GSM_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("get GSM message length not enough");
+        return -1;
+    }
+
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    LOG_INFO("imei(%s) get GSM rsp send to manager", obj->IMEI);
+
+    int seq = ntohl(rsp->managerSeq);
+    SESSION_MANAGER *sessionManager = sessionManager_get(seq);
+    if(!sessionManager)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+    MSG_SEND pfn = sessionManager->pSendMsg;
+    if(!pfn)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+
+    LOG_DEBUG("alloc manager rsp to get GSM");
+    int data_length = strlen(rsp->data) + 1;
+    MANAGER_MSG_GET_GSM_RSP *rsp4manager = (MANAGER_MSG_GET_GSM_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_GSM, data_length);
+    if(!rsp4manager)
+    {
+        LOG_ERROR("failed to alloc rsp for manager");
+        return -1;
+    }
+    memcpy(rsp4manager->data, rsp->data, data_length);
+
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_GET_GSM_RSP) + data_length);
+    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_GSM_RSP) + data_length); //manager_sendMsg
+
+    return 0;
+}
+
+static int simcom_getGPS(const void *msg, SESSION *session)
+{
+    const MSG_GET_GPS_RSP *rsp = (const MSG_GET_GPS_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_GET_GPS_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("get GPS message length not enough");
+        return -1;
+    }
+
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    LOG_INFO("imei(%s) get GPS rsp send to manager", obj->IMEI);
+
+    int seq = ntohl(rsp->managerSeq);
+    SESSION_MANAGER *sessionManager = sessionManager_get(seq);
+    if(!sessionManager)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+    MSG_SEND pfn = sessionManager->pSendMsg;
+    if(!pfn)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+
+    LOG_DEBUG("alloc manager rsp to get GPS");
+    int data_length = strlen(rsp->data) + 1;
+    MANAGER_MSG_GET_GPS_RSP *rsp4manager = (MANAGER_MSG_GET_GPS_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_GPS, data_length);
+    if(!rsp4manager)
+    {
+        LOG_ERROR("failed to alloc rsp for manager");
+        return -1;
+    }
+    memcpy(rsp4manager->data, rsp->data, data_length);
+
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_GET_GPS_RSP) + data_length);
+    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_GPS_RSP) + data_length); //manager_sendMsg
+
+    return 0;
+}
+
+static int simcom_getSetting(const void *msg, SESSION *session)
+{
+    const MSG_GET_SETTING_RSP *rsp = (const MSG_GET_SETTING_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_GET_SETTING_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("get setting message length not enough");
+        return -1;
+    }
+
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    LOG_INFO("imei(%s) get setting rsp send to manager", obj->IMEI);
+
+    int seq = ntohl(rsp->managerSeq);
+    SESSION_MANAGER *sessionManager = sessionManager_get(seq);
+    if(!sessionManager)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+    MSG_SEND pfn = sessionManager->pSendMsg;
+    if(!pfn)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+
+    LOG_DEBUG("alloc manager rsp to get setting");
+    int data_length = strlen(rsp->data) + 1;
+    MANAGER_MSG_GET_SETTING_RSP *rsp4manager = (MANAGER_MSG_GET_SETTING_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_SETTING, data_length);
+    if(!rsp4manager)
+    {
+        LOG_ERROR("failed to alloc rsp for manager");
+        return -1;
+    }
+    memcpy(rsp4manager->data, rsp->data, data_length);
+
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_GET_SETTING_RSP) + data_length);
+    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_SETTING_RSP) + data_length); //manager_sendMsg
+
+    return 0;
+}
+
+static int simcom_getBattery(const void *msg, SESSION *session)
+{
+    const MSG_GET_BATTERY_RSP *rsp = (const MSG_GET_BATTERY_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_GET_BATTERY_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("get battery message length not enough");
+        return -1;
+    }
+
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    LOG_INFO("imei(%s) get battery rsp send to manager", obj->IMEI);
+
+    int seq = ntohl(rsp->managerSeq);
+    SESSION_MANAGER *sessionManager = sessionManager_get(seq);
+    if(!sessionManager)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+    MSG_SEND pfn = sessionManager->pSendMsg;
+    if(!pfn)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+
+    LOG_DEBUG("alloc manager rsp to get battery");
+    int data_length = strlen(rsp->data) + 1;
+    MANAGER_MSG_GET_BATTERY_RSP *rsp4manager = (MANAGER_MSG_GET_BATTERY_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_BATTERY, data_length);
+    if(!rsp4manager)
+    {
+        LOG_ERROR("failed to alloc rsp for manager");
+        return -1;
+    }
+    memcpy(rsp4manager->data, rsp->data, data_length);
+
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_GET_BATTERY_RSP) + data_length);
+    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_GET_BATTERY_RSP) + data_length); //manager_sendMsg
+
+
+    return 0;
+}
+
+static int simcom_getAT(const void *msg, SESSION *session)
+{
+    const MSG_GET_AT_RSP *rsp = (const MSG_GET_AT_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_GET_AT_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("get battery message length not enough");
+        return -1;
+    }
+
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    LOG_INFO("imei(%s) get AT rsp send to manager", obj->IMEI);
+
+    int seq = ntohl(rsp->managerSeq);
+    SESSION_MANAGER *sessionManager = sessionManager_get(seq);
+    if(!sessionManager)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+    MSG_SEND pfn = sessionManager->pSendMsg;
+    if(!pfn)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+
+    LOG_DEBUG("alloc manager rsp to get AT");
+    int data_length = strlen(rsp->data) + 1;
+    MANAGER_MSG_AT_RSP *rsp4manager = (MANAGER_MSG_AT_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_GET_AT, data_length);
+    if(!rsp4manager)
+    {
+        LOG_ERROR("failed to alloc rsp for manager");
+        return -1;
+    }
+    memcpy(rsp4manager->data, rsp->data, data_length);
+
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_AT_RSP) + data_length);
+    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_AT_RSP) + data_length); //manager_sendMsg
+
+
+    return 0;
+}
+
 
 static MSG_PROC_MAP msgProcs[] =
 {
@@ -1534,10 +2024,17 @@ static MSG_PROC_MAP msgProcs[] =
     {CMD_UPGRADE_END,       simcom_UpgradeEnd},
     {CMD_SIM_INFO,          simcom_SimInfo},
     {CMD_DEVICE_INFO_GET,   simcom_DeviceInfoGet},
-    {CMD_GPS_PACK,          simcom_gpsPack}
+    {CMD_GPS_PACK,          simcom_gpsPack},
+    {CMD_GET_LOG,           simcom_getLog},
+    {CMD_GET_433,           simcom_get433},
+    {CMD_GET_GSM,           simcom_getGSM},
+    {CMD_GET_GPS,           simcom_getGPS},
+    {CMD_GET_SETTING,       simcom_getSetting},
+    {CMD_GET_BATTERY,       simcom_getBattery},
+    {CMD_GET_AT,            simcom_getAT},
 };
 
-int handle_one_msg(const void *m, SESSION *ctx)
+static int handle_one_msg(const void *m, SESSION *ctx)
 {
     const MSG_HEADER *msg = (const MSG_HEADER *)m;
 
