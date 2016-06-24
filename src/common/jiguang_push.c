@@ -49,21 +49,47 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
         switch(jiguang_cmd)
         {
             case JIGUANG_CMD_ALARM:
-                cJSON_AddStringToObject(android, "alert", "alarm: moved");
-                cJSON_AddStringToObject(ios, "alert", "alarm: moved");
-                cJSON_AddStringToObject(ios, "sound", "alarm.mp3");
+                switch(status)
+                {
+                    case 1:
+                    case 2:
+                    case 3:
+                        cJSON_AddStringToObject(android, "alert", "alarm: moved");
+                        cJSON_AddStringToObject(ios, "alert", "alarm: moved");
+                        cJSON_AddStringToObject(ios, "sound", "alarm.mp3");
+                        break;
+
+                    case 4:
+                        cJSON_AddStringToObject(android, "alert", "battery below50%");
+                        cJSON_AddStringToObject(ios, "alert", "battery below50%%");
+                        cJSON_AddStringToObject(ios, "sound", "default");
+                        break;
+
+                    case 5:
+                        cJSON_AddStringToObject(android, "alert", "battery below 30%");
+                        cJSON_AddStringToObject(ios, "alert", "battery below 30%");
+                        cJSON_AddStringToObject(ios, "sound", "default");
+                        break;
+
+                    default:
+                        break;
+                }
                 break;
 
             case JIGUANG_CMD_AUTOLOCK_NOTIFY:
-                if(status == 1)
+                switch(status)
                 {
-                    alert = cJSON_CreateString("autolock notify: on");
-                }
-                else if(status == 0)
-                {
-                    alert = cJSON_CreateString("autolock notify: off");
-                }
+                    case 0:
+                        alert = cJSON_CreateString("autolock notify: off");
+                        break;
 
+                    case 1:
+                        alert = cJSON_CreateString("autolock notify: on");
+                        break;
+
+                    default:
+                        break;
+                }
                 cJSON_AddItemToObject(android, "alert", alert);
                 cJSON_AddItemToObject(ios, "alert", alert);
                 cJSON_AddStringToObject(ios, "sound", "default");
@@ -84,7 +110,7 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
         curl_easy_setopt(curl, CURLOPT_URL, "https://api.jpush.cn/v3/push");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, getJiguangHeader());
         curl_easy_setopt(curl, CURLOPT_USERPWD, "b6b26e2547ad8e5f6018b225:ce9800560f464ea8b815407f");
-        
+
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data); /* pass in a pointer to the data - libcurl will not copy */
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(data)); /* size of the POST data */
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, jiguang_onPush);
