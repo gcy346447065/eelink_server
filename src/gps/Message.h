@@ -15,7 +15,8 @@ private:
     char imei[IMEI_LENGTH];
     char cmd;
     short length;
-    char data[0];
+
+    char data[];
 
 
 public:

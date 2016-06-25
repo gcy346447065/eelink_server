@@ -3,7 +3,11 @@
 //
 
 #include "Message.h"
+#include "protocol.h"
+#include "DB.h"
 
 void Message::process() {
-
+    //TODO: to be fixed
+    GPS* gps = reinterpret_cast<GPS*> (data);
+    DB::instance().addGPS(imei, gps);
 }

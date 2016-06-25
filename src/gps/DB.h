@@ -6,6 +6,7 @@
 #define ELECTROMBILE_DB_H
 
 #include "mysqlconn_wrapper.h"
+#include "protocol.h"
 
 class DB {
 private:
@@ -34,7 +35,7 @@ public:
     void operator=(DB const&)   = delete;
 
 public:
-    void addGPS();
+    void addGPS(string imei, GPS *gps);
 };
 
 
