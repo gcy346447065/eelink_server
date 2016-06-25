@@ -23,11 +23,11 @@ class MySQLConnWrapper
     public:
         
         /* Your MySQL server settings */
-        MySQLConnWrapper()
+        MySQLConnWrapper(string h, string u, string p)
         {
-            host     = "tcp://127.0.0.1:3306";
-            user     = "root";
-            password = "";
+            host     = h; //"tcp://127.0.0.1:3306";
+            user     = u; //"root";
+            password = p; //"";
         };
         ~MySQLConnWrapper();
         void manageException(sql::SQLException& e);
