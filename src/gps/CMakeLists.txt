@@ -3,7 +3,9 @@ SET(SOURCE_FILE
         UdpServerDataHandle.cpp
         UdpServerDataHandle.h
         DB.cpp
-        DB.h)
+        DB.h
+        Message.cpp
+        Message.h)
 
 MESSAGE(STATUS "configure Server for gps")
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
