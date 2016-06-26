@@ -12,19 +12,23 @@ const string DB::user     = "eelink";
 const string DB::password = "eelink";
 const string DB::database = "gps";
 
-void DB::addGPS(string imei, GPS gps[])
+void DB::addGPS(char *imei, GPS *gps)
 {
-/*  string sql = "insert into gps_%s(timestamp,lat,lon,speed,course) values(%d,%f,%f,%d,%d)";
+    char Csql[256] = {0};
+
+    /*it's not OK,dont know why*/
+    /*
+    snprintf(test,128,"insert into gps_%s(timestamp,lat,lon,speed,course) values(%d,%f,%f,%d,%d)",\
+                        imei,gps->timestamp,gps->latitude,gps->longitude,gps->speed,gps->course);
+    */
+
+    /*it's just OK,dont know why*/
+    snprintf(Csql,128,"insert into gps_865067021652600(timestamp,lat,lon,speed,course) values(%d,%f,%f,%d,%d)",\
+                        gps->timestamp,gps->latitude,gps->longitude,gps->speed,gps->course);
+
+    string sql = Csql;
+    printf("%s\r\n",sql.data());
     db_conn.prepare(sql);
-    db_conn.setString(1, imei);
-    db_conn.setInt(2, gps->timestamp);
-*/
-    //TODO: to be completed
-    char c_sql[128] = {0};
-    snprintf(c_sql,128,"insert into gps_%s(timestamp,lat,lon,speed,course) values(%d,%f,%f,%d,%d)",\
-                      imei.c_str(),gps->timestamp,gps->latitude,gps->longitude,gps->speed,gps->course);
-    string sql = c_sql;
-    printf("%s\r\n",sql.c_str());
-    //string sql = "insert into gps_865067021652600(timestamp,lat,lon,speed,course) values(1466904520,30.114000,114.005234,0,0)";
+
     db_conn.execute(sql);
 }

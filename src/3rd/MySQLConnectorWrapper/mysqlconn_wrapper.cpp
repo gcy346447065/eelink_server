@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   mysqlconn_wrapper.h
  * Author: Eduardo Casas (www.eduardocasas.com)
  *
@@ -9,7 +9,7 @@
  */
 
 #include "mysql_connection.h"
-	
+
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
 #include <cppconn/resultset.h>
