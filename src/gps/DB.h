@@ -35,7 +35,7 @@ public:
     void operator=(DB const&)   = delete;
 
 public:
-    void addGPS(char *imei, GPS *gps);
+    void addGPS(string imei, GPS *gps);
 };
 
 

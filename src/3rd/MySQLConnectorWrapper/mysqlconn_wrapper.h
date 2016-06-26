@@ -36,6 +36,7 @@ class MySQLConnWrapper
         void prepare(const string& query);
         void setInt(const int& num, const int& data);
         void setString(const int& num, const string& data);
+        void setFloat(const int& num, const float& data);
         void execute(const string& query = "");
         bool fetch();
         string print(const string& field);

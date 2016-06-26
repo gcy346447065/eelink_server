@@ -8,6 +8,8 @@
 #include "protocol.h"
 #include "DB.h"
 
+using namespace std;
+
 void Message::process()
 {
     //TODO: to be fixed
@@ -15,6 +17,8 @@ void Message::process()
     printf("imei:%s\r\n",imei);
     printf("cmd:%d\r\n",cmd);
     printf("length:%d\r\n",ntohs(length));
+
+    string IMEI(imei, imei + IMEI_LENGTH);
     GPS *temp = NULL;
     GPS *gps = reinterpret_cast<GPS*> (data);
     for(int i = 0; i < ntohs(length)/sizeof(GPS); i++)

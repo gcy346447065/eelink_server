@@ -78,6 +78,10 @@ void MySQLConnWrapper::setString(const int& num, const string& data)
     prep_stmt->setString(num, data);
 }
 
+void MySQLConnWrapper::setFloat(const int &num, const float &data)
+{
+    prep_stmt->setDouble(num, data);
+}
 void MySQLConnWrapper::execute(const string& query)
 {
 
