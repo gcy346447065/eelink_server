@@ -13,7 +13,7 @@ const string DB::database = "gps";
 
 void DB::addGPS(string imei, GPS *gps)
 {
-    string sql = "insert into gps_" + imei + "(timestamp,lat,lon,speed,course) values(?,?,?,?,?)";
+    string sql = "insert into `gps_" + imei + "`(`timestamp`,`lat`,`lon`,`speed`,`course`) values(?,?,?,?,?)";
 
     cout << sql;
 
@@ -25,5 +25,5 @@ void DB::addGPS(string imei, GPS *gps)
     db_conn.setInt(5, gps->course);
 
 
-    db_conn.execute(sql);
+    db_conn.execute();
 }
