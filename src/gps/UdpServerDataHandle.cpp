@@ -10,7 +10,8 @@ void CUdpServerDataHandle::OnDataReceived(unsigned int IP, unsigned short Port, 
 {
     //TODO: push the message into list, and start multi-thread to process it
 
-    if (nLen < sizeof(Message)) {
+    if (nLen < sizeof(Message))
+    {
         return;
     }
     void* pMsg = const_cast<void*>(static_cast<const void *>(pData));

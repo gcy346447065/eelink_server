@@ -1,13 +1,25 @@
 //
 // Created by jk on 16-6-25.
 //
+#include <stdio.h>
+#include <netinet/in.h>
 
 #include "Message.h"
 #include "protocol.h"
 #include "DB.h"
 
-void Message::process() {
+void Message::process()
+{
     //TODO: to be fixed
-    GPS* gps = reinterpret_cast<GPS*> (data);
-    DB::instance().addGPS(imei, gps);
+    printf("signature:%4x\r\n",ntohs(signature));
+    printf("imei:%s\r\n",imei);
+    printf("cmd:%d\r\n",cmd);
+    printf("length:%d\r\n",ntohs(length));
+    GPS *temp = NULL;
+    GPS *gps = reinterpret_cast<GPS*> (data);
+    for(int i = 0; i < ntohs(length)/sizeof(GPS); i++)
+    {
+        temp = (GPS *)gps + i;
+        DB::instance().addGPS(imei, temp);
+    }
 }
