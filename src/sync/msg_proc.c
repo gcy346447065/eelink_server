@@ -149,6 +149,10 @@ int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
     while(root = cJSON_ParseWithOpts(msg, &msg, 0))
     {
         cJSON* cmd = cJSON_GetObjectItem(root, TAG_CMD);
+	if (!cmd)
+	{
+		continue;
+	}
 
         switch (cmd->valueint)
         {
