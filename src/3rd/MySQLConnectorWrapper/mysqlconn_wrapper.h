@@ -30,7 +30,7 @@ class MySQLConnWrapper
             password = p; //"";
         };
         ~MySQLConnWrapper();
-        void manageException(sql::SQLException& e);
+        void manageException(sql::SQLException& e, string file, int line, string function);
         void connect();
         void switchDb(const string& db_name);
         void prepare(const string& query);

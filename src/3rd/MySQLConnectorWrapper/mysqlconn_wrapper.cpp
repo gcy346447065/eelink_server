@@ -28,11 +28,11 @@ MySQLConnWrapper::~MySQLConnWrapper()
     delete con;
 }
 
-void MySQLConnWrapper::manageException(sql::SQLException& e)
+void MySQLConnWrapper::manageException(sql::SQLException& e, string file, int line, string function)
 {
     if (e.getErrorCode() != 0){
-        cout << "# ERR: SQLException in " << __FILE__;
-        cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
+        cout << "# ERR: SQLException in " << file;
+        cout << "(" << function << ") on line " << line << endl;
         cout << "# ERR: " << e.what();
         cout << " (MySQL error code: " << e.getErrorCode();
         cout << ", SQLState: " << e.getSQLState() << " )" << endl;
@@ -45,7 +45,7 @@ void MySQLConnWrapper::connect()
         driver = get_driver_instance();
         con = driver->connect(host, user, password);
     } catch (sql::SQLException &e){
-        manageException(e);
+        manageException(e, __FILE__, __LINE__, __FUNCTION__);
     }
 }
 
@@ -55,7 +55,7 @@ void MySQLConnWrapper::switchDb(const string& db_name)
         con->setSchema(db_name);
         stmt = con->createStatement();
     } catch (sql::SQLException &e) {
-        manageException(e);
+        manageException(e, __FILE__, __LINE__, __FUNCTION__);
     }
 }
 
@@ -64,7 +64,7 @@ void MySQLConnWrapper::prepare(const string& query)
     try{
         prep_stmt = con->prepareStatement(query);
     } catch (sql::SQLException &e){
-        manageException(e);
+        manageException(e, __FILE__, __LINE__, __FUNCTION__);
     }
 }
 
@@ -93,7 +93,7 @@ void MySQLConnWrapper::execute(const string& query)
     		prep_stmt->close();
     	}
     } catch (sql::SQLException &e) {
-        manageException(e);
+        manageException(e, __FILE__, __LINE__, __FUNCTION__);
     }
 }
 
