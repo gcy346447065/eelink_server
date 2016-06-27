@@ -12,18 +12,14 @@ using namespace std;
 
 void Message::process()
 {
-    //TODO: to be fixed
-    printf("signature:%4x\r\n",ntohs(signature));
-    printf("imei:%s\r\n",imei);
-    printf("cmd:%d\r\n",cmd);
-    printf("length:%d\r\n",ntohs(length));
+    GPS *gps = reinterpret_cast<GPS*> (data);
+    GPS *pGPS = NULL;
 
     string IMEI(imei, imei + IMEI_LENGTH);
-    GPS *temp = NULL;
-    GPS *gps = reinterpret_cast<GPS*> (data);
+
     for(int i = 0; i < ntohs(length)/sizeof(GPS); i++)
     {
-        temp = (GPS *)gps + i;
-        DB::instance().addGPS(imei, temp);
+        pGPS = (GPS *)gps + i;
+        DB::instance().addGPS(IMEI, pGPS);
     }
 }

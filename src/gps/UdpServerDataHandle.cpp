@@ -8,8 +8,6 @@
 
 void CUdpServerDataHandle::OnDataReceived(unsigned int IP, unsigned short Port, const char *pData, int nLen)
 {
-    //TODO: push the message into list, and start multi-thread to process it
-
     if (nLen < sizeof(Message))
     {
         return;
