@@ -1082,6 +1082,7 @@ static int simcom_DefendOn(const void *msg, SESSION *session)
     const char *strIMEI = obj->IMEI;
 
     LOG_INFO("imei(%s) DefendOn result(%d)", obj->IMEI, rsp->result);
+    db_add_log(obj->IMEI, "DefendOn");
 
     if(rsp->result == 0)
     {
@@ -1125,7 +1126,7 @@ static int simcom_DefendOff(const void *msg, SESSION *session)
 
     LOG_INFO("imei(%s) DefendOff result(%d)", obj->IMEI, rsp->result);
 
-    db_add_log(obj->IMEI, "defendoff");
+    db_add_log(obj->IMEI, "DefendOff");
 
     if(rsp->result == 0)
     {
