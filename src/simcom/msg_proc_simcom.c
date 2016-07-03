@@ -1121,6 +1121,8 @@ static int simcom_DefendOff(const void *msg, SESSION *session)
 
     LOG_INFO("imei(%s) DefendOff result(%d)", obj->IMEI, rsp->result);
 
+    db_add_log(obj->IMEI, "defendoff");
+
     if(rsp->result == 0)
     {
         app_sendCmdRsp2App(APP_CMD_FENCE_OFF, CODE_SUCCESS, strIMEI);
