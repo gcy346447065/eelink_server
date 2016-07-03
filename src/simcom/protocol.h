@@ -1,12 +1,26 @@
 /*
  * protocol.h
  *
- *  Created on: 2015年6月29日
+ *  Created on: 2015/6/29
  *      Author: jk
+ *
+ *  Copyright (c) 2015 Wuhan Xiaoan Technology Co., Ltd. All rights reserved.
+ *
+ *  Change log:
+ *      2.15    去掉CMD_LOGIN中的CCID字段
+ *              增加CMD_SIM_INFO命令字
+ *
  */
 
 #ifndef _PROTOCOL_H_
 #define _PROTOCOL_H_
+
+enum
+{
+    PROTOCOL_VESION_251 = 215,
+};
+
+#define PROTOCOL_VERSION    PROTOCOL_VESION_251
 
 #define START_FLAG (0xAA55)
 #define MAX_IMEI_LENGTH 15
@@ -14,6 +28,7 @@
 #define MAX_IMSI_LENGTH 15
 #define MAX_CELL_NUM 7
 #define TEL_NO_LENGTH 11
+
 
 enum
 {
@@ -52,16 +67,21 @@ enum
     CMD_UPGRADE_DATA    = 24,
     CMD_UPGRADE_END     = 25,
     CMD_SIM_INFO        = 26,
+    //CMD_REBOOT          = 27,
     CMD_DEVICE_INFO_GET = 28,
-    CMD_GPS_PACK        = 29
+    CMD_GPS_PACK        = 29,
 };
 
 enum
 {
     MSG_SUCCESS = 0,
+    MSG_VERSION_NOT_SUPPORTED = -1,
+    MSG_DISK_NO_SPACE = -2,
+    MSG_UPGRADE_CHECKSUM_FAILED = -3,
 };
 
 #pragma pack(push, 1)
+
 /*
  * Message header definition
  */
@@ -74,6 +94,12 @@ typedef struct
 }__attribute__((__packed__)) MSG_HEADER;
 
 #define MSG_HEADER_LEN sizeof(MSG_HEADER)
+
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+}__attribute__((__packed__)) MSG_GET_HEADER;
 
 /*
  * get log message structure
@@ -92,7 +118,6 @@ typedef struct
     char data[];
 }__attribute__((__packed__)) MSG_GET_AT_RSP;
 
-
 /*
  * reboot message structure
  */
@@ -101,11 +126,7 @@ typedef MSG_HEADER MSG_REBOOT_REQ;
 /*
  * get log message structure
  */
-typedef struct
-{
-    MSG_HEADER header;
-    int managerSeq;
-}__attribute__((__packed__)) MSG_GET_LOG_REQ;
+typedef MSG_GET_HEADER MSG_GET_LOG_REQ;
 
 typedef struct
 {
@@ -117,11 +138,7 @@ typedef struct
 /*
  * get 433 message structure
  */
-typedef struct
-{
-    MSG_HEADER header;
-    int managerSeq;
-}__attribute__((__packed__)) MSG_GET_433_REQ;
+typedef MSG_GET_HEADER MSG_GET_433_REQ;
 
 typedef struct
 {
@@ -133,11 +150,7 @@ typedef struct
 /*
  * get GSM message structure
  */
-typedef struct
-{
-    MSG_HEADER header;
-    int managerSeq;
-}__attribute__((__packed__)) MSG_GET_GSM_REQ;
+typedef MSG_GET_HEADER MSG_GET_GSM_REQ;
 
 typedef struct
 {
@@ -149,11 +162,7 @@ typedef struct
 /*
  * get GPS message structure
  */
-typedef struct
-{
-    MSG_HEADER header;
-    int managerSeq;
-}__attribute__((__packed__)) MSG_GET_GPS_REQ;
+typedef MSG_GET_HEADER MSG_GET_GPS_REQ;
 
 typedef struct
 {
@@ -165,11 +174,7 @@ typedef struct
 /*
  * get setting message structure
  */
-typedef struct
-{
-    MSG_HEADER header;
-    int managerSeq;
-}__attribute__((__packed__)) MSG_GET_SETTING_REQ;
+typedef MSG_GET_HEADER MSG_GET_SETTING_REQ;
 
 typedef struct
 {
@@ -181,11 +186,7 @@ typedef struct
 /*
  * get battery message structure
  */
-typedef struct
-{
-    MSG_HEADER header;
-    int managerSeq;
-}__attribute__((__packed__)) MSG_GET_BATTERY_REQ;
+typedef MSG_GET_HEADER MSG_GET_BATTERY_REQ;
 
 typedef struct
 {
@@ -273,8 +274,10 @@ typedef struct
 enum ALARM_TYPE
 {
     ALARM_FENCE_OUT = 1,
-    ALARM_FENCE_IN,
-    ALARM_VIBRATE,
+    ALARM_FENCE_IN  = 2,
+    ALARM_VIBRATE   = 3,
+    ALARM_BATTERY50 = 4,
+    ALARM_BATTERY30 = 5,
 };
 
 typedef struct
@@ -565,6 +568,14 @@ typedef struct
     MSG_HEADER header;
     GPS gps[];
 }__attribute__((__packed__)) MSG_GPS_PACK;
+
+typedef MSG_HEADER MSG_DEBUG_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MSG_DEBUG_RSP;
 
 #pragma pack(pop)
 

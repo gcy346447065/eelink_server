@@ -16,6 +16,7 @@
 #include "mqtt.h"
 #include "object.h"
 
+#define MAX_TOPIC_LEN 50
 
 static void app_sendMsg2App(const char *topic, const void *msg, size_t len)
 {
@@ -28,9 +29,9 @@ static void app_sendMsg2App(const char *topic, const void *msg, size_t len)
 /* dev2app/<imei>/cmd */
 void app_sendCmdRsp2App(int cmd, int code, const char *strIMEI)
 {
-    char topic[IMEI_LENGTH + 13];
+    char topic[MAX_TOPIC_LEN];
     memset(topic, 0, sizeof(topic));
-    snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/cmd", strIMEI);
+    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/cmd", strIMEI);
 
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "cmd", cmd);
@@ -62,9 +63,9 @@ void app_sendFenceGetRsp2App(int cmd, int code, int state, void *session)
         return;
     }
 
-    char topic[IMEI_LENGTH + 13];
+    char topic[MAX_TOPIC_LEN];
     memset(topic, 0, sizeof(topic));
-    snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/cmd", obj->IMEI);
+    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/cmd", obj->IMEI);
 
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "cmd", cmd);
@@ -78,7 +79,7 @@ void app_sendFenceGetRsp2App(int cmd, int code, int state, void *session)
 
     app_sendMsg2App(topic, json, strlen(json));
 
-    LOG_INFO("send fence get response to APP, imei(%s), code(%d), state(%d)", 
+    LOG_INFO("send fence get response to APP, imei(%s), code(%d), state(%d)",
              obj->IMEI, code, state);
 
     free(json);
@@ -89,9 +90,9 @@ void app_sendFenceGetRsp2App(int cmd, int code, int state, void *session)
 
 void app_sendLocationRsp2App(int code, OBJECT *obj)
 {
-    char topic[IMEI_LENGTH + 13];
+    char topic[MAX_TOPIC_LEN];
     memset(topic, 0, sizeof(topic));
-    snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/cmd", obj->IMEI);
+    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/cmd", obj->IMEI);
 
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "cmd", APP_CMD_LOCATION);
@@ -126,9 +127,9 @@ void app_sendAutoPeriodGetRsp2App(int cmd, int code, int period, void *session)
         LOG_ERROR("obj null, no data to upload");
         return;
     }
-    char topic[IMEI_LENGTH + 13];
+    char topic[MAX_TOPIC_LEN];
     memset(topic, 0, sizeof(topic));
-    snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/cmd", obj->IMEI);
+    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/cmd", obj->IMEI);
 
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "cmd", cmd);
@@ -141,7 +142,7 @@ void app_sendAutoPeriodGetRsp2App(int cmd, int code, int period, void *session)
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send auto period get response to APP, imei(%s), code(%d), period(%d)", 
+    LOG_INFO("send auto period get response to APP, imei(%s), code(%d), period(%d)",
              obj->IMEI, code, period);
 
     free(json);
@@ -158,9 +159,9 @@ void app_sendAutoLockGetRsp2App(int cmd, int code, int state, void *session)
         LOG_ERROR("obj null, no data to upload");
         return;
     }
-    char topic[IMEI_LENGTH + 13];
+    char topic[MAX_TOPIC_LEN];
     memset(topic, 0, sizeof(topic));
-    snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/cmd", obj->IMEI);
+    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/cmd", obj->IMEI);
 
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "cmd", cmd);
@@ -190,9 +191,9 @@ void app_sendBatteryRsp2App(int cmd, int code, int percent, int miles, void *ses
         LOG_ERROR("obj null, no data to upload");
         return;
     }
-    char topic[IMEI_LENGTH + 13];
+    char topic[MAX_TOPIC_LEN];
     memset(topic, 0, sizeof(topic));
-    snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/cmd", obj->IMEI);
+    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/cmd", obj->IMEI);
 
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "cmd", cmd);
@@ -217,9 +218,9 @@ void app_sendBatteryRsp2App(int cmd, int code, int percent, int miles, void *ses
 
 void app_sendStatusGetRsp2App(int cmd, int code, OBJECT *obj, char autolock, char autoperiod, char percent, char miles, char status)
 {
-    char topic[IMEI_LENGTH + 13];
+    char topic[MAX_TOPIC_LEN];
     memset(topic, 0, sizeof(topic));
-    snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/cmd", obj->IMEI);
+    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/cmd", obj->IMEI);
 
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "cmd", cmd);
@@ -253,10 +254,10 @@ void app_sendStatusGetRsp2App(int cmd, int code, OBJECT *obj, char autolock, cha
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send status get response to APP, imei(%s), code(%d)," 
+    LOG_INFO("send status get response to APP, imei(%s), code(%d),"
              "isGPSlocated(%d), timestamp(%d), lat(%f), lng(%f), speed(%d), course(%d),"
              "lock(%d), isOn(%d), period(%d), percent(%d), miles(%d)",
-              obj->IMEI, code, obj->isGPSlocated, obj->timestamp, obj->lat, obj->lon, 
+              obj->IMEI, code, obj->isGPSlocated, obj->timestamp, obj->lat, obj->lon,
               obj->speed, obj->course, status, autolock, autoperiod, percent, miles);
 
     free(json);
@@ -281,9 +282,9 @@ void app_sendGpsMsg2App(void* session)
         return;
     }
 
-    char topic[IMEI_LENGTH + 13];
+    char topic[MAX_TOPIC_LEN];
     memset(topic, 0, sizeof(topic));
-    snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/gps", obj->IMEI);
+    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/gps", obj->IMEI);
 
     cJSON * root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "timestamp", obj->timestamp);
@@ -312,9 +313,9 @@ void app_send433Msg2App(int timestamp, int intensity, void * session)
         LOG_ERROR("obj null, no data to upload");
         return;
     }
-    char topic[IMEI_LENGTH + 13];
+    char topic[MAX_TOPIC_LEN];
     memset(topic, 0, sizeof(topic));
-    snprintf(topic, IMEI_LENGTH + 13, "dev2app/%s/433", obj->IMEI);
+    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/433", obj->IMEI);
 
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "timestamp", timestamp);
@@ -337,9 +338,28 @@ void app_sendAlarmMsg2App(int type, const char *msg, void *session)
         LOG_ERROR("obj null, no data to upload");
         return;
     }
-    char topic[IMEI_LENGTH + 15];
+    char topic[MAX_TOPIC_LEN];
     memset(topic, 0, sizeof(topic));
-    snprintf(topic, IMEI_LENGTH + 15, "dev2app/%s/alarm", obj->IMEI);
+    switch(type)
+    {
+        case 1:
+        case 2:
+        case 3:
+            snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/alarm", obj->IMEI);
+            break;
+
+        case 4:
+            snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/battery50%", obj->IMEI);//TODO:protocol
+            break;
+
+        case 5:
+            snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/battery30%", obj->IMEI);//TODO:protocol
+            break;
+
+        default:
+            break;
+
+    }
 
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "type", type);
@@ -368,9 +388,9 @@ void app_sendDebugMsg2App(const char *msg, size_t length, void *session)
         LOG_ERROR("object null,internal error");
         return;
     }
-    char topic[IMEI_LENGTH + 15];
+    char topic[MAX_TOPIC_LEN];
     memset(topic, 0, sizeof(topic));
-    snprintf(topic, IMEI_LENGTH + 15, "dev2app/%s/debug", obj->IMEI);
+    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/debug", obj->IMEI);
 
     app_sendMsg2App(topic, msg, length);
     LOG_INFO("send debug msg to APP, imei(%s)", obj->IMEI);
@@ -387,9 +407,9 @@ void app_sendNotifyMsg2App(int notify, int timestamp, int lock_status, void *ses
         LOG_ERROR("object null,internal error");
         return;
     }
-    char topic[IMEI_LENGTH + 16];
+    char topic[MAX_TOPIC_LEN];
     memset(topic, 0, sizeof(topic));
-    snprintf(topic, IMEI_LENGTH + 16, "dev2app/%s/notify", obj->IMEI);
+    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/notify", obj->IMEI);
 
     cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "notify", notify);

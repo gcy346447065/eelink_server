@@ -268,17 +268,17 @@ int tk115_status(const void *msg, SESSION *ctx)
 
 	switch (req->type)
 	{
-	case ACC_ON:
-		LOG_INFO("STATUS: acc on");
-		break;
-	case ACC_OFF:
-		LOG_INFO("STATUS: acc off");
-		break;
-	case DIGTAL:
-		LOG_INFO("STATUS: digital port status changed");
-		break;
-	default:
-		break;
+    	case ACC_ON:
+    		break;
+
+    	case ACC_OFF:
+    		break;
+
+    	case DIGTAL:
+    		break;
+
+    	default:
+    		break;
 	}
 
 	MC_MSG_STATUS_RSP* rsp = (MC_MSG_STATUS_RSP *)alloc_rspMsg(msg);

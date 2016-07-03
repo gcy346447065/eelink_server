@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <glog/logging.h>
+
+
 #include "iserver.h"
 #include "UdpServerDataHandle.h"
 
@@ -9,9 +12,14 @@
 int main(int argc, char **argv)
 {
 
+    google::InitGoogleLogging(argv[0]);
+
+
     IUdpServer* pUdpServer = CreateUdpServerInstance();
     CUdpServerDataHandle udpServerDataHandle;
     pUdpServer->SetDataHandle(&udpServerDataHandle);
+
+    LOG(INFO) << "gps server started";
 
     pUdpServer->Start(0, PORT);
 

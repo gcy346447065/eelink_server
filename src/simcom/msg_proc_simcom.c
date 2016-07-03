@@ -391,7 +391,7 @@ static int simcom_alarm(const void *msg, SESSION *session)
     //yunba_publish(obj->IMEI, YUNBA_CMD_ALARM, 0);
 
     //send alarm by jiguang push
-    jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, 0);
+    jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
 
     LOG_INFO("imei(%s) send alarm(%d)", obj->IMEI, req->alarmType);
 
