@@ -30,6 +30,13 @@ static void obj_add_db(OBJECT *obj)
 	LOG_INFO("obj %s added to DB", obj->IMEI);
 }
 
+static void _obj_update_db(OBJECT *obj)
+{
+	db_updateOBJ(obj->IMEI, obj->ObjectType, obj->CCID, obj->IMSI);
+	LOG_INFO("obj %s update to DB", obj->IMEI);
+}
+
+
 /* it is a callback to initialize object_table.Func db_doWithOBJ needs it to handle with every result(imei, lastlogintime).*/
 static void obj_initial(const char *imei)
 {
@@ -158,6 +165,12 @@ void obj_add(OBJECT *obj)
 	obj_add_hash(obj);
 	obj_add_db(obj);
 }
+
+void obj_update_db(OBJECT *obj)
+{
+	_obj_update_db(obj);
+}
+
 
 void obj_del(OBJECT *obj)
 {

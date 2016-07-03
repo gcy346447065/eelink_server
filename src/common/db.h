@@ -29,6 +29,7 @@ int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cel
 
 int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *), int ObjectType);
 int db_insertOBJ(const char *imeiName, int ObjectType, const char *CCID, const char *IMSI);
+int db_updateOBJ(const char *imeiName, int ObjectType, const char *CCID, const char *IMSI);
 int db_updateOBJIsPosted(const char *imeiName);
 int db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*));
 

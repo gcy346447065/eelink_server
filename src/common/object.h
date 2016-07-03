@@ -50,7 +50,7 @@ typedef struct
 
     CGI_MC cell[CELL_NUM];
     char isGPSlocated;
-    
+
     short status;
     short voltage;
     short analog1;
@@ -80,6 +80,7 @@ void obj_table_destruct();
 
 OBJECT *obj_new();
 void obj_add(OBJECT *obj);
+void obj_update_db(OBJECT *obj);
 void obj_del(OBJECT *obj);
 OBJECT *obj_get(const char IMEI[]);
 

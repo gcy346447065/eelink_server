@@ -133,6 +133,10 @@ static int simcom_login(const void *msg, SESSION *session)
             sync_newIMEI(obj->IMEI);
             mqtt_subscribe(obj->IMEI);
         }
+        else
+        {
+            obj_update_db(obj);
+        }
 
         session->obj = obj;
         session_add(session);

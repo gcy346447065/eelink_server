@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   db.c
  * Author: jk
  *
@@ -457,6 +457,25 @@ static int _db_insertOBJ(const char *imeiName, int ObjectType, const char *CCID,
     return 0;
 }
 
+static int _db_updateOBJ(const char *imeiName, int ObjectType, const char *CCID, const char *IMSI)
+{
+    char query[MAX_QUERY];
+    snprintf(query, MAX_QUERY, "update set object CCID = \'%s\', IMSI = \'%s\' where imei = \'%s\'", CCID, IMSI, imeiName);
+
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_ERROR("can't update %s info object(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+    return 0;
+}
+
 static int _db_updateOBJIsPosted(const char *imeiName)
 {
     char query[MAX_QUERY];
@@ -651,6 +670,16 @@ int db_insertOBJ(const char *imeiName, int ObjectType, const char *CCID, const c
     return 0;
 #endif
 }
+
+int db_updateOBJ(const char *imeiName, int ObjectType, const char *CCID, const char *IMSI)
+{
+#ifdef WITH_DB
+    return _db_updateOBJ(imeiName, ObjectType, CCID, IMSI);
+#else
+    return 0;
+#endif
+}
+
 
 int db_updateOBJIsPosted(const char *imeiName)
 {
