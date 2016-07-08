@@ -60,8 +60,8 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
                         break;
 
                     case 4:
-                        cJSON_AddStringToObject(android, "alert", "battery below50%");
-                        cJSON_AddStringToObject(ios, "alert", "battery below50%%");
+                        cJSON_AddStringToObject(android, "alert", "battery below 50%");
+                        cJSON_AddStringToObject(ios, "alert", "battery below 50%");
                         cJSON_AddStringToObject(ios, "sound", "default");
                         break;
 
