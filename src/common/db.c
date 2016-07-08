@@ -460,7 +460,7 @@ static int _db_insertOBJ(const char *imeiName, int ObjectType, const char *CCID,
 static int _db_updateOBJ(const char *imeiName, int ObjectType, const char *CCID, const char *IMSI)
 {
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "update set object CCID = \'%s\', IMSI = \'%s\' where imei = \'%s\'", CCID, IMSI, imeiName);
+    snprintf(query, MAX_QUERY, "update object set CCID = \'%s\', IMSI = \'%s\' where imei = \'%s\'", CCID, IMSI, imeiName);
 
     if(mysql_ping(conn))
     {
