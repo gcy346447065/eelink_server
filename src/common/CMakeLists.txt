@@ -28,10 +28,10 @@ SET(SOURCE_FILE
 
     conf.c
     conf.h
-    
+
     session.h
     session.c
-    
+
     mqtt.h
     mqtt.c
 
@@ -52,6 +52,15 @@ SET(SOURCE_FILE
 
     ../3rd/cJSON/cJSON.c
     ../3rd/cJSON/cJSON.h
+
+    call_push.h
+    call_push.c
+
+    cencode.h
+    cencode.c
+
+    md5.c
+    md5.h
     )
 
 MESSAGE(STATUS "configure common library")
