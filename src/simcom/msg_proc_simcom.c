@@ -29,6 +29,7 @@
 #include "firmware_upgrade.h"
 #include "session_manager.h"
 #include "msg_manager.h"
+#include "call_push.h"
 
 typedef int (*MSG_PROC)(const void *msg, SESSION *ctx);
 typedef struct
@@ -383,7 +384,10 @@ static int simcom_alarm(const void *msg, SESSION *session)
         LOG_WARN("MC must first login");
         return -1;
     }
-
+    if(strstr(obj->IMEI, "52600"))
+    {
+        call_Send("15527222798");
+    }
     //send to APP by MQTT
     app_sendAlarmMsg2App(req->alarmType, NULL, session);
 

@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <curl/curl.h>
+#include <time.h>
 
 #include "call_push.h"
 #include "log.h"
@@ -19,38 +20,48 @@ static struct curl_slist *getYunzxHeader(char *timeString)
 {
     char base64[64];
     char Authorization[80];
-
-    snprintf(base64, 64, "2155bf74725e01c68e3ae717fa14e13b:%s", timeString);
-    snprintf(Authorization, 80, "Authorization:%s", encode(base64));
-
     static struct curl_slist *headerlist = NULL;
+
+    snprintf(base64, 64, "Authorization:2155bf74725e01c68e3ae717fa14e13b:%s", timeString);
+    snprintf(Authorization, 80, "%s", encode(base64));
     if(!headerlist)
     {
         headerlist = curl_slist_append(headerlist, "Accept:application/json");
-        headerlist = curl_slist_append(headerlist, "Content-Type:application/xml;charset=utf-8");
-        headerlist = curl_slist_append(headerlist, "Content-Length:256");
+        headerlist = curl_slist_append(headerlist, "Content-Type:application/json;charset=utf-8");
         headerlist = curl_slist_append(headerlist, Authorization);
     }
 
     return headerlist;
 }
 
-static char *md5Encode(char *timeString)
+static void MD5encode(char *timeString, char *result)
 {
     MD5_CTX md5;
-    unsigned char result[32];
-    unsigned char encrypt[80];
-    snprintf(encrypt, 80, "2155bf74725e01c68e3ae717fa14e13b+token+%s", timeString);
+    char encrypt[80];
+    snprintf(encrypt, 80, "2155bf74725e01c68e3ae717fa14e13b902948affd07940b8bb09637d7745c55%s", timeString);
     MD5Init(&md5);
     MD5Update(&md5, encrypt, strlen((char *)encrypt));
     MD5Final(&md5, result);
-    return result;
+    LOG_DEBUG("md5:%s",result);
 };
 
-static char *getYunzxURL(char *timeString)
+static void get_timeString(char *timeString)
 {
-    char md5[64];
-    snprintf(md5,64,"https://api.ucpaas.com/2014-06-30/Accounts/2155bf74725e01c68e3ae717fa14e13b/Calls/voiceNotify?sig=%s",md5Encode(timeString));
+    long ts;
+    struct tm *ptm;
+
+    ts = time(NULL);
+    ptm = localtime(&ts);
+    snprintf(timeString, 15, "%04d%02d%02d%02d%02d%02d", ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday, ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
+    LOG_DEBUG("TIME STRING:%s",timeString);
+}
+
+static void get_YunzxURL(char *timeString, char *URL)
+{
+    char result[32];
+    MD5encode(timeString,result);
+    snprintf(URL,256,"https://api.ucpaas.com/2014-06-30/Accounts/2155bf74725e01c68e3ae717fa14e13b/Calls/voiceNotify?sig=%s",result);
+    LOG_DEBUG("url :%s",URL);
 }
 
 
@@ -79,9 +90,19 @@ size_t call_Send_onPush(void *contents, size_t size, size_t nmemb, void *userdat
     return size * nmemb;
 }
 
-int call_Send(char *number)//TODO: need a project id
+int call_Send(char *number)
 {
     int ret = 0;
+
+    char URL[256] = {0};
+    char timeString[15] = {0};
+
+    get_timeString(timeString);
+    get_YunzxURL(timeString, URL);
+
+
+
+
     CURL *curl = curl_easy_init();
     if(curl)
     {
@@ -91,7 +112,7 @@ int call_Send(char *number)//TODO: need a project id
         cJSON_AddStringToObject(voiceNotify, "appId", "8a216da85610bfb80156179b4ae60564");
         cJSON_AddStringToObject(voiceNotify, "to", number);
         cJSON_AddStringToObject(voiceNotify, "type", "0");
-        cJSON_AddStringToObject(voiceNotify, "content", "≤‚ ‘");
+        cJSON_AddStringToObject(voiceNotify, "content", "9056");
         cJSON_AddStringToObject(voiceNotify, "toSerNum", "075512345678");
         cJSON_AddStringToObject(voiceNotify, "playTimes", "3");
 
@@ -101,9 +122,10 @@ int call_Send(char *number)//TODO: need a project id
 
         LOG_DEBUG("%s", data);
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
+
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-        curl_easy_setopt(curl, CURLOPT_URL, getYunzxURL("20160806115030"));
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, getYunzxHeader("20160806102530"));
+        curl_easy_setopt(curl, CURLOPT_URL, URL);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, getYunzxHeader(timeString));
 
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data); /* pass in a pointer to the data - libcurl will not copy */
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(data)); /* size of the POST data */
@@ -114,7 +136,7 @@ int call_Send(char *number)//TODO: need a project id
         CURLcode res = curl_easy_perform(curl);
         if(CURLE_OK != res)
         {
-            LOG_ERROR("call alarm send failed: %s", curl_easy_strerror(res));
+            LOG_ERROR("call alarm send failed: %d:%s", res,curl_easy_strerror(res));
             ret = -2;
         }
 
