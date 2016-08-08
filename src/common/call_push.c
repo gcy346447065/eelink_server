@@ -122,6 +122,8 @@ int call_Send(char *number)
         LOG_DEBUG("%s", timeString);
         LOG_DEBUG("%s", URL);
         LOG_DEBUG("%s", data);
+        LOG_HEX(URL,256);
+        LOG_HEX(data,150);
 
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);//print the error unexpected
