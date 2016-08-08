@@ -18,16 +18,17 @@
 
 static struct curl_slist *getYunzxHeader(char *timeString)
 {
-    char base64[64];
-    char Authorization[80];
+    char Authorization[80] = {0};
+    char base64[65] = {0};
     static struct curl_slist *headerlist = NULL;
 
-    snprintf(base64, 64, "Authorization:2155bf74725e01c68e3ae717fa14e13b:%s", timeString);
-    snprintf(Authorization, 80, "%s", encode(base64));
+    snprintf(base64, 65, "2155bf74725e01c68e3ae717fa14e13b:%14s", timeString);//accountSid:time base64
+    snprintf(Authorization, 80, "Authorization: %64s", encode(base64));
+    Authorization[strlen(Authorization)] = 0;
     if(!headerlist)
     {
-        headerlist = curl_slist_append(headerlist, "Accept:application/json");
-        headerlist = curl_slist_append(headerlist, "Content-Type:application/json;charset=utf-8");
+        headerlist = curl_slist_append(headerlist, "Accept: application/json");
+        headerlist = curl_slist_append(headerlist, "Content-Type: application/json;charset=utf-8");
         headerlist = curl_slist_append(headerlist, Authorization);
     }
 
@@ -36,13 +37,14 @@ static struct curl_slist *getYunzxHeader(char *timeString)
 
 static void MD5encode(char *timeString, char *result)
 {
-    MD5_CTX md5;
-    char encrypt[80];
-    snprintf(encrypt, 80, "2155bf74725e01c68e3ae717fa14e13b902948affd07940b8bb09637d7745c55%s", timeString);
+    MD5_CTX md5 = {0};
+    char encrypt[85] = {0};
+    snprintf(encrypt, 85, "2155bf74725e01c68e3ae717fa14e13b902948affd07940b8bb09637d7745c55%14s", timeString);//account+Sidtoken+time md5
     MD5Init(&md5);
-    MD5Update(&md5, encrypt, strlen((char *)encrypt));
+    MD5Update(&md5, encrypt, strlen(encrypt));
     MD5Final(&md5, result);
-    LOG_DEBUG("md5:%s",result);
+    result[32] = 0;
+    LOG_DEBUG("%d:%s", strlen(encrypt), encrypt);
 };
 
 static void get_timeString(char *timeString)
@@ -53,15 +55,13 @@ static void get_timeString(char *timeString)
     ts = time(NULL);
     ptm = localtime(&ts);
     snprintf(timeString, 15, "%04d%02d%02d%02d%02d%02d", ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday, ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
-    LOG_DEBUG("TIME STRING:%s",timeString);
 }
 
 static void get_YunzxURL(char *timeString, char *URL)
 {
-    char result[32];
+    char result[33] = {0};
     MD5encode(timeString,result);
-    snprintf(URL,256,"https://api.ucpaas.com/2014-06-30/Accounts/2155bf74725e01c68e3ae717fa14e13b/Calls/voiceNotify?sig=%s",result);
-    LOG_DEBUG("url :%s",URL);
+    snprintf(URL,256,"https://api.ucpaas.com/2014-06-30/Accounts/2155bf74725e01c68e3ae717fa14e13b/Calls/voiceNotify?sig=%32s",result);
 }
 
 
@@ -99,9 +99,8 @@ int call_Send(char *number)
 
     get_timeString(timeString);
     get_YunzxURL(timeString, URL);
-
-
-
+    timeString[14] = 0;
+    URL[strlen(URL)] = 0;
 
     CURL *curl = curl_easy_init();
     if(curl)
@@ -109,21 +108,23 @@ int call_Send(char *number)
         cJSON *root = cJSON_CreateObject();
         cJSON *voiceNotify = cJSON_CreateObject();
 
-        cJSON_AddStringToObject(voiceNotify, "appId", "8a216da85610bfb80156179b4ae60564");
+        cJSON_AddStringToObject(voiceNotify, "appId", "a68e98684e5547ea874b00628e6ea28f");
         cJSON_AddStringToObject(voiceNotify, "to", number);
-        cJSON_AddStringToObject(voiceNotify, "type", "0");
-        cJSON_AddStringToObject(voiceNotify, "content", "9056");
+        cJSON_AddStringToObject(voiceNotify, "type", "1");
+        cJSON_AddStringToObject(voiceNotify, "content", "469802");
         cJSON_AddStringToObject(voiceNotify, "toSerNum", "075512345678");
-        cJSON_AddStringToObject(voiceNotify, "playTimes", "3");
+        cJSON_AddStringToObject(voiceNotify, "playTimes", "1");
 
         cJSON_AddItemToObject(root, "voiceNotify", voiceNotify);
 
         char *data = cJSON_PrintUnformatted(root);
 
+        LOG_DEBUG("%s", timeString);
+        LOG_DEBUG("%s", URL);
         LOG_DEBUG("%s", data);
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
 
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);//print the error unexpected
         curl_easy_setopt(curl, CURLOPT_URL, URL);
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, getYunzxHeader(timeString));
 
