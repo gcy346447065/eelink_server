@@ -38,13 +38,12 @@ static struct curl_slist *getYunzxHeader(char *timeString)
 static void MD5encode(char *timeString, char *result)
 {
     MD5_CTX md5 = {0};
-    char encrypt[85] = {0};
-    snprintf(encrypt, 85, "2155bf74725e01c68e3ae717fa14e13b902948affd07940b8bb09637d7745c55%14s", timeString);//account+Sidtoken+time md5
+    char encrypt[79] = {0};
+
+    snprintf(encrypt, 79, "2155bf74725e01c68e3ae717fa14e13b902948affd07940b8bb09637d7745c55%14s", timeString);//account+Sidtoken+time md5
     MD5Init(&md5);
     MD5Update(&md5, encrypt, strlen(encrypt));
     MD5Final(&md5, result);
-    result[32] = 0;
-    LOG_DEBUG("%d:%s", strlen(encrypt), encrypt);
 };
 
 static void get_timeString(char *timeString)
@@ -61,7 +60,9 @@ static void get_YunzxURL(char *timeString, char *URL)
 {
     char result[33] = {0};
     MD5encode(timeString,result);
+    result[strlen(result)] = 0;
     snprintf(URL,256,"https://api.ucpaas.com/2014-06-30/Accounts/2155bf74725e01c68e3ae717fa14e13b/Calls/voiceNotify?sig=%32s",result);
+    URL[strlen(URL)] = 0;
 }
 
 
@@ -98,13 +99,14 @@ int call_Send(char *number)
     char timeString[15] = {0};
 
     get_timeString(timeString);
-    get_YunzxURL(timeString, URL);
     timeString[14] = 0;
+    get_YunzxURL(timeString, URL);
     URL[strlen(URL)] = 0;
 
     CURL *curl = curl_easy_init();
     if(curl)
     {
+        curl_easy_reset(curl);
         cJSON *root = cJSON_CreateObject();
         cJSON *voiceNotify = cJSON_CreateObject();
 

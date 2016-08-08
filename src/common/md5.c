@@ -52,9 +52,9 @@ void MD5Final(MD5_CTX *context, char *result)
 	MD5Update(context, PADDING, padlen);
 	MD5Update(context, bits, 8);
 	MD5Encode(digest, context->state, 16);
-	for (int i = 0; i < 16; i++)
+	for (int i = 0; i < 16; ++i)
 	{
-		sprintf(result+2*i,"%02X", digest[i]);
+		sprintf(&result[i * 2], "%02X", digest[i]);
 	}
 }
 void MD5Encode(unsigned char *output, unsigned int *input, unsigned int len)
