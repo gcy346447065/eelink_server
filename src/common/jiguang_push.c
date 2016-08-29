@@ -106,7 +106,6 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
         LOG_DEBUG("%s", data);
 
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
         curl_easy_setopt(curl, CURLOPT_URL, "https://api.jpush.cn/v3/push");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, getJiguangHeader());
         curl_easy_setopt(curl, CURLOPT_USERPWD, "b6b26e2547ad8e5f6018b225:ce9800560f464ea8b815407f");
