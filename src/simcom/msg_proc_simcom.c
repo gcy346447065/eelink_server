@@ -357,6 +357,14 @@ static int simcom_cell(const void *msg, SESSION *session)
     return 0;
 }
 
+static int simcom_itinerary_push(const char *imei, int miles)
+{
+
+    sync_itinerary(imei, miles);
+
+    return 0;
+}
+
 static int simcom_alarm(const void *msg, SESSION *session)
 {
     const MSG_ALARM_REQ *req = (const MSG_ALARM_REQ *)msg;
@@ -983,26 +991,7 @@ static int simcom_itinerary(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("imei(%s) itinerary: start(%d), end(%d), miles(%d)",
-         obj->IMEI, ntohl(req->start), ntohl(req->end), ntohl(req->miles));
-
-    static int last_start = 0;
-    static int last_end = 0;
-    static int last_miles = 0;
-
-    if(last_start != ntohl(req->start) || last_end != ntohl(req->end) || last_miles != ntohl(req->miles))
-    {
-        last_start = ntohl(req->start);
-        last_end = ntohl(req->end);
-        last_miles = ntohl(req->miles);
-
-        sync_itinerary(obj->IMEI, last_start, last_end, last_miles);
-    }
-    else
-    {
-        LOG_INFO("get repetitive itinerary");
-    }
-
+    //Do not proc this msg, because gps has already proc itinerary
     return 0;
 }
 
@@ -1491,12 +1480,12 @@ static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
     LOG_INFO("imei(%s) Device Info Others: autolock(%d), autoperiod(%d), percent(%d), miles(%d), status(%d)",
             obj->IMEI, *autolock, *(autolock+1), *(autolock+2), *(autolock+3), *(autolock+4));
 
-    app_sendStatusGetRsp2App(APP_CMD_STATUS_GET, CODE_SUCCESS, obj, 
+    app_sendStatusGetRsp2App(APP_CMD_STATUS_GET, CODE_SUCCESS, obj,
         *autolock, *(autolock+1), *(autolock+2), *(autolock+3), *(autolock+4));
 
     //parse for gps or cell
     const char *isGPS = (const char *)(autolock + 5);
-    
+
     if(*isGPS == 0x01)
     {
         //gps
@@ -1585,6 +1574,8 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
         sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course, obj->gps_switch);
     }
     obj->isGPSlocated = 0x01;
+
+    //TODO: caculate the distance of GPS and use simcom_itinerary_push(imei, miles) push the itinerary
 
     //send the last gps in GPS_PACK to app
     app_sendGpsMsg2App(session);
