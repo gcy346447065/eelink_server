@@ -30,6 +30,10 @@
 #include "session_manager.h"
 #include "msg_manager.h"
 
+#define EARTH_RADIUS 6378137 //radius of our earth unit :  m
+#define PI 3.141592653
+#define DEG2RAD(d) (d * PI / 180.f)//degree to radian
+
 typedef int (*MSG_PROC)(const void *msg, SESSION *ctx);
 typedef struct
 {
@@ -64,6 +68,19 @@ static time_t get_time()
     time_t rawtime;
     time(&rawtime);
     return rawtime;
+}
+
+static long double getDistance(float pre_gpsLat, float pre_gpsLon,float new_gpsLat,float new_gpsLon)  //get distance of new gps and the last gps
+{
+    long double radLat1 = DEG2RAD(pre_gpsLat);
+    long double radLat2 = DEG2RAD(new_gpsLat);
+    long double a = radLat1 - radLat2;
+    long double b = DEG2RAD(pre_gpsLon) - DEG2RAD(new_gpsLon);
+
+    long double s = 2 * asin(sqrt(sin(a/2)*sin(a/2)+cos(radLat1)*cos(radLat2)*sin(b/2)*sin(b/2)));
+
+    s = s * EARTH_RADIUS;
+    return s ;
 }
 
 static int simcom_wild(const void *m, SESSION *session)
@@ -1558,6 +1575,8 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
         return -1;
     }
 
+    OBJECT *obj_pre = obj_get(obj->IMEI);
+
     int num = ntohs(req->length) / sizeof(GPS);
     for(int i = 0; i < num; ++i)
     {
@@ -1572,10 +1591,14 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
 
         db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
         sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course, obj->gps_switch);
+        if(i == num - 1 && !obj_pre)
+        {
+            double miles = getDistance(obj_pre->lat, obj_pre->lon, obj->lat, obj->lon) + 0.5;
+            simcom_itinerary_push(obj->IMEI, (int)miles);
+        }
     }
     obj->isGPSlocated = 0x01;
 
-    //TODO: caculate the distance of GPS and use simcom_itinerary_push(imei, miles) push the itinerary
 
     //send the last gps in GPS_PACK to app
     app_sendGpsMsg2App(session);
