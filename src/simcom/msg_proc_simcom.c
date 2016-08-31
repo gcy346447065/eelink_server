@@ -385,7 +385,7 @@ static int simcom_alarm(const void *msg, SESSION *session)
     }
 
     //send to APP by MQTT
-    app_sendAlarmMsg2App(req->alarmType, NULL, session);
+    //app_sendAlarmMsg2App(req->alarmType, NULL, session);
 
     //send to ios APP by yunba
     //yunba_publish(obj->IMEI, YUNBA_CMD_ALARM, 0);

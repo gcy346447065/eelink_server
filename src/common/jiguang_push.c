@@ -54,20 +54,20 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
                     case 1:
                     case 2:
                     case 3:
-                        cJSON_AddStringToObject(android, "alert", "alarm: moved");
-                        cJSON_AddStringToObject(ios, "alert", "alarm: moved");
+                        cJSON_AddStringToObject(android, "alert", "您的爱车正在被非法移动");
+                        cJSON_AddStringToObject(ios, "alert", "您的爱车正在被非法移动");
                         cJSON_AddStringToObject(ios, "sound", "alarm.mp3");
                         break;
 
                     case 4:
-                        cJSON_AddStringToObject(android, "alert", "battery below 50%");
-                        cJSON_AddStringToObject(ios, "alert", "battery below 50%");
+                        cJSON_AddStringToObject(android, "alert", "低电量提醒：低于50%");
+                        cJSON_AddStringToObject(ios, "alert", "低电量提醒：低于50%");
                         cJSON_AddStringToObject(ios, "sound", "default");
                         break;
 
                     case 5:
-                        cJSON_AddStringToObject(android, "alert", "battery below 30%");
-                        cJSON_AddStringToObject(ios, "alert", "battery below 30%");
+                        cJSON_AddStringToObject(android, "alert", "低电量提醒：低于30%");
+                        cJSON_AddStringToObject(ios, "alert", "低电量提醒：低于30%");
                         cJSON_AddStringToObject(ios, "sound", "default");
                         break;
 
@@ -80,11 +80,11 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
                 switch(status)
                 {
                     case 0:
-                        alert = cJSON_CreateString("autolock notify: off");
+                        alert = cJSON_CreateString("自动设防已关闭");
                         break;
 
                     case 1:
-                        alert = cJSON_CreateString("autolock notify: on");
+                        alert = cJSON_CreateString("自动设防已开启");
                         break;
 
                     default:
@@ -106,7 +106,7 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
         LOG_DEBUG("%s", data);
 
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
         curl_easy_setopt(curl, CURLOPT_URL, "https://api.jpush.cn/v3/push");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, getJiguangHeader());
         curl_easy_setopt(curl, CURLOPT_USERPWD, "b6b26e2547ad8e5f6018b225:ce9800560f464ea8b815407f");
