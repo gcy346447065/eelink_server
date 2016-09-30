@@ -50,6 +50,9 @@ nbproject/
 #CLion project files
 .idea
 
+#Visual Studio Code project files
+.vscode/
+
 #source insight project files
 *.IAB
 *.IAD
