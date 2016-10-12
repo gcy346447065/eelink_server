@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   db.c
  * Author: jk
  *
@@ -368,6 +368,41 @@ static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon
     return 0;
 }
 
+static int _db_getGPS(const char *imeiName, int starttime, int endtime)
+{
+#define MAX_QUERY_LEN 128
+    char query[MAX_QUERY_LEN] = {0};
+    char reg[IMEI_LENGTH + 5] = "gps_";
+
+    strncat(reg, imeiName, IMEI_LENGTH + 1);
+    snprintf(query,MAX_QUERY_LEN,"select * from %s where timestamp = 1460529408",reg);
+
+    printf("%s\r\n", query);
+
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    result = mysql_store_result(conn);
+    while(row = mysql_fetch_row(result))
+    {
+        printf("%d, %f, %f, %d, %d\r\n", row[0], row[1], row[2], row[3], row[4]);
+    }
+    mysql_free_result(result);
+    return 0;
+}
+
+
 static int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[], int cellNo)
 {
     char query[MAX_QUERY];
@@ -622,6 +657,16 @@ int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char s
     return 0;
 #endif
 }
+
+int db_getGPS(const char *imeiName, int starttime, int endtime)
+{
+#ifdef WITH_DB
+    return _db_getGPS(imeiName, starttime, endtime);
+#else
+    return 0;
+#endif
+}
+
 
 int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cellNo)
 {
