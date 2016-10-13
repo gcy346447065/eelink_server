@@ -1,5 +1,7 @@
 SET(SOURCE_FILE
     main.cpp
+    msg_proc_http.c
+    msg_proc_http.h
         )
 
 MESSAGE(STATUS "configure Server for history")

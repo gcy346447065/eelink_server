@@ -1,3 +1,10 @@
+/*
+ * main.c
+ *
+ *  Created on: 2016/10/10
+ *      Author: lc
+ */
+
 #include <iostream>
 #include <string>
 
@@ -6,17 +13,20 @@
 #include <http/reply.hpp>
 
 #include "db.h"
+#include "msg_proc_http.h"
+#include "protocol_history.h"
 
 using namespace std;
 http::server::reply history_reply(const http::server::request &req)
 {
-    cout<<req.uri<<endl;
-    db_getGPS("865067022405354", 1460520000, 1460529410);
+    cout<<req.uri<<endl;//TODO: set a protocol and proc it
+
+    history_getGPS("865067022405354", 1460520000, 1460529410);
+
     http::server::reply rep("hello world");
     rep.headers["Content-Type"] = "text/plain";
     return rep;
 }
-
 
 int main(int argc, char *argv[])
 {
