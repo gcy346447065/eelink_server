@@ -19,14 +19,26 @@
 using namespace std;
 http::server::reply history_reply(const http::server::request &req)
 {
+    int rc;
     string rsp;
+    int start = 0;
+    int end = 0;
+    char imei[IMEI_LENGTH + 1] = {0};
 
-    cout<<req.uri<<endl;//TODO: set a protocol and proc it
+    rc = sscanf(req.uri.c_str(), "/history/%15s?start=%d&end=%d", imei, &start, &end);
+    if(rc == 3)
+    {
+        char *gps = history_getGPS(imei, start, end);
+        history_freeMsg(gps);
 
-    char *gps = history_getGPS("865067021652600", 146000001, 146000006);
-    history_freeMsg(gps);
+        rsp += gps;
+    }
+    else
+    {
+        rsp += "error:your uri is not matched";
+    }
 
-    rsp += gps;
+    printf("%s\r\n",rsp.c_str());
     http::server::reply rep(rsp);
     rep.headers["Content-Type"] = "text/plain";
     return rep;

@@ -21,15 +21,8 @@ char *history_getGPS(const char *imeiName, int starttime, int endtime)
     cJSON *rsp = cJSON_CreateArray();
     cJSON *iGps = NULL;
 
-    printf("num:%d\r\n", gps->num);
     for(int i = 0; i < gps->num;i++)
     {
-        printf("%d\r\n", gps->gps[i].timestamp);
-        printf("%f\r\n", gps->gps[i].latitude);
-        printf("%f\r\n", gps->gps[i].longitude);
-        printf("%d\r\n", gps->gps[i].speed);
-        printf("%d\r\n", gps->gps[i].course);
-
         iGps = cJSON_CreateObject();
         cJSON_AddNumberToObject(iGps, "timestamp", gps->gps[i].timestamp);
         cJSON_AddNumberToObject(iGps, "lat", gps->gps[i].latitude);
@@ -37,11 +30,9 @@ char *history_getGPS(const char *imeiName, int starttime, int endtime)
         cJSON_AddNumberToObject(iGps, "speed", gps->gps[i].speed);
         cJSON_AddNumberToObject(iGps, "course", gps->gps[i].course);
         cJSON_AddItemToArray(rsp, iGps);
-
     }
     char *json = cJSON_PrintUnformatted(rsp);
     cJSON_Delete(rsp);
-    printf("%s\r\n", json);
     free(gps);
     return json;
 }
