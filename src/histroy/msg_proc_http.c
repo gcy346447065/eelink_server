@@ -20,7 +20,7 @@ char *history_getGPS(const char *imeiName, int starttime, int endtime)
 
     cJSON *rsp = cJSON_CreateArray();
     cJSON *iGps = NULL;
-
+    LOG_INFO("get gps number:%d",gps->num);
     for(int i = 0; i < gps->num;i++)
     {
         iGps = cJSON_CreateObject();
@@ -32,6 +32,7 @@ char *history_getGPS(const char *imeiName, int starttime, int endtime)
         cJSON_AddItemToArray(rsp, iGps);
     }
     char *json = cJSON_PrintUnformatted(rsp);
+    LOG_INFO("%s",json);
     cJSON_Delete(rsp);
     free(gps);
     return json;

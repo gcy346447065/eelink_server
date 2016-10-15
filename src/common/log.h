@@ -9,6 +9,9 @@
 #define SRC_LOG_H_
 
 #include <zlog.h>
+#ifdef __cplusplus
+    extern "C"{
+#endif
 
 #ifdef WITH_CATEGORY
 
@@ -61,5 +64,8 @@ extern zlog_category_t* cat;
 #endif
 
 int log_init(const char *conf);
+#ifdef __cplusplus
+    }
+#endif
 
 #endif /* SRC_LOG_H_ */
