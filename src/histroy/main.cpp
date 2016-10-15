@@ -19,11 +19,15 @@
 using namespace std;
 http::server::reply history_reply(const http::server::request &req)
 {
+    string rsp;
+
     cout<<req.uri<<endl;//TODO: set a protocol and proc it
 
-    history_getGPS("865067022405354", 1460520000, 1460529410);
+    char *gps = history_getGPS("865067021652600", 146000001, 146000006);
+    history_freeMsg(gps);
 
-    http::server::reply rep("hello world");
+    rsp += gps;
+    http::server::reply rep(rsp);
     rep.headers["Content-Type"] = "text/plain";
     return rep;
 }

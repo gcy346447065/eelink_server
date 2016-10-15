@@ -406,7 +406,7 @@ typedef struct
     MYSQL_ROW row;
     result = mysql_store_result(conn);
     row = mysql_fetch_row(result);
-    HISTORY_GPS_RSP *gps_rsp = (HISTORY_GPS_RSP *)malloc(sizeof(HISTORY_GPS_RSP) + sizeof(HISTORY_GPS_RSP) * atoi(row[0]));
+    HISTORY_GPS_RSP *gps_rsp = (HISTORY_GPS_RSP *)malloc(sizeof(HISTORY_GPS_RSP) + sizeof(HISTORY_GPS) * atoi(row[0]));
     gps_rsp->num = atoi(row[0]);
     mysql_free_result(result);
 
@@ -420,7 +420,7 @@ typedef struct
     for(int i = 0; i < gps_rsp->num ;i++)
     {
         row = mysql_fetch_row(result);
-        printf("%s|%s|%s|%s|%s|%s\r\n", row[0]?row[0]:NULL, row[1]?row[1]:NULL, row[2]?row[2]:NULL, row[3]?row[3]:NULL, row[4]?row[4]:NULL, row[5]?row[5]:NULL);
+        //printf("%s|%s|%s|%s|%s|\r\n", row[0]?row[0]:NULL, row[1]?row[1]:NULL, row[2]?row[2]:NULL, row[3]?row[3]:NULL, row[4]?row[4]:NULL);
         if(row[0])
         {
             gps_rsp->gps[i].timestamp = atoi(row[0]);
@@ -449,9 +449,9 @@ typedef struct
             LOG_ERROR("gps->lon is null:%s", imeiName);
             return NULL;
         }
-        if(row[4])
+        if(row[3])
         {
-            gps_rsp->gps[i].speed= atoi(row[4]);
+            gps_rsp->gps[i].speed= atoi(row[3]);
         }
         else
         {
@@ -459,9 +459,9 @@ typedef struct
             return NULL;
         }
 
-        if(row[5])
+        if(row[4])
         {
-            gps_rsp->gps[i].course= atoi(row[5]);
+            gps_rsp->gps[i].course= atoi(row[4]);
         }
         else
         {

@@ -12,7 +12,8 @@
 #endif
 
 
-void history_getGPS(const char *imeiName, int starttime, int endtime);
+char *history_getGPS(const char *imeiName, int starttime, int endtime);
+void history_freeMsg(char *msg);
 
 
 #ifdef __cplusplus
