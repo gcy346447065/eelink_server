@@ -407,6 +407,11 @@ typedef struct
     result = mysql_store_result(conn);
     row = mysql_fetch_row(result);
     HISTORY_GPS_RSP *gps_rsp = (HISTORY_GPS_RSP *)malloc(sizeof(HISTORY_GPS_RSP) + sizeof(HISTORY_GPS) * atoi(row[0]));
+    if(!gps_rsp)
+    {
+        LOG_ERROR("malloc gps memory failed!");
+        return NULL;
+    }
     gps_rsp->num = atoi(row[0]);
     mysql_free_result(result);
 
@@ -414,13 +419,13 @@ typedef struct
     if(mysql_query(conn, query))
     {
         LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        free(gps_rsp);
         return NULL;
     }
     result = mysql_store_result(conn);
     for(int i = 0; i < gps_rsp->num ;i++)
     {
         row = mysql_fetch_row(result);
-        //printf("%s|%s|%s|%s|%s|\r\n", row[0]?row[0]:NULL, row[1]?row[1]:NULL, row[2]?row[2]:NULL, row[3]?row[3]:NULL, row[4]?row[4]:NULL);
         if(row[0])
         {
             gps_rsp->gps[i].timestamp = atoi(row[0]);
@@ -428,6 +433,7 @@ typedef struct
         else
         {
             LOG_ERROR("timestamp is null:%s", imeiName);
+            free(gps_rsp);
             return NULL;
         }
         if(row[1])
@@ -437,6 +443,7 @@ typedef struct
         else
         {
             LOG_ERROR("gps->lat is null:%s", imeiName);
+            free(gps_rsp);
             return NULL;
         }
 
@@ -447,6 +454,7 @@ typedef struct
         else
         {
             LOG_ERROR("gps->lon is null:%s", imeiName);
+            free(gps_rsp);
             return NULL;
         }
         if(row[3])
@@ -456,6 +464,7 @@ typedef struct
         else
         {
             LOG_ERROR("gps->speed is null:%s", imeiName);
+            free(gps_rsp);
             return NULL;
         }
 
@@ -466,6 +475,7 @@ typedef struct
         else
         {
             LOG_ERROR("gps->course is null:%s", imeiName);
+            free(gps_rsp);
             return NULL;
         }
     }

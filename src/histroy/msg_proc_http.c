@@ -17,7 +17,10 @@
 char *history_getGPS(const char *imeiName, int starttime, int endtime)
 {
     HISTORY_GPS_RSP *gps = (HISTORY_GPS_RSP *)db_getGPS(imeiName, starttime, endtime);
-
+    if(!gps)
+    {
+        return NULL;
+    }
     cJSON *rsp = cJSON_CreateArray();
     cJSON *iGps = NULL;
     LOG_INFO("get gps number:%d",gps->num);

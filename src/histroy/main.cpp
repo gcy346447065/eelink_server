@@ -30,12 +30,20 @@ http::server::reply history_reply(const http::server::request &req)
     if(rc == 3)
     {
         char *gps = history_getGPS(imei, start, end);
-        rsp += gps;
-        history_freeMsg(gps);
+        if(!gps)
+        {
+            rsp += "error:no database is in db!";
+        }
+        else
+        {
+            rsp += gps;
+            //rsp += '\0';
+            history_freeMsg(gps);
+        }
     }
     else
     {
-        rsp += "error:your uri is not matched";
+        rsp += "error:your uri is not matched!";
     }
 
     LOG_INFO("%s\r\n",rsp.c_str());
