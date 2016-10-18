@@ -415,6 +415,7 @@ typedef struct
     gps_rsp->num = atoi(row[0]);
     mysql_free_result(result);
 
+    memset(query, '\0', strlen(query));
     snprintf(query,MAX_QUERY_LEN,"select * from %s where timestamp >= %d and timestamp<= %d", reg, starttime, endtime);
     if(mysql_query(conn, query))
     {
