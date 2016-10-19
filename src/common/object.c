@@ -26,7 +26,7 @@ static void obj_add_hash(OBJECT *obj)
 
 static void obj_add_db(OBJECT *obj)
 {
-	db_insertOBJ(obj->IMEI, obj->ObjectType);
+	db_insertOBJ(obj->IMEI, obj->ObjectType, (char)obj->voltage);
 	LOG_INFO("obj %s added to DB", obj->IMEI);
 }
 
@@ -55,7 +55,7 @@ static void obj_table_save()
     //g_hash_table_foreach(object_table, obj_update, NULL);
 }
 
-typedef struct 
+typedef struct
 {
     const void *msg;
     SESSION *session;
@@ -90,7 +90,7 @@ void obj_sendImeiData2ManagerLoop(const void *msg, SESSION *session, MANAGER_SEN
     pstManagerSend->msg = msg;
     pstManagerSend->session = session;
     pstManagerSend->proc = proc; //manager_sendImeiData
-    
+
     /* foreach hash */
     g_hash_table_foreach(object_table, obj_sendImeiData2Manager, pstManagerSend);
 

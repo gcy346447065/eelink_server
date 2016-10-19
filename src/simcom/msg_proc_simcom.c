@@ -109,7 +109,7 @@ static int simcom_wild(const void *m, SESSION *session)
 
 static int simcom_login(const void *msg, SESSION *session)
 {
-    const MSG_LOGIN_REQ *req = (const MSG_LOGIN_REQ *)msg;
+    const MSG_LOGIN_REQ_NEW *req = (const MSG_LOGIN_REQ_NEW *)msg;
     if(ntohs(req->header.length) < sizeof(MSG_LOGIN_REQ) - MSG_HEADER_LEN)
     {
         LOG_ERROR("login message length not enough");
@@ -144,6 +144,15 @@ static int simcom_login(const void *msg, SESSION *session)
             memcpy(obj->IMEI, imei, IMEI_LENGTH + 1);
             memcpy(obj->DID,  imei, IMEI_LENGTH + 1);//IMEI and DID mean the same now
             obj->ObjectType = ObjectType_simcom;
+
+            if(ntohs(req->header.length) < sizeof(MSG_LOGIN_REQ_NEW) - MSG_HEADER_LEN)
+            {
+                obj->voltage = 0;
+            }
+            else
+            {
+                obj->voltage = req->voltage;
+            }
 
             obj_add(obj);
 
@@ -193,7 +202,7 @@ static int simcom_login(const void *msg, SESSION *session)
     {
         theSize = getLastFileSize();
         LOG_INFO("req->version is %d, theLastVersion is %d, theSize is %d", obj->version, theLastVersion, theSize);
-        
+
         if(ntohl(req->version) < theLastVersion)
         {
             MSG_UPGRADE_START_REQ *req4upgrade = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, theSize);
@@ -1339,7 +1348,7 @@ static int simcom_UpgradeData(const void *msg, SESSION *session)
             LOG_INFO("send upgrade end request");
 
             int checksum = getLastFileChecksum();
-            
+
             MSG_UPGRADE_END_REQ *req4end = (MSG_UPGRADE_END_REQ *)alloc_simcomUpgradeEndReq(checksum, LastSize);
             if (!req4end)
             {
@@ -1353,7 +1362,7 @@ static int simcom_UpgradeData(const void *msg, SESSION *session)
     {
         LOG_INFO("response get upgrade data size(%d) error", ntohl(rsp->size));
     }
-    
+
     return 0;
 }
 
@@ -1394,7 +1403,7 @@ static int simcom_UpgradeEnd(const void *msg, SESSION *session)
     {
         LOG_ERROR("get upgrade end rsponse, error code(%d)", rsp->code);
     }
-    
+
     return 0;
 }
 
@@ -1460,7 +1469,7 @@ static int simcom_SimInfo(const void *msg, SESSION *session)
         LOG_ERROR("insufficient memory");
         return -1;
     }
-    
+
     return 0;
 }
 
