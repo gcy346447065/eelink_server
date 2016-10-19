@@ -1168,7 +1168,7 @@ static int simcom_DefendGet(const void *msg, SESSION *session)
 
     LOG_INFO("imei(%s) DefendGet status(%d)", obj->IMEI, rsp->status);
 
-    if(rsp->status == 0 || rsp->status == 1)
+    if(rsp->status == DEFEND_ON || rsp->status == DEFEND_OFF)
     {
         app_sendFenceGetRsp2App(APP_CMD_FENCE_GET, CODE_SUCCESS, rsp->status, session);
     }
