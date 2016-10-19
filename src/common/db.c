@@ -440,7 +440,7 @@ static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *)
 static int _db_insertOBJ(const char *imeiName, int ObjectType, char Voltage)
 {
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into object(imei, ObjectType, Volatge) values(\'%s\', %d, %d)", imeiName, ObjectType, Voltage);
+    snprintf(query, MAX_QUERY, "insert into object(imei, ObjectType, Voltage) values(\'%s\', %d, %d)", imeiName, ObjectType, Voltage);
 
     if(mysql_ping(conn))
     {
