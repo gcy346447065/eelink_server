@@ -23,19 +23,20 @@ class MySQLConnWrapper
     public:
         
         /* Your MySQL server settings */
-        MySQLConnWrapper()
+        MySQLConnWrapper(string h, string u, string p)
         {
-            host     = "tcp://127.0.0.1:3306";
-            user     = "root";
-            password = "";
+            host     = h; //"tcp://127.0.0.1:3306";
+            user     = u; //"root";
+            password = p; //"";
         };
         ~MySQLConnWrapper();
-        void manageException(sql::SQLException& e);
+        void manageException(sql::SQLException& e, string file, int line, string function);
         void connect();
         void switchDb(const string& db_name);
         void prepare(const string& query);
         void setInt(const int& num, const int& data);
         void setString(const int& num, const string& data);
+        void setFloat(const int& num, const float& data);
         void execute(const string& query = "");
         bool fetch();
         string print(const string& field);

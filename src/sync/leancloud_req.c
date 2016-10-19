@@ -164,13 +164,13 @@ int leancloud_saveGPSWithDID(int timestamp, const char *imei, double lat, double
     return ret;
 }
 
-int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
+int leancloud_saveItinerary(const char *imei, int miles)
 {
     ENVIRONMENT* env = env_get();
     CURL* curl = env->curl_leancloud;
 
-    LOG_INFO("leancloud_saveItinerary imei(%s), start(%d), end(%d), miles(%d)",
-             imei, start, end, miles);
+    LOG_INFO("leancloud_saveItinerary imei(%s), miles(%d)",
+             imei, miles);
 
     //get objectID from imei
     char *objectID = objectID_get_hash(imei);
@@ -199,27 +199,13 @@ int leancloud_saveItinerary(const char *imei, int start, int end, int miles)
     cJSON_AddItemToObject(body, "itinerary", itinerary);
     cJSON_AddItemToObject(put, "body", body);
 
-    //creat cjson post
-    cJSON *post = cJSON_CreateObject();
-    cJSON_AddStringToObject(post, "method", "POST");
-
-    snprintf(path, 256, "/1.1/classes/Itinerary_%s", imei);
-    cJSON_AddStringToObject(post, "path", path);
-
-    cJSON *body2 = cJSON_CreateObject();
-    cJSON_AddNumberToObject(body2, "start", start);
-    cJSON_AddNumberToObject(body2, "end", end);
-    cJSON_AddNumberToObject(body2, "miles", miles);
-    cJSON_AddItemToObject(post, "body", body2);
-
     //add put and post in cjson
     cJSON *requests = cJSON_CreateArray();
     cJSON_AddItemToArray(requests, put);
-    cJSON_AddItemToArray(requests, post);
 
     cJSON *root = cJSON_CreateObject();
     cJSON_AddItemToObject(root, "requests", requests);
-    
+
     char *data = cJSON_PrintUnformatted(root);
     LOG_DEBUG("%s", data);
 
