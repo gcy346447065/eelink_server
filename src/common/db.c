@@ -398,8 +398,17 @@ typedef struct
 
     if(mysql_query(conn, query))
     {
-        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
-        return NULL;
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));    
+        if(!mysql_real_connect(conn, DB_HOST, DB_USER, DB_PWD, NULL, DB_PORT, NULL, 0))
+        {
+            LOG_FATAL("can't connect to mysql(%u, %s)", mysql_errno(conn), mysql_error(conn));
+            return NULL;
+        }
+        else if(mysql_query(conn, query))
+        {
+            LOG_FATAL("can't get objects from db(%u, %s) again", mysql_errno(conn), mysql_error(conn));
+            return NULL;
+        }
     }
 
     MYSQL_RES *result;
