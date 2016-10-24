@@ -221,6 +221,31 @@ void sync_gps(const char* imei, int timestamp, float lat, float lng, char speed,
     return;
 }
 
+void sync_itinerary(const char *imei,int miles)
+{
+    cJSON* root = cJSON_CreateObject();
+
+    cJSON_AddNumberToObject(root, TAG_CMD, CMD_SYNC_NEW_ITINERARY);
+    cJSON_AddStringToObject(root, TAG_IMEI, imei);
+    cJSON_AddNumberToObject(root, TAG_MILES, miles);
+
+    char *data = cJSON_PrintUnformatted(root);
+    if (!data)
+    {
+        LOG_ERROR("internal error");
+        cJSON_Delete(root);
+        return;
+    }
+
+    sendMsg2Sync(data, strlen(data));
+    LOG_INFO("send itinerary(miles(%d) to sync", miles);
+
+    free(data);
+    cJSON_Delete(root);
+    return;
+}
+
+/*
 void sync_itinerary(const char *imei, int start, int end, int miles)
 {
     cJSON* root = cJSON_CreateObject();
@@ -246,6 +271,7 @@ void sync_itinerary(const char *imei, int start, int end, int miles)
     cJSON_Delete(root);
     return;
 }
+*/
 
 void sync_SimInfo(const char* imei, const char* ccid, const char* imsi)
 {

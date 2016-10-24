@@ -30,6 +30,10 @@
 #include "session_manager.h"
 #include "msg_manager.h"
 
+#define EARTH_RADIUS 6378137 //radius of our earth unit :  m
+#define PI 3.141592653
+#define DEG2RAD(d) (d * PI / 180.f)//degree to radian
+
 typedef int (*MSG_PROC)(const void *msg, SESSION *ctx);
 typedef struct
 {
@@ -64,6 +68,19 @@ static time_t get_time()
     time_t rawtime;
     time(&rawtime);
     return rawtime;
+}
+
+static long double getDistance(float pre_gpsLat, float pre_gpsLon,float new_gpsLat,float new_gpsLon)  //get distance of new gps and the last gps
+{
+    long double radLat1 = DEG2RAD(pre_gpsLat);
+    long double radLat2 = DEG2RAD(new_gpsLat);
+    long double a = radLat1 - radLat2;
+    long double b = DEG2RAD(pre_gpsLon) - DEG2RAD(new_gpsLon);
+
+    long double s = 2 * asin(sqrt(sin(a/2)*sin(a/2)+cos(radLat1)*cos(radLat2)*sin(b/2)*sin(b/2)));
+
+    s = s * EARTH_RADIUS;
+    return s ;
 }
 
 static int simcom_wild(const void *m, SESSION *session)
@@ -353,6 +370,14 @@ static int simcom_cell(const void *msg, SESSION *session)
     app_sendGpsMsg2App(session);
     db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, 0, 0);
 #endif
+
+    return 0;
+}
+
+static int simcom_itinerary_push(const char *imei, int miles)
+{
+
+    sync_itinerary(imei, miles);
 
     return 0;
 }
@@ -983,26 +1008,7 @@ static int simcom_itinerary(const void *msg, SESSION *session)
         return -1;
     }
 
-    LOG_INFO("imei(%s) itinerary: start(%d), end(%d), miles(%d)",
-         obj->IMEI, ntohl(req->start), ntohl(req->end), ntohl(req->miles));
-
-    static int last_start = 0;
-    static int last_end = 0;
-    static int last_miles = 0;
-
-    if(last_start != ntohl(req->start) || last_end != ntohl(req->end) || last_miles != ntohl(req->miles))
-    {
-        last_start = ntohl(req->start);
-        last_end = ntohl(req->end);
-        last_miles = ntohl(req->miles);
-
-        sync_itinerary(obj->IMEI, last_start, last_end, last_miles);
-    }
-    else
-    {
-        LOG_INFO("get repetitive itinerary");
-    }
-
+    //Do not proc this msg, because gps has already proc itinerary
     return 0;
 }
 
@@ -1162,7 +1168,7 @@ static int simcom_DefendGet(const void *msg, SESSION *session)
 
     LOG_INFO("imei(%s) DefendGet status(%d)", obj->IMEI, rsp->status);
 
-    if(rsp->status == 0 || rsp->status == 1)
+    if(rsp->status == DEFEND_ON || rsp->status == DEFEND_OFF)
     {
         app_sendFenceGetRsp2App(APP_CMD_FENCE_GET, CODE_SUCCESS, rsp->status, session);
     }
@@ -1491,12 +1497,12 @@ static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
     LOG_INFO("imei(%s) Device Info Others: autolock(%d), autoperiod(%d), percent(%d), miles(%d), status(%d)",
             obj->IMEI, *autolock, *(autolock+1), *(autolock+2), *(autolock+3), *(autolock+4));
 
-    app_sendStatusGetRsp2App(APP_CMD_STATUS_GET, CODE_SUCCESS, obj, 
+    app_sendStatusGetRsp2App(APP_CMD_STATUS_GET, CODE_SUCCESS, obj,
         *autolock, *(autolock+1), *(autolock+2), *(autolock+3), *(autolock+4));
 
     //parse for gps or cell
     const char *isGPS = (const char *)(autolock + 5);
-    
+
     if(*isGPS == 0x01)
     {
         //gps
@@ -1569,6 +1575,8 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
         return -1;
     }
 
+    OBJECT *obj_pre = obj_get(obj->IMEI);
+
     int num = ntohs(req->length) / sizeof(GPS);
     for(int i = 0; i < num; ++i)
     {
@@ -1583,8 +1591,14 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
 
         db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
         sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course, obj->gps_switch);
+        if(i == num - 1 && !obj_pre)
+        {
+            double miles = getDistance(obj_pre->lat, obj_pre->lon, obj->lat, obj->lon) + 0.5;
+            simcom_itinerary_push(obj->IMEI, (int)miles);
+        }
     }
     obj->isGPSlocated = 0x01;
+
 
     //send the last gps in GPS_PACK to app
     app_sendGpsMsg2App(session);
