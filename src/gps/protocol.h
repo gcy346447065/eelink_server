@@ -23,7 +23,7 @@ typedef struct
 typedef struct
 {
     short signature;
-    char imei[15];
+    char imei[MAX_IMEI_LENGTH];
     char cmd;
     short length;
 }__attribute__((__packed__)) MSG_UDP_HEADER;
