@@ -187,7 +187,7 @@ static int simcom_login(const void *msg, SESSION *session)
     }
 
     //get version, compare the version number; if not, send upgrade start message
-    unsigned int theLastVersion = getLastVersionWithFileNameAndSizeStored();
+    int theLastVersion = getLastVersionWithFileNameAndSizeStored();
     int theSize = 0;
     if(theLastVersion)
     {
