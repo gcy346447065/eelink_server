@@ -124,6 +124,7 @@ int main(int argc, char **argv)
     }
 
     obj_table_initial(mqtt_subscribe, ObjectType_simcom);
+    obj_table_GPSinitial();
     session_table_initial();
     sessionManager_table_initial();
 

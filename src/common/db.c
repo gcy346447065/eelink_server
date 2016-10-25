@@ -368,6 +368,74 @@ static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon
     return 0;
 }
 
+static void *_db_getLastGPS(const char *imeiName)
+{
+typedef struct
+{
+    int timestamp;
+    float longitude;
+    float latitude;
+    char speed;
+    short course;
+}__attribute__((__packed__)) GPS;
+
+    GPS *gps;
+    char query[MAX_QUERY];
+
+    snprintf(query, MAX_QUERY, "select count(*) from gps_%s",imeiName);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return NULL;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_INFO("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return NULL;
+    }
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    result = mysql_store_result(conn);
+    row = mysql_fetch_row(result);
+    int num = atoi(row[0]);
+    mysql_free_result(result);
+
+    if(0 < num)
+    {
+        gps = (GPS *)malloc(sizeof(GPS));
+        if(!gps)
+        {
+            LOG_ERROR("malloc gps memory failed!");
+            return NULL;
+        }
+
+        snprintf(query, MAX_QUERY, "select * from gps_%s order by timestamp desc limit 1",imeiName);
+        if(mysql_query(conn, query))
+        {
+            LOG_ERROR("can't select gps_%s(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
+            free(gps);
+            return NULL;
+        }
+
+        MYSQL_RES *result;
+        MYSQL_ROW row;
+        result = mysql_store_result(conn);
+        row = mysql_fetch_row(result);
+
+        gps->timestamp = atoi(row[0]);
+        gps->latitude = atof(row[1]);
+        gps->longitude= atof(row[2]);
+        gps->speed= atoi(row[3]);
+        gps->course= atoi(row[4]);
+
+        mysql_free_result(result);
+    }
+
+    return (void*)gps;
+}
+
 static int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[], int cellNo)
 {
     char query[MAX_QUERY];
@@ -600,6 +668,15 @@ int db_createGPS(const char* tableName)
 {
 #ifdef WITH_DB
     return _db_createGPS(tableName);
+#else
+    return 0;
+#endif
+}
+
+void *db_getLastGPS(const char* tableName)
+{
+#ifdef WITH_DB
+    return _db_getLastGPS(tableName);
 #else
     return 0;
 #endif

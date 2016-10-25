@@ -39,6 +39,47 @@ static void obj_initial(const char *imei)
 	obj_add_hash(obj);
 }
 
+static void obj_GPSinitial(gpointer key, gpointer value, gpointer user_data)
+{
+typedef struct
+{
+    int timestamp;
+    float longitude;
+    float latitude;
+    char speed;
+    short course;
+}__attribute__((__packed__)) GPS;
+    value = value;
+    user_data = user_data;
+    char *imei = (char *)key;
+
+    LOG_INFO("%s", imei);
+
+    GPS *gps = db_getLastGPS(imei);
+    if(!gps)
+    {
+        LOG_INFO("No GPS data in database!");
+        return;
+    }
+
+    OBJECT *obj = obj_get(imei);
+    if(!obj)
+    {
+
+        LOG_ERROR("obj %s not exist", imei);
+        return;
+    }
+    LOG_INFO("%d,%f,%f,%d,%d",gps->timestamp, gps->latitude, gps->longitude, gps->speed, gps->course);
+    obj->timestamp = gps->timestamp;
+    obj->lat = gps->latitude;
+    obj->lon = gps->longitude;
+    obj->speed = gps->speed;
+    obj->course = gps->course;
+    free(gps);
+    obj_add_hash(obj);
+    return;
+}
+
 //it is a callback to update obj into db
 static void obj_update(gpointer key, gpointer value, gpointer user_data)
 {
@@ -120,6 +161,12 @@ void obj_table_initial(void (*mqtt_sub)(const char *), int ObjectType)
 
     /* read imei data from db */
 	db_doWithOBJ(obj_initial, mqtt_sub, ObjectType);
+}
+
+void obj_table_GPSinitial(void)
+{
+    LOG_INFO("there are %d obj in object", (unsigned int)g_hash_table_size(object_table));
+	g_hash_table_foreach(object_table, (GHFunc)obj_GPSinitial, NULL);
 }
 
 void obj_table_destruct()

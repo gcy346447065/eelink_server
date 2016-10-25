@@ -76,6 +76,7 @@ typedef int (*MANAGER_SEND_PROC)(const void *msg, SESSION *ManagerSession, const
 void obj_sendImeiData2ManagerLoop(const void *msg, SESSION *session, MANAGER_SEND_PROC proc);
 
 void obj_table_initial(void (*mqtt_sub)(const char *), int ObjectType);
+void obj_table_GPSinitial(void);
 void obj_table_destruct();
 
 OBJECT *obj_new();
