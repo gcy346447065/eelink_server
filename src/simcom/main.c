@@ -9,7 +9,7 @@
 #include "version.h"
 #include "server_simcom.h"
 #include "server_manager.h"
-#include "yunba_push.h"
+//#include "yunba_push.h"
 #include "object.h"
 #include "mqtt.h"
 #include "db.h"
@@ -18,7 +18,6 @@
 #include "sync.h"
 #include "session.h"
 #include "session_manager.h"
-#include "macro.h"
 
 static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
@@ -103,12 +102,12 @@ int main(int argc, char **argv)
 
     mqtt_initial(&mqtt_arg);
 
-    rc = yunba_connect();
-    if (rc)
-    {
-    	LOG_FATAL("connect to yunba failed");
-    	return -1;
-    }
+//    rc = yunba_connect();
+//    if (rc)
+//    {
+//    	LOG_FATAL("connect to yunba failed");
+//    	return -1;
+//    }
 
     rc = curl_global_init(CURL_GLOBAL_DEFAULT);
     if (rc != CURLE_OK)
@@ -178,7 +177,7 @@ int main(int argc, char **argv)
     curl_global_cleanup();
 
     mqtt_cleanup();
-    yunba_disconnect();
+//    yunba_disconnect();
 
     mosquitto_lib_cleanup();
 

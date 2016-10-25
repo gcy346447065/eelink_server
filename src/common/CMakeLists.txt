@@ -14,9 +14,6 @@ SET(SOURCE_FILE
     log.c
     log.h
 
-    yunba_push.c
-    yunba_push.h
-
     curl.c
     curl.h
 
