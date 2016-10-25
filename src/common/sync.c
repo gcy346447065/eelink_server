@@ -46,7 +46,7 @@ static void sendMsg2Sync(void *data, size_t len)
     return;
 }
 
-static void event_cb(struct bufferevent *bev, short events, void *arg)
+static void event_cb(struct bufferevent *b, short events, void *arg)
 {
     struct event_base *base = bev->ev_base;
     if (events & BEV_EVENT_CONNECTED)
