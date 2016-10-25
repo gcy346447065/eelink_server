@@ -52,31 +52,32 @@ typedef struct
     value = value;
     user_data = user_data;
     char *imei = (char *)key;
+    GPS *gps = NULL;
 
     LOG_INFO("%s", imei);
 
-    GPS *gps = db_getLastGPS(imei);
+    gps = db_getLastGPS(imei);
     if(!gps)
     {
-        LOG_INFO("No GPS data in database!");
+        LOG_INFO("No GPS data in gps_%s or something happened as above.", imei);
         return;
     }
 
     OBJECT *obj = obj_get(imei);
     if(!obj)
     {
-
         LOG_ERROR("obj %s not exist", imei);
         return;
     }
-    LOG_INFO("%d,%f,%f,%d,%d",gps->timestamp, gps->latitude, gps->longitude, gps->speed, gps->course);
+    LOG_INFO("imei(%s),timestamp(%d),lat(%f),lon(%f),speed(%d),course(%d)", imei, gps->timestamp, gps->latitude, gps->longitude, gps->speed, gps->course);
     obj->timestamp = gps->timestamp;
     obj->lat = gps->latitude;
     obj->lon = gps->longitude;
     obj->speed = gps->speed;
     obj->course = gps->course;
-    free(gps);
     obj_add_hash(obj);
+
+    free(gps);
     return;
 }
 
