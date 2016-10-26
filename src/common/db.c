@@ -13,6 +13,7 @@
 #include "db.h"
 #include "log.h"
 #include "macro.h"
+#include "object.h"
 
 static MYSQL *conn = NULL;
 
@@ -368,31 +369,21 @@ static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon
     return 0;
 }
 
-static void *_db_getLastGPS(const char *imeiName)
+static int _db_getLastGPS(OBJECT *obj)
 {
-typedef struct
-{
-    int timestamp;
-    float longitude;
-    float latitude;
-    char speed;
-    short course;
-}__attribute__((__packed__)) GPS;
-
-    GPS *gps = NULL;
     char query[MAX_QUERY];
 
-    snprintf(query, MAX_QUERY, "select count(*) from gps_%s",imeiName);
+    snprintf(query, MAX_QUERY, "select count(*) from gps_%s",obj->IMEI);
     if(mysql_ping(conn))
     {
         LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
-        return NULL;
+        return 1;
     }
 
     if(mysql_query(conn, query))
     {
         LOG_INFO("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
-        return NULL;
+        return 2;
     }
 
     MYSQL_RES *result;
@@ -401,37 +392,31 @@ typedef struct
     row = mysql_fetch_row(result);
     int num = atoi(row[0]);
     mysql_free_result(result);
-
-    if(0 < num)
+    if(0 >= num)
     {
-        gps = (GPS *)malloc(sizeof(GPS));
-        if(!gps)
-        {
-            LOG_ERROR("malloc gps memory failed!");
-            return NULL;
-        }
-
-        snprintf(query, MAX_QUERY, "select * from gps_%s order by timestamp desc limit 1",imeiName);
-        if(mysql_query(conn, query))
-        {
-            LOG_ERROR("can't select gps_%s(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
-            free(gps);
-            return NULL;
-        }
-
-        result = mysql_store_result(conn);
-        row = mysql_fetch_row(result);
-
-        gps->timestamp = atoi(row[0]);
-        gps->latitude = atof(row[1]);
-        gps->longitude= atof(row[2]);
-        gps->speed= atoi(row[3]);
-        gps->course= atoi(row[4]);
-
-        mysql_free_result(result);
+        LOG_INFO("NO gps data in gps_%s database.", obj->IMEI);
+        return 3;
     }
 
-    return (void *)gps;
+    snprintf(query, MAX_QUERY, "select * from gps_%s order by timestamp desc limit 1", obj->IMEI);
+    if(mysql_query(conn, query))
+    {
+        LOG_ERROR("can't select gps_%s(%u, %s)", obj->IMEI, mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+
+    result = mysql_store_result(conn);
+    row = mysql_fetch_row(result);
+
+    obj->timestamp = atoi(row[0]);
+    obj->lat = atof(row[1]);
+    obj->lon= atof(row[2]);
+    obj->speed= atoi(row[3]);
+    obj->course= atoi(row[4]);
+
+    mysql_free_result(result);
+
+    return 0;
 }
 
 static int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[], int cellNo)
@@ -671,10 +656,10 @@ int db_createGPS(const char* tableName)
 #endif
 }
 
-void *db_getLastGPS(const char* tableName)
+int db_getLastGPS(OBJECT *obj)
 {
 #ifdef WITH_DB
-    return _db_getLastGPS(tableName);
+    return _db_getLastGPS(obj);
 #else
     return 0;
 #endif

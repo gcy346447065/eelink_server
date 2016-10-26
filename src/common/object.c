@@ -41,27 +41,9 @@ static void obj_initial(const char *imei)
 
 static void obj_GPSinitial(gpointer key, gpointer value, gpointer user_data)
 {
-typedef struct
-{
-    int timestamp;
-    float longitude;
-    float latitude;
-    char speed;
-    short course;
-}__attribute__((__packed__)) GPS;
     value = value;
     user_data = user_data;
     char *imei = (char *)key;
-    GPS *gps = NULL;
-
-    LOG_INFO("%s", imei);
-
-    gps = db_getLastGPS(imei);
-    if(!gps)
-    {
-        LOG_INFO("No GPS data in gps_%s or something happened as above.", imei);
-        return;
-    }
 
     OBJECT *obj = obj_get(imei);
     if(!obj)
@@ -69,14 +51,12 @@ typedef struct
         LOG_ERROR("obj %s not exist", imei);
         return;
     }
-    LOG_INFO("imei(%s),timestamp(%d),lat(%f),lon(%f),speed(%d),course(%d)", imei, gps->timestamp, gps->latitude, gps->longitude, gps->speed, gps->course);
-    obj->timestamp = gps->timestamp;
-    obj->lat = gps->latitude;
-    obj->lon = gps->longitude;
-    obj->speed = gps->speed;
-    obj->course = gps->course;
 
-    free(gps);
+    int rc = db_getLastGPS(obj);
+    if(rc == 0)
+    {
+        LOG_INFO("imei(%s),timestamp(%d),lat(%f),lon(%f),speed(%d),course(%d)", obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
+    }
     return;
 }
 
