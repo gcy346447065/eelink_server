@@ -10,6 +10,9 @@ SET(SOURCE_FILE
     leancloud_rsp.h
     leancloud_rsp.c
 
+    objectID_leancloud.c
+    objectID_leancloud.h
+
     msg_proc.h
     msg_proc.c)
 
