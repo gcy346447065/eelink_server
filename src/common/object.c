@@ -75,7 +75,6 @@ typedef struct
     obj->lon = gps->longitude;
     obj->speed = gps->speed;
     obj->course = gps->course;
-    obj_add_hash(obj);
 
     free(gps);
     return;

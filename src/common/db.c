@@ -379,7 +379,7 @@ typedef struct
     short course;
 }__attribute__((__packed__)) GPS;
 
-    GPS *gps;
+    GPS *gps = NULL;
     char query[MAX_QUERY];
 
     snprintf(query, MAX_QUERY, "select count(*) from gps_%s",imeiName);
@@ -419,8 +419,6 @@ typedef struct
             return NULL;
         }
 
-        MYSQL_RES *result;
-        MYSQL_ROW row;
         result = mysql_store_result(conn);
         row = mysql_fetch_row(result);
 
@@ -433,7 +431,7 @@ typedef struct
         mysql_free_result(result);
     }
 
-    return (void*)gps;
+    return (void *)gps;
 }
 
 static int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[], int cellNo)
