@@ -22,17 +22,19 @@ char *history_getGPS(const char *imeiName, int starttime, int endtime)
 
     if(!gps)
     {
+        LOG_ERROR("no database gps_%s", imeiName);
         cJSON_AddNumberToObject(rsp, "code", 101);
     }
     else if(gps->num == 0)
     {
+        LOG_INFO("%s no data bettween %d and %d", imeiName, starttime, endtime);
         cJSON_AddNumberToObject(rsp, "code", 102);
     }
     else
     {
         cJSON *iGps = NULL;
         gps_Array = cJSON_CreateArray();
-        LOG_INFO("get gps number:%d",gps->num);
+        LOG_INFO("%s get gps number:%d", imeiName, gps->num);
         for(int i = 0; i < gps->num;i++)
         {
             iGps = cJSON_CreateObject();
@@ -46,7 +48,7 @@ char *history_getGPS(const char *imeiName, int starttime, int endtime)
         cJSON_AddItemToObject(rsp, "gps", gps_Array);
     }
     char *json = cJSON_PrintUnformatted(rsp);
-    LOG_INFO("%s",json);
+    LOG_DEBUG("%s",json);
     cJSON_Delete(rsp);
     free(gps);
     return json;

@@ -46,7 +46,7 @@ http::server::reply history_reply(const http::server::request &req)
         rsp += "error:your uri is not matched!";
     }
 
-    LOG_INFO("%s\r\n",rsp.c_str());
+    LOG_DEBUG("%s",rsp.c_str());
     http::server::reply rep(rsp);
     rep.headers["Content-Type"] = "text/plain";
     return rep;
