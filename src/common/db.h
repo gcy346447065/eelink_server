@@ -8,8 +8,8 @@
 #ifndef DB_H
 #define	DB_H
 
-#include "macro.h"
 #include "object.h"
+#include "macro.h"
 
 /* database settings */
 #define DB_HOST "localhost"
