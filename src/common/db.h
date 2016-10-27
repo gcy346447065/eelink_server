@@ -9,6 +9,7 @@
 #define	DB_H
 
 #include "macro.h"
+ 
 #ifdef __cplusplus
     extern "C"{
 #endif

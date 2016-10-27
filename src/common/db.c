@@ -346,28 +346,6 @@ static int _db_createCGI(const char* tableName)
     return 0;
 }
 
-static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, short course)
-{
-    //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
-    char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into gps_%s(timestamp,lat,lon,speed,course) values(%d,%f,%f,%d,%d)",imeiName, timestamp, lat, lon, speed, course);
-
-    if(mysql_ping(conn))
-    {
-        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
-        return 1;
-    }
-
-    if(mysql_query(conn, query))
-    {
-        LOG_ERROR("can't insert into gps_%s(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
-        return 2;
-    }
-
-    LOG_INFO("insert into gps_%s: %d, %f, %f, %d, %d", imeiName, timestamp, lat, lon, speed, course);
-    return 0;
-}
-
 static void *_db_getGPS(const char *imeiName, int starttime, int endtime)
 {
 typedef struct
@@ -493,6 +471,27 @@ typedef struct
     return (void*)gps_rsp;
 }
 
+static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, short course)
+{
+    //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
+    char query[MAX_QUERY];
+    snprintf(query, MAX_QUERY, "insert into gps_%s(timestamp,lat,lon,speed,course) values(%d,%f,%f,%d,%d)",imeiName, timestamp, lat, lon, speed, course);
+
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_ERROR("can't insert into gps_%s(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+
+    LOG_INFO("insert into gps_%s: %d, %f, %f, %d, %d", imeiName, timestamp, lat, lon, speed, course);
+    return 0;
+}
 
 static int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[], int cellNo)
 {
