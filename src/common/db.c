@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   db.c
  * Author: jk
  *
@@ -347,6 +347,122 @@ static int _db_createCGI(const char* tableName)
     return 0;
 }
 
+static void *_db_getGPS(const char *imeiName, int starttime, int endtime)
+{
+typedef struct
+{
+    int timestamp;
+    float longitude;
+    float latitude;
+    char speed;
+    short course;
+}__attribute__((__packed__)) HISTORY_GPS;
+typedef struct
+{
+    int num;
+    HISTORY_GPS gps[];
+}__attribute__((__packed__)) HISTORY_GPS_RSP;
+#define MAX_QUERY_LEN 128
+
+    char query[MAX_QUERY_LEN] = {0};
+    char reg[IMEI_LENGTH + 5] = "gps_";
+    strncat(reg, imeiName, IMEI_LENGTH + 1);
+
+    snprintf(query,MAX_QUERY_LEN,"select count(*) from %s where timestamp >= %d and timestamp<= %d", reg, starttime, endtime);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return NULL;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));    
+        return NULL;
+    }
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    result = mysql_store_result(conn);
+    row = mysql_fetch_row(result);
+    HISTORY_GPS_RSP *gps_rsp = (HISTORY_GPS_RSP *)malloc(sizeof(HISTORY_GPS_RSP) + sizeof(HISTORY_GPS) * atoi(row[0]));
+    if(!gps_rsp)
+    {
+        LOG_ERROR("malloc gps memory failed!");
+        return NULL;
+    }
+    gps_rsp->num = atoi(row[0]);
+    mysql_free_result(result);
+
+    memset(query, '\0', strlen(query));
+    snprintf(query,MAX_QUERY_LEN,"select * from %s where timestamp >= %d and timestamp<= %d", reg, starttime, endtime);
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        free(gps_rsp);
+        return NULL;
+    }
+    result = mysql_store_result(conn);
+    for(int i = 0; i < gps_rsp->num ;i++)
+    {
+        row = mysql_fetch_row(result);
+        if(row[0])
+        {
+            gps_rsp->gps[i].timestamp = atoi(row[0]);
+        }
+        else
+        {
+            LOG_ERROR("timestamp is null:%s", imeiName);
+            free(gps_rsp);
+            return NULL;
+        }
+        if(row[1])
+        {
+            gps_rsp->gps[i].latitude = atof(row[1]);
+        }
+        else
+        {
+            LOG_ERROR("gps->lat is null:%s", imeiName);
+            free(gps_rsp);
+            return NULL;
+        }
+
+        if(row[2])
+        {
+            gps_rsp->gps[i].longitude= atof(row[2]);
+        }
+        else
+        {
+            LOG_ERROR("gps->lon is null:%s", imeiName);
+            free(gps_rsp);
+            return NULL;
+        }
+        if(row[3])
+        {
+            gps_rsp->gps[i].speed= atoi(row[3]);
+        }
+        else
+        {
+            LOG_ERROR("gps->speed is null:%s", imeiName);
+            free(gps_rsp);
+            return NULL;
+        }
+
+        if(row[4])
+        {
+            gps_rsp->gps[i].course= atoi(row[4]);
+        }
+        else
+        {
+            LOG_ERROR("gps->course is null:%s", imeiName);
+            free(gps_rsp);
+            return NULL;
+        }
+    }
+    mysql_free_result(result);
+    return (void*)gps_rsp;
+}
+
 static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, short course)
 {
     //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
@@ -682,6 +798,16 @@ int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char s
     return 0;
 #endif
 }
+
+void *db_getGPS(const char *imeiName, int starttime, int endtime)
+{
+#ifdef WITH_DB
+    return _db_getGPS(imeiName, starttime, endtime);
+#else
+    return 0;
+#endif
+}
+
 
 int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cellNo)
 {
