@@ -26,9 +26,6 @@ SET(SOURCE_FILE
     mqtt.h
     mqtt.c
 
-    cgi2gps.h
-    cgi2gps.c
-
     env.h
     env.c
 
@@ -40,9 +37,6 @@ SET(SOURCE_FILE
 
     timer.h
     timer.c
-
-    http.c
-    http.h
 
     ../3rd/cJSON/cJSON.c
     ../3rd/cJSON/cJSON.h
