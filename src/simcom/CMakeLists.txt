@@ -19,6 +19,9 @@ SET(SOURCE_FILE
     msg_simcom.c
     msg_simcom.h
 
+    protocol.h
+    protocol_manager.h
+
     server_manager.c
     server_manager.h
 
@@ -28,6 +31,7 @@ SET(SOURCE_FILE
     session_manager.h
     session_manager.c
 
+    version.h
     )
 
 MESSAGE(STATUS "configure Server for SIMCOM")
