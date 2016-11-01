@@ -603,6 +603,28 @@ static int _db_getLastGPS(OBJECT *obj)
     return 0;
 }
 
+static int _db_saveItinerary(const char* tableName, int starttime, int endtime, short itinerary)
+{
+    //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
+    char query[MAX_QUERY];
+    snprintf(query, MAX_QUERY, "insert into itinerary_%s(starttime,endtime,itinerary) values(%d,%d,%d)",tableName, starttime, endtime, itinerary);
+
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_ERROR("can't insert into itinerary_%s(%u, %s)", tableName, mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+
+    LOG_INFO("insert into itinerary_%s: starttime(%d), endtime(%d), itinerary(%d)", tableName, starttime, endtime, itinerary);
+    return 0;
+}
+
 static int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[], int cellNo)
 {
     char query[MAX_QUERY];
@@ -862,6 +884,15 @@ int db_createItinerary(const char* tableName)
 {
 #ifdef WITH_DB
     return _db_createItinerary(tableName);
+#else
+    return 0;
+#endif
+}
+
+int db_saveItinerary(const char* tableName, int starttime, int endtime, short itinerary)
+{
+#ifdef WITH_DB
+    return _db_saveItinerary(tableName, starttime, endtime, itinerary);
 #else
     return 0;
 #endif

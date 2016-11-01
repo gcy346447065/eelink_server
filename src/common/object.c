@@ -63,7 +63,7 @@ static void obj_GPSinitial(gpointer key, gpointer value, gpointer user_data)
 static void obj_ItieraryJudge(gpointer key, gpointer value, gpointer user_data)
 {
     value = value;
-    user_data = user_data;
+    SIMCOM_SAVEITINERARY_PROC fun = (SIMCOM_SAVEITINERARY_PROC)user_data;
     char *imei = (char *)key;
 
     OBJECT *obj = obj_get(imei);
@@ -77,7 +77,8 @@ static void obj_ItieraryJudge(gpointer key, gpointer value, gpointer user_data)
     {
         if(++obj->timecount >= 5)
         {
-            //TODO set itinerary in db
+            fun(obj->IMEI, obj->starttime, obj->endtime, obj->itineray);
+            obj->isStarted = 0;
         }
     }
 
@@ -174,9 +175,9 @@ void obj_table_GPSinitial(void)
 	g_hash_table_foreach(object_table, (GHFunc)obj_GPSinitial, NULL);
 }
 
-void obj_table_ItieraryJudge(void)
+void obj_table_ItieraryJudge(void *arg)
 {
-    g_hash_table_foreach(object_table, (GHFunc)obj_ItieraryJudge, NULL);
+    g_hash_table_foreach(object_table, (GHFunc)obj_ItieraryJudge, arg);
 }
 
 void obj_table_destruct()
