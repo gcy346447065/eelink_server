@@ -69,6 +69,13 @@ typedef struct
     int gps_switch;
 
     void *session;
+
+    //itinerary
+    char isStarted;
+    char timecount;
+    int starttime;
+    int endtime;
+    short itineray;
 } OBJECT;
 
 
@@ -77,6 +84,7 @@ void obj_sendImeiData2ManagerLoop(const void *msg, SESSION *session, MANAGER_SEN
 
 void obj_table_initial(void (*mqtt_sub)(const char *), int ObjectType);
 void obj_table_GPSinitial(void);
+void obj_table_ItieraryJudge(void);
 void obj_table_destruct();
 
 OBJECT *obj_new();

@@ -28,6 +28,17 @@ static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __a
     event_base_loopbreak(base);
 }
 
+static void ItieraryJudge_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
+{
+    arg = arg;
+
+    LOG_INFO("five minutes timer for ItieraryJudge_cb");
+    obj_table_ItieraryJudge(); //simcom_server to judge if the itinerary reaches end
+
+    return;
+}
+
+
 int main(int argc, char **argv)
 {
     int simcom_port = PORT_SIMCOM;
@@ -148,6 +159,10 @@ int main(int argc, char **argv)
         LOG_FATAL("start manager server failed at port:%d", manager_port);
         return 2;
     }
+
+    //start a five minutes timer to resave multiple unsaved DIDs
+    struct timeval five_min = { 10, 0 };
+    (void)timer_newLoop(base, &five_min, ItieraryJudge_cb, NULL);
 
     rc = sync_init(base);
     if (rc)

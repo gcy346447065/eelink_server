@@ -347,6 +347,29 @@ static int _db_createCGI(const char* tableName)
     return 0;
 }
 
+static int _db_createItinerary(const char* tableName)
+{
+    char query[MAX_QUERY];
+    //create table cgi_IMEI(timestamp INT, mcc SMALLINT, mnc SMALLINT, lac0 SMALLINT, ci0 SMALLINT, rxl0 SMALLINT...)
+    snprintf(query, MAX_QUERY, "create table if not exists itinerary_%s(RegisterTime timestamp default CURRENT_TIMESTAMP,starttime INT not NULL,endtime INT not NULL,itinerary SMALLINT default 0)", tableName);
+
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_ERROR("can't create table: itinerary_%s(%u, %s)", tableName, mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+    LOG_INFO("create table: itinerary_%s", tableName);
+
+    return 0;
+}
+
+
 static void *_db_getGPS(const char *imeiName, int starttime, int endtime)
 {
 typedef struct
@@ -830,6 +853,15 @@ int db_createCGI(const char* tableName)
 {
 #ifdef WITH_DB
     return _db_createCGI(tableName);
+#else
+    return 0;
+#endif
+}
+
+int db_createItinerary(const char* tableName)
+{
+#ifdef WITH_DB
+    return _db_createItinerary(tableName);
 #else
     return 0;
 #endif

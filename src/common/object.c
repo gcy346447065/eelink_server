@@ -60,6 +60,31 @@ static void obj_GPSinitial(gpointer key, gpointer value, gpointer user_data)
     return;
 }
 
+static void obj_ItieraryJudge(gpointer key, gpointer value, gpointer user_data)
+{
+    value = value;
+    user_data = user_data;
+    char *imei = (char *)key;
+
+    OBJECT *obj = obj_get(imei);
+    if(!obj)
+    {
+        LOG_ERROR("obj %s not exist", imei);
+        return;
+    }
+
+    if(obj->isStarted)
+    {
+        if(++obj->timecount >= 5)
+        {
+            //TODO set itinerary in db
+        }
+    }
+
+    return;
+}
+
+
 //it is a callback to update obj into db
 static void obj_update(gpointer key, gpointer value, gpointer user_data)
 {
@@ -149,6 +174,11 @@ void obj_table_GPSinitial(void)
 	g_hash_table_foreach(object_table, (GHFunc)obj_GPSinitial, NULL);
 }
 
+void obj_table_ItieraryJudge(void)
+{
+    g_hash_table_foreach(object_table, (GHFunc)obj_ItieraryJudge, NULL);
+}
+
 void obj_table_destruct()
 {
 	//obj_table_save();
@@ -175,6 +205,7 @@ OBJECT *obj_new()
 
 	make_pwd(obj->pwd);
     obj->gps_switch = 1;
+    obj->isStarted = 0;
 
 	return obj;
 }
