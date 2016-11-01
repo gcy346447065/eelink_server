@@ -62,16 +62,9 @@ static void obj_GPSinitial(gpointer key, gpointer value, gpointer user_data)
 
 static void obj_ItieraryJudge(gpointer key, gpointer value, gpointer user_data)
 {
-    value = value;
-    SIMCOM_SAVEITINERARY_PROC fun = (SIMCOM_SAVEITINERARY_PROC)user_data;
     char *imei = (char *)key;
-
-    OBJECT *obj = obj_get(imei);
-    if(!obj)
-    {
-        LOG_ERROR("obj %s not exist", imei);
-        return;
-    }
+    OBJECT *obj = (OBJECT *)value;
+    SIMCOM_SAVEITINERARY_PROC fun = (SIMCOM_SAVEITINERARY_PROC)user_data;
 
     if(obj->isStarted)
     {

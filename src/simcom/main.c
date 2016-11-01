@@ -30,7 +30,7 @@ static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __a
 
 static void ItieraryJudge_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
-    LOG_INFO("five minutes timer for ItieraryJudge_cb");
+    LOG_INFO("one minutes timer for ItieraryJudge_cb");
 
     obj_table_ItieraryJudge(arg); //simcom_server to judge if the itinerary reaches end
 
@@ -159,8 +159,8 @@ int main(int argc, char **argv)
         return 2;
     }
 
-    //start a five minutes timer to resave multiple unsaved DIDs
-    struct timeval five_min = { 10, 0 };
+    //start a one minutes timer to resave multiple unsaved DIDs
+    struct timeval five_min = { 60, 0 };
     (void)timer_newLoop(base, &five_min, ItieraryJudge_cb, db_saveItinerary);
 
     rc = sync_init(base);
