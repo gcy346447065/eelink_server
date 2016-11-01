@@ -307,7 +307,7 @@ static int _db_createGPS(const char* tableName)
 {
     char query[MAX_QUERY];
 
-    snprintf(query, MAX_QUERY, "create table gps_%s(timestamp INT,lat DOUBLE(9,6),lon DOUBLE(9,6),speed TINYINT,course SMALLINT,primary key(timestamp))", tableName);
+    snprintf(query, MAX_QUERY, "create table gps_%s(timestamp INT,lat DOUBLE(9,6),lon DOUBLE(9,6),speed TINYINT default 0,course SMALLINT default 0,primary key(timestamp))", tableName);
 
     if(mysql_ping(conn))
     {
@@ -414,6 +414,7 @@ typedef struct
         {
             LOG_ERROR("timestamp is null:%s", imeiName);
             free(gps_rsp);
+            mysql_free_result(result);
             return NULL;
         }
         if(row[1])
@@ -424,6 +425,7 @@ typedef struct
         {
             LOG_ERROR("gps->lat is null:%s", imeiName);
             free(gps_rsp);
+            mysql_free_result(result);
             return NULL;
         }
 
@@ -435,17 +437,17 @@ typedef struct
         {
             LOG_ERROR("gps->lon is null:%s", imeiName);
             free(gps_rsp);
+            mysql_free_result(result);
             return NULL;
         }
+
         if(row[3])
         {
             gps_rsp->gps[i].speed= atoi(row[3]);
         }
         else
         {
-            LOG_ERROR("gps->speed is null:%s", imeiName);
-            free(gps_rsp);
-            return NULL;
+            gps_rsp->gps[i].speed= 0;
         }
 
         if(row[4])
@@ -454,9 +456,7 @@ typedef struct
         }
         else
         {
-            LOG_ERROR("gps->course is null:%s", imeiName);
-            free(gps_rsp);
-            return NULL;
+            gps_rsp->gps[i].course= 0;
         }
     }
     mysql_free_result(result);
@@ -524,11 +524,56 @@ static int _db_getLastGPS(OBJECT *obj)
     result = mysql_store_result(conn);
     row = mysql_fetch_row(result);
 
-    obj->timestamp = atoi(row[0]);
-    obj->lat = atof(row[1]);
-    obj->lon= atof(row[2]);
-    obj->speed= atoi(row[3]);
-    obj->course= atoi(row[4]);
+    if(row[0])
+    {
+        obj->timestamp = atoi(row[0]);
+    }
+    else
+    {
+        LOG_ERROR("timestamp is null:%s", obj->IMEI);
+        mysql_free_result(result);
+        return 4;
+    }
+
+    if(row[1])
+    {
+        obj->lat = atof(row[1]);
+    }
+    else
+    {
+        LOG_ERROR("gps->lat is null:%s", obj->IMEI);
+        mysql_free_result(result);
+        return 4;
+    }
+
+    if(row[2])
+    {
+        obj->lon = atof(row[2]);
+    }
+    else
+    {
+        LOG_ERROR("gps->lon is null:%s", obj->IMEI);
+        mysql_free_result(result);
+        return 4;
+    }
+
+    if(row[3])
+    {
+        obj->speed= atoi(row[3]);
+    }
+    else
+    {
+        obj->speed= 0;
+    }
+
+    if(row[4])
+    {
+        obj->course= atoi(row[4]);
+    }
+    else
+    {
+        obj->course= 0;
+    }
 
     mysql_free_result(result);
 
