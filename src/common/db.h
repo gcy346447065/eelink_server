@@ -32,6 +32,7 @@ int db_getLastGPS(OBJECT *obj);
 int db_createCGI(const char* tableName);
 int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char speed, short course);
 void *db_getGPS(const char *imeiName, int starttime, int endtime);
+void *db_getItinerary(const char *imeiName, int starttime, int endtime);
 int db_createItinerary(const char* tableName);
 int db_saveItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary);
 int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cellNo);

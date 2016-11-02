@@ -486,6 +486,86 @@ typedef struct
     return (void*)gps_rsp;
 }
 
+static void *_db_getItinerary(const char *imeiName, int starttime, int endtime)
+{
+typedef struct
+{
+    int starttime;
+    float startlat;
+    float startlon;
+    int endtime;
+    float endlat;
+    float endlon;
+    short miles;
+}__attribute__((__packed__)) HISTORY_ITINERARY;
+typedef struct
+{
+    int num;
+    HISTORY_ITINERARY itinerary[];
+}__attribute__((__packed__)) HISTORY_ITINERARY_RSP;
+
+#define MAX_QUERY_LEN 128
+
+    char query[MAX_QUERY_LEN] = {0};
+
+    snprintf(query,MAX_QUERY_LEN,"select count(*) from itinerary_%s where starttime >= %d and endtime<= %d", imeiName, starttime, endtime);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return NULL;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return NULL;
+    }
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    result = mysql_store_result(conn);
+    row = mysql_fetch_row(result);
+    HISTORY_ITINERARY_RSP *itinerary_rsp = (HISTORY_ITINERARY_RSP *)malloc(sizeof(HISTORY_ITINERARY_RSP) + sizeof(HISTORY_ITINERARY) * atoi(row[0]));
+    if(!itinerary_rsp)
+    {
+        LOG_ERROR("malloc gps memory failed!");
+        return NULL;
+    }
+    itinerary_rsp->num = atoi(row[0]);
+    mysql_free_result(result);
+
+    memset(query, '\0', strlen(query));
+    snprintf(query,MAX_QUERY_LEN,"select * from itinerary_%s where starttime >= %d and endtime<= %d", imeiName, starttime, endtime);
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        free(itinerary_rsp);
+        return NULL;
+    }
+    result = mysql_store_result(conn);
+    for(int i = 0; i < itinerary_rsp->num ;i++)
+    {
+        row = mysql_fetch_row(result);
+        if(!row[1] || !row[2] || !row[3] || !row[4] || !row[5] || !row[6] || !row[7])
+        {
+            LOG_ERROR("there is somerow is null:%s", imeiName);
+            free(itinerary_rsp);
+            mysql_free_result(result);
+            return NULL;
+        }
+        itinerary_rsp->itinerary[i].starttime = atoi(row[1]);
+        itinerary_rsp->itinerary[i].startlat = atof(row[2]);
+        itinerary_rsp->itinerary[i].startlon = atof(row[3]);
+        itinerary_rsp->itinerary[i].endtime = atoi(row[4]);
+        itinerary_rsp->itinerary[i].endlat = atof(row[5]);
+        itinerary_rsp->itinerary[i].endlon = atof(row[6]);
+        itinerary_rsp->itinerary[i].miles = atoi(row[7]);
+    }
+
+    mysql_free_result(result);
+    return (void*)itinerary_rsp;
+}
+
 static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, short course)
 {
     //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
@@ -916,6 +996,15 @@ void *db_getGPS(const char *imeiName, int starttime, int endtime)
 #endif
 }
 
+
+void *db_getItinerary(const char *imeiName, int starttime, int endtime)
+{
+#ifdef WITH_DB
+    return _db_getItinerary(imeiName, starttime, endtime);
+#else
+    return 0;
+#endif
+}
 
 int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cellNo)
 {
