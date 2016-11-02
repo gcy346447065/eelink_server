@@ -26,7 +26,7 @@ static void obj_add_hash(OBJECT *obj)
 
 static void obj_add_db(OBJECT *obj)
 {
-	db_insertOBJ(obj->IMEI, obj->ObjectType, (char)obj->voltage);
+	db_insertOBJ(obj->IMEI, obj->ObjectType, obj->voltage);
 	LOG_INFO("obj %s added to DB", obj->IMEI);
 }
 
