@@ -72,7 +72,7 @@ char *history_getGPS(const char *imeiName, int starttime, int endtime)
     }
     else
     {
-        cJSON_AddItemToObject(rsp, "itinerary", gps_Array);
+        cJSON_AddItemToObject(rsp, "gps", gps_Array);
     }
     char *json = cJSON_PrintUnformatted(rsp);
     LOG_DEBUG("%s",json);
