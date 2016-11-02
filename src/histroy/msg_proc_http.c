@@ -14,45 +14,21 @@
 #include "malloc.h"
 #include "db.h"
 
-char *history_getGPS(const char *imeiName, int starttime, int endtime)
+static int one_GPS(int timestamp, double latitude, double longitude, char speed, short course, void *userdata)
 {
-    cJSON *gps_Array = NULL;
-    cJSON *rsp = cJSON_CreateObject();;
-    HISTORY_GPS_RSP *gps = (HISTORY_GPS_RSP *)db_getGPS(imeiName, starttime, endtime);
+    cJSON *iGps = cJSON_CreateObject();
 
-    if(!gps)
-    {
-        LOG_ERROR("no database gps_%s", imeiName);
-        cJSON_AddNumberToObject(rsp, "code", 101);
-    }
-    else if(gps->num == 0)
-    {
-        LOG_INFO("%s no data bettween %d and %d", imeiName, starttime, endtime);
-        cJSON_AddNumberToObject(rsp, "code", 102);
-    }
-    else
-    {
-        cJSON *iGps = NULL;
-        gps_Array = cJSON_CreateArray();
-        LOG_INFO("%s get gps number:%d", imeiName, gps->num);
-        for(int i = 0; i < gps->num;i++)
-        {
-            iGps = cJSON_CreateObject();
-            cJSON_AddNumberToObject(iGps, "timestamp", gps->gps[i].timestamp);
-            cJSON_AddNumberToObject(iGps, "lat", gps->gps[i].latitude);
-            cJSON_AddNumberToObject(iGps, "lon", gps->gps[i].longitude);
-            cJSON_AddNumberToObject(iGps, "speed", gps->gps[i].speed);
-            cJSON_AddNumberToObject(iGps, "course", gps->gps[i].course);
-            cJSON_AddItemToArray(gps_Array, iGps);
-        }
-        cJSON_AddItemToObject(rsp, "gps", gps_Array);
-    }
-    char *json = cJSON_PrintUnformatted(rsp);
-    LOG_DEBUG("%s",json);
-    cJSON_Delete(rsp);
-    free(gps);
-    return json;
+    cJSON_AddNumberToObject(iGps, "timestamp", timestamp);
+    cJSON_AddNumberToObject(iGps, "lat", latitude);
+    cJSON_AddNumberToObject(iGps, "lon", longitude);
+    cJSON_AddNumberToObject(iGps, "speed", speed);
+    cJSON_AddNumberToObject(iGps, "course", course);
+
+    cJSON_AddItemToArray((cJSON *)userdata, iGps);
+
+    return 0;
 }
+
 static int one_Itinerary(int starttime, double startlat, double startlon, int endtime, double endlat, double endlon, short miles, void *userdata)
 {
 	cJSON *iItitnerary = cJSON_CreateObject();
@@ -74,6 +50,36 @@ static int one_Itinerary(int starttime, double startlat, double startlon, int en
 
     return 0;
 }
+
+char *history_getGPS(const char *imeiName, int starttime, int endtime)
+{
+    cJSON *gps_Array = cJSON_CreateArray();;
+    cJSON *rsp = cJSON_CreateObject();;
+    int rc = db_getGPS(imeiName, starttime, endtime, one_GPS, gps_Array);
+    int num = cJSON_GetArraySize(gps_Array);
+
+    LOG_INFO("there are %d gps", num);
+
+    if(rc)
+    {
+        LOG_ERROR("no database gps_%s", imeiName);
+        cJSON_AddNumberToObject(rsp, "code", 101);
+    }
+    else if(num == 0)
+    {
+        LOG_INFO("%s no data bettween %d and %d", imeiName, starttime, endtime);
+        cJSON_AddNumberToObject(rsp, "code", 102);
+    }
+    else
+    {
+        cJSON_AddItemToObject(rsp, "itinerary", gps_Array);
+    }
+    char *json = cJSON_PrintUnformatted(rsp);
+    LOG_DEBUG("%s",json);
+    cJSON_Delete(rsp);
+    return json;
+}
+
 
 char *history_getItinerary(const char *imeiName, int starttime, int endtime)
 {

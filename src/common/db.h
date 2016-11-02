@@ -24,6 +24,7 @@
 #define MAX_QUERY 400
 
 typedef int (*ONEITINERARY_PROC)(int starttime, double startlat, double startlon, int endtime, double endlat, double endlon, short itinerary, void *userdata);
+typedef int (*ONEGPS_PROC)(int timestamp, double latitude, double longitude, char speed, short course, void *userdata);
 
 int db_initial(void);
 int db_destruct(void);
@@ -33,7 +34,7 @@ int db_createGPS(const char* tableName);
 int db_getLastGPS(OBJECT *obj);
 int db_createCGI(const char* tableName);
 int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char speed, short course);
-void *db_getGPS(const char *imeiName, int starttime, int endtime);
+int db_getGPS(const char *imeiName, int starttime, int endtime, void *action, void *userdata);
 int db_getItinerary(const char *imeiName, int starttime, int endtime, void *action, void *userdata);
 int db_createItinerary(const char* tableName);
 int db_saveItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary);
