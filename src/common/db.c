@@ -351,7 +351,7 @@ static int _db_createItinerary(const char* tableName)
 {
     char query[MAX_QUERY];
     //create table cgi_IMEI(timestamp INT, mcc SMALLINT, mnc SMALLINT, lac0 SMALLINT, ci0 SMALLINT, rxl0 SMALLINT...)
-    snprintf(query, MAX_QUERY, "create table if not exists itinerary_%s(RegisterTime timestamp default CURRENT_TIMESTAMP,starttime INT not NULL,endtime INT not NULL,itinerary SMALLINT default 0)", tableName);
+    snprintf(query, MAX_QUERY, "create table if not exists itinerary_%s(RegisterTime timestamp default CURRENT_TIMESTAMP,starttime INT not NULL,startlat DOUBLE(9,6),startlon DOUBLE(9,6),endtime INT not NULL,endlat DOUBLE(9,6),endlon DOUBLE(9,6),itinerary SMALLINT default 0)", tableName);
 
     if(mysql_ping(conn))
     {
@@ -603,11 +603,11 @@ static int _db_getLastGPS(OBJECT *obj)
     return 0;
 }
 
-static int _db_saveItinerary(const char* tableName, int starttime, int endtime, short itinerary)
+static int _db_saveItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary)
 {
     //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into itinerary_%s(starttime,endtime,itinerary) values(%d,%d,%d)",tableName, starttime, endtime, itinerary);
+    snprintf(query, MAX_QUERY, "insert into itinerary_%s(starttime,startlat,startlon,endtime,endlat,endlon,itinerary) values(%d,%f,%f,%d,%f,%f,%d)",tableName, starttime, startlat, startlon, endtime, endlat, endlon, itinerary);
 
     if(mysql_ping(conn))
     {
@@ -889,10 +889,10 @@ int db_createItinerary(const char* tableName)
 #endif
 }
 
-int db_saveItinerary(const char* tableName, int starttime, int endtime, short itinerary)
+int db_saveItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary)
 {
 #ifdef WITH_DB
-    return _db_saveItinerary(tableName, starttime, endtime, itinerary);
+    return _db_saveItinerary(tableName, starttime, startlat, startlon, endtime, endlat, endlon, itinerary);
 #else
     return 0;
 #endif

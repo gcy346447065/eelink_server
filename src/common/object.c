@@ -70,7 +70,7 @@ static void obj_ItieraryJudge(gpointer key, gpointer value, gpointer user_data)
     {
         if(++obj->timecount >= 5)
         {
-            fun(obj->IMEI, obj->starttime, obj->endtime, obj->itineray);
+            fun(obj->IMEI, obj->starttime, obj->startlat, obj->startlon, obj->timestamp, obj->lat, obj->lon, obj->itineray);
             obj->isStarted = 0;
         }
     }

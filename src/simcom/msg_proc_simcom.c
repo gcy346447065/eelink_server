@@ -1614,7 +1614,9 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
     else if(obj->timestamp - timestamp_pre >= 5 * 60 && miles > 15)   //5min && 15m
     {
         obj->isStarted = 1;
-        obj->starttime = obj->timestamp;
+        obj->starttime = gps[0].timestamp;
+        obj->startlat = gps[0].latitude;
+        obj->startlon = gps[0].longitude;
         obj->itineray = (int)miles;;
     }
     obj->timecount = 0;

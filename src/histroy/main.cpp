@@ -37,8 +37,40 @@ http::server::reply history_reply(const http::server::request &req)
         else
         {
             rsp += gps;
-            //rsp += '\0';
             history_freeMsg(gps);
+        }
+    }
+    else
+    {
+        rsp += "error:your uri is not matched!";
+    }
+
+    LOG_DEBUG("%s",rsp.c_str());
+    http::server::reply rep(rsp);
+    rep.headers["Content-Type"] = "text/plain";
+    return rep;
+}
+
+http::server::reply itinerary_reply(const http::server::request &req)
+{
+    int rc;
+    string rsp;
+    int start = 0;
+    int end = 0;
+    char imei[IMEI_LENGTH + 1] = {0};
+    LOG_INFO("%s",req.uri.c_str());
+    rc = sscanf(req.uri.c_str(), "/v1/itinerary/%15s?start=%d&end=%d", imei, &start, &end);
+    if(rc == 3)
+    {
+        char *itinerary = history_getItinerary(imei, start, end);
+        if(!itinerary)
+        {
+            rsp += "error:no database is in db!";
+        }
+        else
+        {
+            rsp += itinerary;
+            history_freeMsg(itinerary);
         }
     }
     else
@@ -75,6 +107,7 @@ int main(int argc, char *argv[])
   server s("0.0.0.0", "8081", 5);
 
   s.add_handler("/v1/history",history_reply);
+  s.add_handler("/v1/itinerary",itinerary_reply);
 
   // Run the server until stopped.
   LOG_INFO("history server start.");
