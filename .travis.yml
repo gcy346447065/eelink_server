@@ -31,7 +31,7 @@ install:
 #- wget http://www.curl.haxx.se/download/curl-7.45.0.tar.gz
 - wget https://curl.haxx.se/download/curl-7.47.1.tar.gz
 - tar zxvf curl-7.47.1.tar.gz
-- cd curl-7.45.0 && make && sudo make install
+- cd curl-7.47.1 && make && sudo make install
 - cd ..
 
 
