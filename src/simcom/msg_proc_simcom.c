@@ -1607,11 +1607,11 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
 
     miles = getDistance(lat_pre, lon_pre, obj->lat, obj->lon) + 0.5;
 
-    if(obj->isStarted)
+    if(obj->isStarted)//if itinerary has started, add the miles instantly
     {
         obj->itineray += (int)miles;
     }
-    else if(obj->timestamp - timestamp_pre >= 5 * 60 && miles > 15)   //5min && 15m
+    else if(miles > 15)//if itinerary has not started && move avove 15m, judge start new itinerary, record the start msg
     {
         obj->isStarted = 1;
         obj->starttime = gps[0].timestamp;
@@ -1619,7 +1619,9 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
         obj->startlon = gps[0].longitude;
         obj->itineray = (int)miles;;
     }
-    obj->timecount = 0;
+    obj->timecount = 0;//every GPS comes, set the count as 0, when it reach 5, one itinerary generats
+
+    simcom_itinerary_push(obj->IMEI,(int)miles);
 
     //send the last gps in GPS_PACK to app
     app_sendGpsMsg2App(session);
