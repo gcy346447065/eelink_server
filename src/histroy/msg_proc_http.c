@@ -83,12 +83,12 @@ char *history_getItinerary(const char *imeiName, int starttime, int endtime)
             iStart = cJSON_CreateObject();
             iEnd = cJSON_CreateObject();
 
-            cJSON_AddNumberToObject(iStart, "starttime", itinerary->itinerary[i].starttime);
-            cJSON_AddNumberToObject(iStart, "startlat", itinerary->itinerary[i].startlat);
-            cJSON_AddNumberToObject(iStart, "startlon", itinerary->itinerary[i].startlon);
-            cJSON_AddNumberToObject(iEnd, "endtime", itinerary->itinerary[i].endtime);
-            cJSON_AddNumberToObject(iEnd, "endlat", itinerary->itinerary[i].endlat);
-            cJSON_AddNumberToObject(iEnd, "endlon", itinerary->itinerary[i].endlon);
+            cJSON_AddNumberToObject(iStart, "timestamp", itinerary->itinerary[i].starttime);
+            cJSON_AddNumberToObject(iStart, "lat", itinerary->itinerary[i].startlat);
+            cJSON_AddNumberToObject(iStart, "lon", itinerary->itinerary[i].startlon);
+            cJSON_AddNumberToObject(iEnd, "timestamp", itinerary->itinerary[i].endtime);
+            cJSON_AddNumberToObject(iEnd, "lat", itinerary->itinerary[i].endlat);
+            cJSON_AddNumberToObject(iEnd, "lon", itinerary->itinerary[i].endlon);
 
             cJSON_AddItemToObject(iItitnerary, "start", iStart);
             cJSON_AddItemToObject(iItitnerary, "end", iEnd);
