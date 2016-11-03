@@ -2078,6 +2078,7 @@ static MSG_PROC_MAP msgProcs[] =
     {CMD_GET_SETTING,       simcom_getSetting},
     {CMD_GET_BATTERY,       simcom_getBattery},
     {CMD_GET_AT,            simcom_getAT},
+    {CMD_SET_BATTERY_TYPE,  simcom_batteryType},
 };
 
 static int handle_one_msg(const void *m, SESSION *ctx)
