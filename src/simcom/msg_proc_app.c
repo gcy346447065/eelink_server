@@ -345,6 +345,26 @@ static int app_gpsSwitch(cJSON* appMsg, OBJECT* obj)
     return 0;
 }
 
+static int app_setBatteryType(cJSON* appMsg, OBJECT* obj)
+{
+    int cmd = getMsgCmd(appMsg);
+
+    cJSON *typeItem = cJSON_GetObjectItem(appMsg, "type");
+
+    MSG_SET_BATTERY_TYPE *req = (MSG_SET_BATTERY_TYPE *)alloc_simcom_msg(CMD_SET_BATTERY_TYPE, sizeof(MSG_SET_BATTERY_TYPE));
+    if (!req)
+    {
+        LOG_FATAL("insufficient memory");
+        app_sendCmdRsp2App(cmd, CODE_INTERNAL_ERR, obj->IMEI);
+        return -1;
+    }
+    req->type = typeItem->valueint;
+
+    app_sendCmdRsp2App(cmd, CODE_WAITING, obj->IMEI);
+    app_sendMsg2Device(req, sizeof(MSG_SET_BATTERY_TYPE), obj);
+    return 0;
+}
+
 static void getImeiFromTopic(const char* topic, char* IMEI)
 {
     const char* pStart = &topic[strlen("app2dev/")];
@@ -383,7 +403,8 @@ APP_MSG_PROC_MAP msg_proc_map[] =
     {APP_CMD_AUTOLOCK_GET,      app_sendAutoLockGetMsg2Device},
     {APP_CMD_BATTERY,           app_sendBatteryMsg2Device},
     {APP_CMD_STATUS_GET,        app_sendStatusGetMsg2Device},
-    {APP_CMD_GPS_SWITCH,        app_gpsSwitch}
+    {APP_CMD_GPS_SWITCH,        app_gpsSwitch},
+    {APP_CMD_SET_BATTERY_TYPE,  app_setBatteryType}
 };
 
 int app_handleApp2devMsg(const char* topic, const char* data, const int len __attribute__((unused)))

@@ -1606,6 +1606,38 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
     return 0;
 }
 
+static int simcom_batteryType(const void *msg, SESSION *session)
+{
+    const MSG_SET_BATTERY_TYPE_RSP *req = (const MSG_SET_BATTERY_TYPE_RSP *)msg;
+    if(!req)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(req->length) < sizeof(MSG_SET_BATTERY_TYPE_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("ping message length not enough");
+        return -1;
+    }
+
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = (OBJECT *)session->obj;
+    if(!obj)
+    {
+        LOG_WARN("MC must first login");
+        return -1;
+    }
+
+    LOG_INFO("imei(%s) set battery msg success", obj->IMEI);
+    app_sendCmdRsp2App(APP_CMD_SET_BATTERY_TYPE, CODE_SUCCESS, obj->IMEI);
+    return 0;
+}
+
 static int simcom_getLog(const void *msg, SESSION *session)
 {
     const MSG_GET_LOG_RSP *rsp = (const MSG_GET_LOG_RSP *)msg;
