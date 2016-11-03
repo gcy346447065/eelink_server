@@ -332,19 +332,6 @@ static int app_sendStatusGetMsg2Device(cJSON* appMsg, OBJECT* obj)
     return 0;
 }
 
-static int app_gpsSwitch(cJSON* appMsg, OBJECT* obj)
-{
-    int cmd = getMsgCmd(appMsg);
-
-    cJSON *gpsItem = cJSON_GetObjectItem(appMsg, "gps");
-
-    obj->gps_switch = gpsItem->valueint;
-
-
-    app_sendCmdRsp2App(cmd, CODE_SUCCESS, obj->IMEI);
-    return 0;
-}
-
 static int app_setBatteryType(cJSON* appMsg, OBJECT* obj)
 {
     int cmd = getMsgCmd(appMsg);
@@ -403,7 +390,6 @@ APP_MSG_PROC_MAP msg_proc_map[] =
     {APP_CMD_AUTOLOCK_GET,      app_sendAutoLockGetMsg2Device},
     {APP_CMD_BATTERY,           app_sendBatteryMsg2Device},
     {APP_CMD_STATUS_GET,        app_sendStatusGetMsg2Device},
-    {APP_CMD_GPS_SWITCH,        app_gpsSwitch},
     {APP_CMD_SET_BATTERY_TYPE,  app_setBatteryType}
 };
 
