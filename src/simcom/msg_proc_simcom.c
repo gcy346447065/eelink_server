@@ -188,13 +188,9 @@ static int simcom_login(const void *msg, SESSION *session)
     db_add_log(obj->IMEI, "login");
 
     int ret = 0;
-    if(!db_isTableCreated(obj->IMEI, &ret) && !ret)
-    {
-        LOG_INFO("create tables of %s", obj->IMEI);
-        db_createCGI(obj->IMEI);
-        db_createGPS(obj->IMEI);
-        db_createItinerary(obj->IMEI);
-    }
+    db_createCGI(obj->IMEI);
+    db_createGPS(obj->IMEI);
+    db_createItinerary(obj->IMEI);
 
     //get version, compare the version number; if not, send upgrade start message
     int theLastVersion = getLastVersionWithFileNameAndSizeStored();
