@@ -190,7 +190,7 @@ int tk115_gps(const void *msg, SESSION *ctx)
     {
         //int db_saveGPS(const char *name, int timestamp, int lat, int lon, char speed, short course)
         db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
-        sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course, obj->gps_switch);
+//        sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course, obj->gps_switch);
     }
     else
     {
