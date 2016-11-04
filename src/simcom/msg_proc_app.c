@@ -337,6 +337,11 @@ static int app_setBatteryType(cJSON* appMsg, OBJECT* obj)
     int cmd = getMsgCmd(appMsg);
 
     cJSON *typeItem = cJSON_GetObjectItem(appMsg, "type");
+    if(!typeItem)
+    {
+        LOG_ERROR("type format error:no type item");
+        return -1;
+    }
 
     MSG_SET_BATTERY_TYPE *req = (MSG_SET_BATTERY_TYPE *)alloc_simcom_msg(CMD_SET_BATTERY_TYPE, sizeof(MSG_SET_BATTERY_TYPE));
     if (!req)
