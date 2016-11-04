@@ -347,120 +347,117 @@ static int _db_createCGI(const char* tableName)
     return 0;
 }
 
-static void *_db_getGPS(const char *imeiName, int starttime, int endtime)
+static int _db_createItinerary(const char* tableName)
 {
-typedef struct
-{
-    int timestamp;
-    float longitude;
-    float latitude;
-    char speed;
-    short course;
-}__attribute__((__packed__)) HISTORY_GPS;
-typedef struct
-{
-    int num;
-    HISTORY_GPS gps[];
-}__attribute__((__packed__)) HISTORY_GPS_RSP;
-#define MAX_QUERY_LEN 128
+    char query[MAX_QUERY];
+    //create table cgi_IMEI(timestamp INT, mcc SMALLINT, mnc SMALLINT, lac0 SMALLINT, ci0 SMALLINT, rxl0 SMALLINT...)
+    snprintf(query, MAX_QUERY, "create table if not exists itinerary_%s(CreateAt timestamp default CURRENT_TIMESTAMP,starttime INT not NULL,startlat DOUBLE(9,6),startlon DOUBLE(9,6),endtime INT not NULL,endlat DOUBLE(9,6),endlon DOUBLE(9,6),itinerary SMALLINT default 0)", tableName);
 
-    char query[MAX_QUERY_LEN] = {0};
-    char reg[IMEI_LENGTH + 5] = "gps_";
-    strncat(reg, imeiName, IMEI_LENGTH + 1);
-
-    snprintf(query,MAX_QUERY_LEN,"select count(*) from %s where timestamp >= %d and timestamp<= %d", reg, starttime, endtime);
     if(mysql_ping(conn))
     {
         LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
-        return NULL;
+        return 1;
     }
 
     if(mysql_query(conn, query))
     {
-        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));    
-        return NULL;
+        LOG_ERROR("can't create table: itinerary_%s(%u, %s)", tableName, mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+    LOG_INFO("create table: itinerary_%s", tableName);
+
+    return 0;
+}
+
+
+static int _db_getGPS(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
+{
+    char speed = 0;
+    short course = 0;
+    ONEGPS_PROC fun = action;
+    char query[MAX_QUERY] = {0};
+
+    snprintf(query,MAX_QUERY,"select * from gps_%s where timestamp >= %d and timestamp<= %d", imeiName, starttime, endtime);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return 2;
     }
 
     MYSQL_RES *result;
     MYSQL_ROW row;
     result = mysql_store_result(conn);
-    row = mysql_fetch_row(result);
-    HISTORY_GPS_RSP *gps_rsp = (HISTORY_GPS_RSP *)malloc(sizeof(HISTORY_GPS_RSP) + sizeof(HISTORY_GPS) * atoi(row[0]));
-    if(!gps_rsp)
+    while(row = mysql_fetch_row(result))
     {
-        LOG_ERROR("malloc gps memory failed!");
-        return NULL;
-    }
-    gps_rsp->num = atoi(row[0]);
-    mysql_free_result(result);
-
-    memset(query, '\0', strlen(query));
-    snprintf(query,MAX_QUERY_LEN,"select * from %s where timestamp >= %d and timestamp<= %d", reg, starttime, endtime);
-    if(mysql_query(conn, query))
-    {
-        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
-        free(gps_rsp);
-        return NULL;
-    }
-    result = mysql_store_result(conn);
-    for(int i = 0; i < gps_rsp->num ;i++)
-    {
-        row = mysql_fetch_row(result);
-        if(row[0])
+        if(!row[0] || !row[1] || !row[2])
         {
-            gps_rsp->gps[i].timestamp = atoi(row[0]);
-        }
-        else
-        {
-            LOG_ERROR("timestamp is null:%s", imeiName);
-            free(gps_rsp);
-            mysql_free_result(result);
-            return NULL;
-        }
-        if(row[1])
-        {
-            gps_rsp->gps[i].latitude = atof(row[1]);
-        }
-        else
-        {
-            LOG_ERROR("gps->lat is null:%s", imeiName);
-            free(gps_rsp);
-            mysql_free_result(result);
-            return NULL;
-        }
-
-        if(row[2])
-        {
-            gps_rsp->gps[i].longitude= atof(row[2]);
-        }
-        else
-        {
-            LOG_ERROR("gps->lon is null:%s", imeiName);
-            free(gps_rsp);
-            mysql_free_result(result);
-            return NULL;
+            LOG_ERROR("There is somerow as timestamp or lat or lon is null:%s", imeiName);
+            continue;
         }
 
         if(row[3])
         {
-            gps_rsp->gps[i].speed= atoi(row[3]);
+            speed = atoi(row[3]);
         }
         else
         {
-            gps_rsp->gps[i].speed= 0;
+            speed = 0;
         }
 
         if(row[4])
         {
-            gps_rsp->gps[i].course= atoi(row[4]);
+            course = atoi(row[4]);
         }
         else
         {
-            gps_rsp->gps[i].course= 0;
+            course = 0;
         }
+
+        fun(atoi(row[0]), atof(row[1]), atof(row[2]), speed, course, userdata);
+
     }
     mysql_free_result(result);
-    return (void*)gps_rsp;
+    return 0;
+}
+
+static int _db_getItinerary(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
+{
+    ONEITINERARY_PROC fun = action;
+    char query[MAX_QUERY] = {0};
+
+    snprintf(query,MAX_QUERY,"select * from itinerary_%s where starttime >= %d and endtime<= %d", imeiName, starttime, endtime);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    result = mysql_store_result(conn);
+    while(row = mysql_fetch_row(result))
+    {
+        if(!row[1] || !row[2] || !row[3] || !row[4] || !row[5] || !row[6] || !row[7])
+        {
+            LOG_ERROR("There is somerow is null:%s", imeiName);
+            continue;
+        }
+        fun(atoi(row[1]),atof(row[2]),atof(row[3]),atof(row[4]),atof(row[5]),atoi(row[6]),atoi(row[7]),userdata);
+    }
+
+    mysql_free_result(result);
+    return 0;
 }
 
 static int _db_saveGPS(const char *imeiName, int timestamp, float lat, float lon, char speed, short course)
@@ -577,6 +574,28 @@ static int _db_getLastGPS(OBJECT *obj)
 
     mysql_free_result(result);
 
+    return 0;
+}
+
+static int _db_saveItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary)
+{
+    //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
+    char query[MAX_QUERY];
+    snprintf(query, MAX_QUERY, "insert into itinerary_%s(starttime,startlat,startlon,endtime,endlat,endlon,itinerary) values(%d,%f,%f,%d,%f,%f,%d)",tableName, starttime, startlat, startlon, endtime, endlat, endlon, itinerary);
+
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_ERROR("can't insert into itinerary_%s(%u, %s)", tableName, mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+
+    LOG_INFO("insert into itinerary_%s: starttime(%d), endtime(%d), itinerary(%d)", tableName, starttime, endtime, itinerary);
     return 0;
 }
 
@@ -835,6 +854,24 @@ int db_createCGI(const char* tableName)
 #endif
 }
 
+int db_createItinerary(const char* tableName)
+{
+#ifdef WITH_DB
+    return _db_createItinerary(tableName);
+#else
+    return 0;
+#endif
+}
+
+int db_saveItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary)
+{
+#ifdef WITH_DB
+    return _db_saveItinerary(tableName, starttime, startlat, startlon, endtime, endlat, endlon, itinerary);
+#else
+    return 0;
+#endif
+}
+
 int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char speed, short course)
 {
 #ifdef WITH_DB
@@ -844,15 +881,23 @@ int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char s
 #endif
 }
 
-void *db_getGPS(const char *imeiName, int starttime, int endtime)
+int db_getGPS(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
 {
 #ifdef WITH_DB
-    return _db_getGPS(imeiName, starttime, endtime);
+    return _db_getGPS(imeiName, starttime, endtime, action, userdata);
 #else
     return 0;
 #endif
 }
 
+int db_getItinerary(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
+{
+#ifdef WITH_DB
+    return _db_getItinerary(imeiName, starttime, endtime, action, userdata);
+#else
+    return 0;
+#endif
+}
 
 int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cellNo)
 {

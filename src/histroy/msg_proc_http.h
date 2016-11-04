@@ -13,6 +13,7 @@
 
 
 char *history_getGPS(const char *imeiName, int starttime, int endtime);
+char *history_getItinerary(const char *imeiName, int starttime, int endtime);
 void history_freeMsg(char *msg);
 
 

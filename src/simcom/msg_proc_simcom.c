@@ -184,6 +184,7 @@ static int simcom_login(const void *msg, SESSION *session)
         LOG_INFO("create tables of %s", obj->IMEI);
         db_createCGI(obj->IMEI);
         db_createGPS(obj->IMEI);
+        db_createItinerary(obj->IMEI);
     }
 
     //get version, compare the version number; if not, send upgrade start message
@@ -1544,6 +1545,12 @@ static int simcom_DeviceInfoGet(const void *msg, SESSION *session)
 static int simcom_gpsPack(const void *msg, SESSION *session)
 {
     const MSG_HEADER *req = (const MSG_HEADER *)msg;
+
+    float lat_pre = 0.f;
+    float lon_pre = 0.f;
+    int timestamp_pre = 0;
+    double miles = 0.f;
+
     if(!req)
     {
         LOG_ERROR("msg handle empty");
@@ -1577,6 +1584,10 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
 
     OBJECT *obj_pre = obj_get(obj->IMEI);
 
+    lat_pre = obj_pre->lat;
+    lon_pre = obj_pre->lon;
+    timestamp_pre = obj_pre->timestamp;
+
     int num = ntohs(req->length) / sizeof(GPS);
     for(int i = 0; i < num; ++i)
     {
@@ -1591,17 +1602,30 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
 
         db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
         sync_gps(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course, obj->gps_switch);
-        if(i == num - 1 && !obj_pre)
-        {
-            double miles = getDistance(obj_pre->lat, obj_pre->lon, obj->lat, obj->lon) + 0.5;
-            simcom_itinerary_push(obj->IMEI, (int)miles);
-        }
     }
     obj->isGPSlocated = 0x01;
 
+    miles = getDistance(lat_pre, lon_pre, obj->lat, obj->lon) + 0.5;
+
+    if(obj->isStarted)//if itinerary has started, add the miles instantly
+    {
+        obj->itineray += (int)miles;
+    }
+    else if(miles > 15)//if itinerary has not started && move avove 15m, judge start new itinerary, record the start msg
+    {
+        obj->isStarted = 1;
+        obj->starttime = gps[0].timestamp;
+        obj->startlat = gps[0].latitude;
+        obj->startlon = gps[0].longitude;
+        obj->itineray = (int)miles;;
+    }
+    obj->timecount = 0;//every GPS comes, set the count as 0, when it reach 5, one itinerary generats
+
+    simcom_itinerary_push(obj->IMEI,(int)miles);
 
     //send the last gps in GPS_PACK to app
     app_sendGpsMsg2App(session);
+
 
     return 0;
 }
