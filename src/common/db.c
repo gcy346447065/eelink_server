@@ -67,7 +67,8 @@ static int _db_initial()
         snprintf(query, MAX_QUERY, "create table if not exists object(imei char(16) not null primary key, \
                                     RegisterTime timestamp default CURRENT_TIMESTAMP, \
                                     IsPosted tinyint default '0', \
-                                    ObjectType int(4) not null)");
+                                    ObjectType int(4) not null, \
+                                    Voltage tinyint default '0')");
 
         if(mysql_ping(conn))
         {
@@ -667,10 +668,10 @@ static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *)
     return 0;
 }
 
-static int _db_insertOBJ(const char *imeiName, int ObjectType)
+static int _db_insertOBJ(const char *imeiName, int ObjectType, char Voltage)
 {
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into object(imei, ObjectType) values(\'%s\', %d)", imeiName, ObjectType);
+    snprintf(query, MAX_QUERY, "insert into object(imei, ObjectType, Voltage) values(\'%s\', %d, %d)", imeiName, ObjectType, Voltage);
 
     if(mysql_ping(conn))
     {
@@ -917,10 +918,10 @@ int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *), int Obj
 #endif
 }
 
-int db_insertOBJ(const char *imeiName, int ObjectType)
+int db_insertOBJ(const char *imeiName, int ObjectType, char Voltage)
 {
 #ifdef WITH_DB
-    return _db_insertOBJ(imeiName, ObjectType);
+    return _db_insertOBJ(imeiName, ObjectType, Voltage);
 #else
     return 0;
 #endif
