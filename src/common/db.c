@@ -374,7 +374,7 @@ static int _db_getGPS(const char *imeiName, int starttime, int endtime, void *ac
 {
     char speed = 0;
     short course = 0;
-    ONEGPS_PROC fun = (ONEGPS_PROC)action;
+    ONEGPS_PROC fun = action;
     char query[MAX_QUERY] = {0};
 
     snprintf(query,MAX_QUERY,"select * from gps_%s where timestamp >= %d and timestamp<= %d", imeiName, starttime, endtime);
@@ -428,7 +428,7 @@ static int _db_getGPS(const char *imeiName, int starttime, int endtime, void *ac
 
 static int _db_getItinerary(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
 {
-    ONEITINERARY_PROC fun = (ONEITINERARY_PROC)action;
+    ONEITINERARY_PROC fun = action;
     char query[MAX_QUERY] = {0};
 
     snprintf(query,MAX_QUERY,"select * from itinerary_%s where starttime >= %d and endtime<= %d", imeiName, starttime, endtime);

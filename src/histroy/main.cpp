@@ -15,7 +15,6 @@
 #include "db.h"
 #include "log.h"
 #include "msg_proc_http.h"
-#include "protocol_history.h"
 
 using namespace std;
 http::server::reply history_reply(const http::server::request &req)
@@ -104,7 +103,7 @@ int main(int argc, char *argv[])
       return rc;
   }
 
-  server s("0.0.0.0", "8081", 5);
+  server s("0.0.0.0", "8081", 2);
 
   s.add_handler("/v1/history",history_reply);
   s.add_handler("/v1/itinerary",itinerary_reply);

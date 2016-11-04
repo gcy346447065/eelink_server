@@ -7,7 +7,6 @@
 #include <stdio.h>
 
 #include "msg_proc_http.h"
-#include "protocol_history.h"
 
 #include "cJSON.h"
 #include "log.h"
@@ -16,6 +15,12 @@
 
 static int one_GPS(int timestamp, double latitude, double longitude, char speed, short course, void *userdata)
 {
+    if(!userdata)
+    {
+        LOG_ERROR("userdata is null.");
+        return 0;
+    }
+
     cJSON *iGps = cJSON_CreateObject();
 
     cJSON_AddNumberToObject(iGps, "timestamp", timestamp);
@@ -31,6 +36,12 @@ static int one_GPS(int timestamp, double latitude, double longitude, char speed,
 
 static int one_Itinerary(int starttime, double startlat, double startlon, int endtime, double endlat, double endlon, short miles, void *userdata)
 {
+    if(!userdata)
+    {
+        LOG_ERROR("userdata is null.");
+        return 0;
+    }
+
 	cJSON *iItitnerary = cJSON_CreateObject();
 	cJSON *iStart = cJSON_CreateObject();
 	cJSON *iEnd = cJSON_CreateObject();
@@ -53,8 +64,20 @@ static int one_Itinerary(int starttime, double startlat, double startlon, int en
 
 char *history_getGPS(const char *imeiName, int starttime, int endtime)
 {
-    cJSON *gps_Array = cJSON_CreateArray();;
-    cJSON *rsp = cJSON_CreateObject();;
+    cJSON *gps_Array = cJSON_CreateArray();
+    if(!gps_Array)
+    {
+        LOG_FATAL("failed to alloc memory");
+        return NULL;
+    }
+
+    cJSON *rsp = cJSON_CreateObject();
+    if(!rsp)
+    {
+        LOG_FATAL("failed to alloc memory");
+        return NULL;
+    }
+
     int rc = db_getGPS(imeiName, starttime, endtime, one_GPS, gps_Array);
     int num = cJSON_GetArraySize(gps_Array);
 
@@ -84,7 +107,18 @@ char *history_getGPS(const char *imeiName, int starttime, int endtime)
 char *history_getItinerary(const char *imeiName, int starttime, int endtime)
 {
     cJSON *rsp = cJSON_CreateObject();
+    if(!rsp)
+    {
+        LOG_FATAL("failed to alloc memory");
+        return NULL;
+    }
+
     cJSON *itinerary_Array = cJSON_CreateArray();
+    if(!itinerary_Array)
+    {
+        LOG_FATAL("failed to alloc memory");
+        return NULL;
+    }
 
     int rc = db_getItinerary(imeiName, starttime, endtime,one_Itinerary,itinerary_Array);
     int num = cJSON_GetArraySize(itinerary_Array);
