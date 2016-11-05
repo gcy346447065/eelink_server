@@ -280,9 +280,10 @@ static int _db_destruct()
 //return 1 when exists, else 0
 static int _db_isTableCreated(const char* imeiName, int *num)
 {
-    MYSQL_RES *res;
+    MYSQL_RES *result;
+    MYSQL_ROW row;
 
-    char reg[IMEI_LENGTH + 5] = "gps_";
+    char reg[IMEI_LENGTH + 5] = "%_";
     strncat(reg, imeiName, IMEI_LENGTH + 1);
 
     if(mysql_ping(conn))
@@ -291,16 +292,14 @@ static int _db_isTableCreated(const char* imeiName, int *num)
         return 1;
     }
 
-    if((res = mysql_list_tables(conn, reg)) == NULL)
+    if((result = mysql_list_tables(conn, reg)) == NULL)
     {
         LOG_ERROR("can't list tables of %s(%u, %s)", reg, mysql_errno(conn), mysql_error(conn));
         return 2;
     }
+    *num = mysql_num_rows(result);
 
-    *num = mysql_num_rows(res);
-
-    mysql_free_result(res);
-
+    mysql_free_result(result);
     return 0;
 }
 
@@ -321,7 +320,7 @@ static int _db_createGPS(const char* tableName)
         LOG_ERROR("can't create table: gps_%s(%u, %s)", tableName, mysql_errno(conn), mysql_error(conn));
         return 2;
     }
-    LOG_INFO("create table: gps_%s", tableName);
+    LOG_INFO("create table if not exists: gps_%s", tableName);
 
     return 0;
 }
@@ -343,7 +342,7 @@ static int _db_createCGI(const char* tableName)
         LOG_ERROR("can't create table: cgi_%s(%u, %s)", tableName, mysql_errno(conn), mysql_error(conn));
         return 2;
     }
-    LOG_INFO("create table: cgi_%s", tableName);
+    LOG_INFO("create table if not exists: cgi_%s", tableName);
 
     return 0;
 }
@@ -365,7 +364,7 @@ static int _db_createItinerary(const char* tableName)
         LOG_ERROR("can't create table: itinerary_%s(%u, %s)", tableName, mysql_errno(conn), mysql_error(conn));
         return 2;
     }
-    LOG_INFO("create table: itinerary_%s", tableName);
+    LOG_INFO("create table if not exists: itinerary_%s", tableName);
 
     return 0;
 }
