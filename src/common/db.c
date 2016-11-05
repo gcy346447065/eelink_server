@@ -453,7 +453,7 @@ static int _db_getItinerary(const char *imeiName, int starttime, int endtime, vo
             LOG_ERROR("There is somerow is null:%s", imeiName);
             continue;
         }
-        fun(atoi(row[1]),atof(row[2]),atof(row[3]),atof(row[4]),atof(row[5]),atoi(row[6]),atoi(row[7]),userdata);
+        fun(atoi(row[1]),atof(row[2]),atof(row[3]),atoi(row[4]),atof(row[5]),atof(row[6]),atoi(row[7]),userdata);
     }
 
     mysql_free_result(result);

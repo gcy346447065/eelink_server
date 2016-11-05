@@ -64,19 +64,21 @@ static int one_Itinerary(int starttime, double startlat, double startlon, int en
 
 char *history_getGPS(const char *imeiName, int starttime, int endtime)
 {
-    cJSON *gps_Array = cJSON_CreateArray();
-    if(!gps_Array)
-    {
-        LOG_FATAL("failed to alloc memory");
-        return NULL;
-    }
-
     cJSON *rsp = cJSON_CreateObject();
     if(!rsp)
     {
         LOG_FATAL("failed to alloc memory");
         return NULL;
     }
+
+    cJSON *gps_Array = cJSON_CreateArray();
+    if(!gps_Array)
+    {
+        LOG_FATAL("failed to alloc memory");
+        cJSON_Delete(rsp);
+        return NULL;
+    }
+
 
     int rc = db_getGPS(imeiName, starttime, endtime, one_GPS, gps_Array);
     int num = cJSON_GetArraySize(gps_Array);
@@ -117,6 +119,7 @@ char *history_getItinerary(const char *imeiName, int starttime, int endtime)
     if(!itinerary_Array)
     {
         LOG_FATAL("failed to alloc memory");
+        cJSON_Delete(rsp);
         return NULL;
     }
 

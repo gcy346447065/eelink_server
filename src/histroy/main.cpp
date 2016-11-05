@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
       return rc;
   }
 
-  server s("0.0.0.0", "8081", 2);
+  server s("0.0.0.0", "8081", 1);
 
   s.add_handler("/v1/history",history_reply);
   s.add_handler("/v1/itinerary",itinerary_reply);
