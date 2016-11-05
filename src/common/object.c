@@ -66,13 +66,13 @@ static void obj_ItieraryJudge(gpointer key, gpointer value, gpointer user_data)
     OBJECT *obj = (OBJECT *)value;
     SIMCOM_SAVEITINERARY_PROC fun = (SIMCOM_SAVEITINERARY_PROC)user_data;
 
-    if(obj->isStarted)
+    if(obj->isStarted && ++obj->timecount >= 5)
     {
-        if(++obj->timecount >= 5)
+        if(obj->starttime <= obj->timestamp)//dec one floating piont GPS
         {
             fun(obj->IMEI, obj->starttime, obj->startlat, obj->startlon, obj->timestamp, obj->lat, obj->lon, obj->itineray);
-            obj->isStarted = 0;
         }
+        obj->isStarted = 0;
     }
 
     return;

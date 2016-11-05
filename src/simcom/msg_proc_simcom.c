@@ -187,10 +187,14 @@ static int simcom_login(const void *msg, SESSION *session)
     //add login log in db
     db_add_log(obj->IMEI, "login");
 
-    int ret = 0;
-    db_createCGI(obj->IMEI);
-    db_createGPS(obj->IMEI);
-    db_createItinerary(obj->IMEI);
+    int num = 0;
+    if(!db_isTableCreated(obj->IMEI, &num) && 3 > num)
+    {
+        LOG_INFO("db_isTableCreated:%d", num);
+        db_createCGI(obj->IMEI);
+        db_createGPS(obj->IMEI);
+        db_createItinerary(obj->IMEI);
+    }
 
     //get version, compare the version number; if not, send upgrade start message
     int theLastVersion = getLastVersionWithFileNameAndSizeStored();
@@ -1619,7 +1623,7 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
     else if(miles > 15)//if itinerary has not started && move avove 15m, judge start new itinerary, record the start msg
     {
         obj->isStarted = 1;
-        obj->starttime = gps[0].timestamp;
+        obj->starttime = ntohl(gps[0].timestamp);
         obj->startlat = gps[0].latitude;
         obj->startlon = gps[0].longitude;
         obj->itineray = (int)miles;;
