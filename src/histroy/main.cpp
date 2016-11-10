@@ -8,13 +8,9 @@
 #include <iostream>
 #include <string>
 
-#include <http/server.hpp>
-#include <http/request.hpp>
-#include <http/reply.hpp>
-
+#include "msg_proc_http.hpp"
 #include "db.h"
 #include "log.h"
-#include "msg_proc_http.h"
 
 using namespace std;
 http::server::reply history_reply(const http::server::request &req)
@@ -92,12 +88,12 @@ http::server::reply telephone_reply(const http::server::request &req)
         rc = sscanf(req.uri.c_str(), "/v1/telephone/%15s?telephone=%11s%*s", imei, telNumber);
         if(rc == 2)
         {
-            rc = telephone_replaceTelNumber(imei, telNumber);
-            if(!rc)
-            {
-                http::server::reply rep(rep.ok);
-                return rep;
-            }
+            return telephone_replaceTelNumber(imei, telNumber);
+        }
+        else
+        {
+            http::server::reply rep(telephone_errorMsg());
+            return rep;
         }
     }
 
@@ -106,12 +102,12 @@ http::server::reply telephone_reply(const http::server::request &req)
         rc = sscanf(req.uri.c_str(), "/v1/telephone/%15s%*s", imei);
         if(rc == 1)
         {
-            rc = telephone_deleteTelNumber(imei);
-            if(!rc)
-            {
-                http::server::reply rep(rep.ok);
-                return rep;
-            }
+            return telephone_deleteTelNumber(imei);
+        }
+        else
+        {
+            http::server::reply rep(telephone_errorMsg());
+            return rep;
         }
     }
 
@@ -121,9 +117,11 @@ http::server::reply telephone_reply(const http::server::request &req)
 
         if(rc == 1)
         {
-            string rsp = telephone_getTelNumber(imei);
-            http::server::reply rep(rsp);
-            rep.headers["Content-Type"] = "text/plain";
+            return telephone_getTelNumber(imei);
+        }
+        else
+        {
+            http::server::reply rep(telephone_errorMsg());
             return rep;
         }
     }

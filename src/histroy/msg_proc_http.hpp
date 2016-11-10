@@ -7,16 +7,20 @@
 #ifndef MSG_PROC_HISTORY_H_
 #define MSG_PROC_HISTORY_H_
 
+#include <http/server.hpp>
+#include <http/request.hpp>
+#include <http/reply.hpp>
+
 #ifdef __cplusplus
     extern "C"{
 #endif
 
-
 char *history_getGPS(const char *imeiName, int starttime, int endtime);
 char *history_getItinerary(const char *imeiName, int starttime, int endtime);
-int telephone_deleteTelNumber(const char *imeiName);
-int telephone_replaceTelNumber(const char *imeiName, const char *telNumber);
-char *telephone_getTelNumber(const char *imeiName);
+http::server::reply telephone_deleteTelNumber(const char *imeiName);
+http::server::reply telephone_replaceTelNumber(const char *imeiName, const char *telNumber);
+http::server::reply telephone_getTelNumber(const char *imeiName);
+char *telephone_errorMsg(void);
 void history_freeMsg(char *msg);
 
 

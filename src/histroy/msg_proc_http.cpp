@@ -6,7 +6,7 @@
  */
 #include <stdio.h>
 
-#include "msg_proc_http.h"
+#include "msg_proc_http.hpp"
 
 #include "cJSON.h"
 #include "log.h"
@@ -80,7 +80,7 @@ char *history_getGPS(const char *imeiName, int starttime, int endtime)
     }
 
 
-    int rc = db_getGPS(imeiName, starttime, endtime, one_GPS, gps_Array);
+    int rc = db_getGPS(imeiName, starttime, endtime, (void *)one_GPS, gps_Array);
     int num = cJSON_GetArraySize(gps_Array);
 
     LOG_INFO("there are %d gps", num);
@@ -123,7 +123,7 @@ char *history_getItinerary(const char *imeiName, int starttime, int endtime)
         return NULL;
     }
 
-    int rc = db_getItinerary(imeiName, starttime, endtime,one_Itinerary,itinerary_Array);
+    int rc = db_getItinerary(imeiName, starttime, endtime,(void *)one_Itinerary,itinerary_Array);
     int num = cJSON_GetArraySize(itinerary_Array);
 
     LOG_INFO("there are %d itinerary", num);
@@ -148,17 +148,37 @@ char *history_getItinerary(const char *imeiName, int starttime, int endtime)
     return json;
 }
 
-int telephone_deleteTelNumber(const char *imeiName)
+http::server::reply telephone_deleteTelNumber(const char *imeiName)
 {
-    return db_deleteTelNumber(imeiName);
+    int rc = db_deleteTelNumber(imeiName);
+    if(!rc)
+    {
+        http::server::reply rep(rep.ok);
+        return rep;
+    }
+    else
+    {
+        http::server::reply rep(telephone_errorMsg());
+        return rep;
+    }
 }
 
-int telephone_replaceTelNumber(const char *imeiName, const char *telNumber)
+http::server::reply telephone_replaceTelNumber(const char *imeiName, const char *telNumber)
 {
-    return db_replaceTelNumber(imeiName, telNumber);
+    int rc = db_replaceTelNumber(imeiName, telNumber);
+    if(!rc)
+    {
+        http::server::reply rep(rep.ok);
+        return rep;
+    }
+    else
+    {
+        http::server::reply rep(telephone_errorMsg());
+        return rep;
+    }
 }
 
-char *telephone_getTelNumber(const char *imeiName)
+http::server::reply telephone_getTelNumber(const char *imeiName)
 {
     char telNumber[TELNUMBER_LENGTH + 1] = {0};
 
@@ -166,7 +186,8 @@ char *telephone_getTelNumber(const char *imeiName)
     if(!rsp)
     {
         LOG_FATAL("failed to alloc memory");
-        return NULL;
+        http::server::reply rep(telephone_errorMsg());
+        return rep;
     }
 
     int rc = db_getTelNumber(imeiName, telNumber);
@@ -182,13 +203,19 @@ char *telephone_getTelNumber(const char *imeiName)
     char *json = cJSON_PrintUnformatted(rsp);
     LOG_DEBUG("%s",json);
     cJSON_Delete(rsp);
-    return json;
+
+    http::server::reply rep(json);
+    return rep;
+}
+
+char *telephone_errorMsg(void)
+{
+    return "{\"code\":101}";
 }
 
 void history_freeMsg(char *msg)
 {
     free(msg);
 }
-
 
 
