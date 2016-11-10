@@ -66,8 +66,8 @@ static int one_Itinerary(int starttime, double startlat, double startlon, int en
 
 http::server::reply history_getGPS(const char *imeiName, int starttime, int endtime)
 {
-    cJSON *rsp = cJSON_CreateObject();
-    if(!rsp)
+    cJSON *json = cJSON_CreateObject();
+    if(!json)
     {
         LOG_FATAL("failed to alloc memory");
         return history_errorMsg();
@@ -77,7 +77,7 @@ http::server::reply history_getGPS(const char *imeiName, int starttime, int endt
     if(!gps_Array)
     {
         LOG_FATAL("failed to alloc memory");
-        cJSON_Delete(rsp);
+        cJSON_Delete(json);
         return history_errorMsg();
     }
 
@@ -89,31 +89,33 @@ http::server::reply history_getGPS(const char *imeiName, int starttime, int endt
     if(rc)
     {
         LOG_ERROR("no database gps_%s", imeiName);
-        cJSON_AddNumberToObject(rsp, "code", 101);
+        cJSON_AddNumberToObject(json, "code", 101);
     }
     else if(num == 0)
     {
         LOG_INFO("%s no data bettween %d and %d", imeiName, starttime, endtime);
-        cJSON_AddNumberToObject(rsp, "code", 102);
+        cJSON_AddNumberToObject(json, "code", 102);
     }
     else
     {
-        cJSON_AddItemToObject(rsp, "gps", gps_Array);
+        cJSON_AddItemToObject(json, "gps", gps_Array);
     }
-    string json = cJSON_PrintUnformatted(rsp);
-    cJSON_Delete(rsp);
+    char *msg = cJSON_PrintUnformatted(json);
+    cJSON_Delete(json);
 
-    LOG_DEBUG("%s",json.c_str());
+    string rsp = msg;
+    LOG_DEBUG("%s",msg);
+    free(msg);
 
-    http::server::reply rep(json);
+    http::server::reply rep(rsp);
     return rep;
 }
 
 
 http::server::reply history_getItinerary(const char *imeiName, int starttime, int endtime)
 {
-    cJSON *rsp = cJSON_CreateObject();
-    if(!rsp)
+    cJSON *json = cJSON_CreateObject();
+    if(!json)
     {
         LOG_FATAL("failed to alloc memory");
         return history_errorMsg();
@@ -123,7 +125,7 @@ http::server::reply history_getItinerary(const char *imeiName, int starttime, in
     if(!itinerary_Array)
     {
         LOG_FATAL("failed to alloc memory");
-        cJSON_Delete(rsp);
+        cJSON_Delete(json);
         return history_errorMsg();
     }
 
@@ -135,24 +137,26 @@ http::server::reply history_getItinerary(const char *imeiName, int starttime, in
     if(rc)
     {
         LOG_ERROR("no database itinerary_%s", imeiName);
-        cJSON_AddNumberToObject(rsp, "code", 101);
+        cJSON_AddNumberToObject(json, "code", 101);
     }
     else if(num == 0)
     {
         LOG_INFO("%s no data bettween %d and %d", imeiName, starttime, endtime);
-        cJSON_AddNumberToObject(rsp, "code", 102);
+        cJSON_AddNumberToObject(json, "code", 102);
     }
     else
     {
-        cJSON_AddItemToObject(rsp, "itinerary", itinerary_Array);
+        cJSON_AddItemToObject(json, "itinerary", itinerary_Array);
     }
 
-    string json = cJSON_PrintUnformatted(rsp);
-    cJSON_Delete(rsp);
+    char *msg = cJSON_PrintUnformatted(json);
+    cJSON_Delete(json);
 
-    LOG_DEBUG("%s",json.c_str());
+    string rsp = msg;
+    LOG_DEBUG("%s",msg);
+    free(msg);
 
-    http::server::reply rep(json);
+    http::server::reply rep(rsp);
     return rep;
 }
 
@@ -184,8 +188,8 @@ http::server::reply telephone_getTelNumber(const char *imeiName)
 {
     char telNumber[TELNUMBER_LENGTH + 1] = {0};
 
-    cJSON *rsp = cJSON_CreateObject();
-    if(!rsp)
+    cJSON *json = cJSON_CreateObject();
+    if(!json)
     {
         LOG_FATAL("failed to alloc memory");
         return history_errorMsg();
@@ -194,19 +198,21 @@ http::server::reply telephone_getTelNumber(const char *imeiName)
     int rc = db_getTelNumber(imeiName, telNumber);
     if(rc)
     {
-        cJSON_AddNumberToObject(rsp, "code", 101);
+        cJSON_AddNumberToObject(json, "code", 101);
     }
     else
     {
-        cJSON_AddStringToObject(rsp, "telephone", telNumber);
+        cJSON_AddStringToObject(json, "telephone", telNumber);
     }
 
-    string json = cJSON_PrintUnformatted(rsp);
-    cJSON_Delete(rsp);
+    char *msg = cJSON_PrintUnformatted(json);
+    cJSON_Delete(json);
 
-    LOG_DEBUG("%s",json.c_str());
+    string rsp = msg;
+    LOG_DEBUG("%s",msg);
+    free(msg);
 
-    http::server::reply rep(json);
+    http::server::reply rep(rsp);
     return rep;
 }
 
@@ -215,10 +221,4 @@ http::server::reply history_errorMsg(void)
     http::server::reply rep("{\"code\":101}");
     return rep;
 }
-
-void history_freeMsg(char *msg)
-{
-    free(msg);
-}
-
 
