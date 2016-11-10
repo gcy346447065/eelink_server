@@ -20,30 +20,16 @@ http::server::reply history_reply(const http::server::request &req)
     int start = 0;
     int end = 0;
     char imei[IMEI_LENGTH + 1] = {0};
+
     LOG_INFO("%s",req.uri.c_str());
+
     rc = sscanf(req.uri.c_str(), "/v1/history/%15s?start=%d&end=%d%*s", imei, &start, &end);
     if(rc == 3)
     {
-        char *gps = history_getGPS(imei, start, end);
-        if(!gps)
-        {
-            rsp += "error:no database is in db!";
-        }
-        else
-        {
-            rsp += gps;
-            history_freeMsg(gps);
-        }
-    }
-    else
-    {
-        rsp += "error:your uri is not matched!";
+        return history_getGPS(imei, start, end);
     }
 
-    LOG_DEBUG("%s",rsp.c_str());
-    http::server::reply rep(rsp);
-    rep.headers["Content-Type"] = "text/plain";
-    return rep;
+    return history_errorMsg();
 }
 
 http::server::reply itinerary_reply(const http::server::request &req)
@@ -53,27 +39,17 @@ http::server::reply itinerary_reply(const http::server::request &req)
     int start = 0;
     int end = 0;
     char imei[IMEI_LENGTH + 1] = {0};
+
     LOG_INFO("%s",req.uri.c_str());
+
     rc = sscanf(req.uri.c_str(), "/v1/itinerary/%15s?start=%d&end=%d%*s", imei, &start, &end);
     LOG_INFO("%s", req.method.c_str());
     if(rc == 3)
     {
-        char *itinerary = history_getItinerary(imei, start, end);
-        if(itinerary)
-        {
-            rsp += itinerary;
-            history_freeMsg(itinerary);
-        }
-    }
-    else
-    {
-        rsp += "error:your uri is not matched!";
+        return history_getItinerary(imei, start, end);
     }
 
-    LOG_DEBUG("%s",rsp.c_str());
-    http::server::reply rep(rsp);
-    rep.headers["Content-Type"] = "text/plain";
-    return rep;
+    return history_errorMsg();
 }
 
 http::server::reply telephone_reply(const http::server::request &req)
@@ -90,11 +66,6 @@ http::server::reply telephone_reply(const http::server::request &req)
         {
             return telephone_replaceTelNumber(imei, telNumber);
         }
-        else
-        {
-            http::server::reply rep(telephone_errorMsg());
-            return rep;
-        }
     }
 
     if(req.method == "DELETE")//delete
@@ -103,11 +74,6 @@ http::server::reply telephone_reply(const http::server::request &req)
         if(rc == 1)
         {
             return telephone_deleteTelNumber(imei);
-        }
-        else
-        {
-            http::server::reply rep(telephone_errorMsg());
-            return rep;
         }
     }
 
@@ -119,15 +85,9 @@ http::server::reply telephone_reply(const http::server::request &req)
         {
             return telephone_getTelNumber(imei);
         }
-        else
-        {
-            http::server::reply rep(telephone_errorMsg());
-            return rep;
-        }
     }
 
-    http::server::reply rep(rep.bad_request);
-    return rep;
+    return history_errorMsg();
 }
 
 

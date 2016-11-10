@@ -15,14 +15,14 @@
     extern "C"{
 #endif
 
-char *history_getGPS(const char *imeiName, int starttime, int endtime);
-char *history_getItinerary(const char *imeiName, int starttime, int endtime);
+http::server::reply history_getGPS(const char *imeiName, int starttime, int endtime);
+http::server::reply history_getItinerary(const char *imeiName, int starttime, int endtime);
 http::server::reply telephone_deleteTelNumber(const char *imeiName);
 http::server::reply telephone_replaceTelNumber(const char *imeiName, const char *telNumber);
 http::server::reply telephone_getTelNumber(const char *imeiName);
-char *telephone_errorMsg(void);
-void history_freeMsg(char *msg);
+http::server::reply history_errorMsg(void);
 
+void history_freeMsg(char *msg);
 
 #ifdef __cplusplus
     }
