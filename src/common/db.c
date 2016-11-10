@@ -98,6 +98,22 @@ static int _db_initial()
             return 2;
         }
 
+        /* creat table imei2objectID if not exists */
+        snprintf(query, MAX_QUERY, "create table if not exists imei2Telnumber(imei char(15) not null primary key, \
+                                    Telnumber char(11) not null)");
+
+        if(mysql_ping(conn))
+        {
+            LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+            return 1;
+        }
+
+        if(mysql_query(conn, query))
+        {
+            LOG_ERROR("can't creat table imei2Telnumber(%u, %s)", mysql_errno(conn), mysql_error(conn));
+            return 2;
+        }
+
         /* creat table log if not exists */
         snprintf(query, MAX_QUERY, "create table if not exists log(time timestamp default CURRENT_TIMESTAMP, \
                                     imei char(15) not null,  \
@@ -457,6 +473,75 @@ static int _db_getItinerary(const char *imeiName, int starttime, int endtime, vo
     }
 
     mysql_free_result(result);
+    return 0;
+}
+
+static int _db_deleteTelNumber(const char *imeiName)
+{
+    char query[MAX_QUERY] = {0};
+
+    snprintf(query,MAX_QUERY,"delete from imei2Telnumber where imei = \'%s\'", imeiName);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't delete from imei2Telnumber(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+    return 0;
+}
+
+static int _db_replaceTelNumber(const char *imeiName, const char *telNumber)
+{
+    char query[MAX_QUERY] = {0};
+
+    snprintf(query,MAX_QUERY,"replace into imei2Telnumber(imei,Telnumber) values(\'%s\',\'%s\')", imeiName, telNumber);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't insert number into db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+    return 0;
+}
+
+static int _db_getTelNumber(const char *imeiName, char *telNumber)
+{
+#define MAX_TELNUMBER_LEN 11
+    char query[MAX_QUERY] = {0};
+
+    snprintf(query,MAX_QUERY,"select Telnumber from imei2Telnumber where imei = \'%s\'", imeiName);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't select Telnumber from into db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    result = mysql_store_result(conn);
+    row = mysql_fetch_row(result);
+
+    if(!row)
+    {
+        LOG_ERROR("No telNumber(%s) in imei2Telnumber",imeiName);
+        return 3;
+    }
+
+    strncpy(telNumber,row[0],MAX_TELNUMBER_LEN);
+
     return 0;
 }
 
@@ -894,6 +979,33 @@ int db_getItinerary(const char *imeiName, int starttime, int endtime, void *acti
 {
 #ifdef WITH_DB
     return _db_getItinerary(imeiName, starttime, endtime, action, userdata);
+#else
+    return 0;
+#endif
+}
+
+int db_deleteTelNumber(const char *imeiName)
+{
+#ifdef WITH_DB
+    return _db_deleteTelNumber(imeiName);
+#else
+    return 0;
+#endif
+}
+
+int db_replaceTelNumber(const char *imeiName, const char *telNumber)
+{
+#ifdef WITH_DB
+    return _db_replaceTelNumber(imeiName, telNumber);
+#else
+    return 0;
+#endif
+}
+
+int db_getTelNumber(const char *imeiName, char *telNumber)
+{
+#ifdef WITH_DB
+    return _db_getTelNumber(imeiName, telNumber);
 #else
     return 0;
 #endif

@@ -14,6 +14,9 @@
 
 char *history_getGPS(const char *imeiName, int starttime, int endtime);
 char *history_getItinerary(const char *imeiName, int starttime, int endtime);
+int telephone_deleteTelNumber(const char *imeiName);
+int telephone_replaceTelNumber(const char *imeiName, const char *telNumber);
+char *telephone_getTelNumber(const char *imeiName);
 void history_freeMsg(char *msg);
 
 

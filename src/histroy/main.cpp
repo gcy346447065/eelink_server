@@ -25,7 +25,7 @@ http::server::reply history_reply(const http::server::request &req)
     int end = 0;
     char imei[IMEI_LENGTH + 1] = {0};
     LOG_INFO("%s",req.uri.c_str());
-    rc = sscanf(req.uri.c_str(), "/v1/history/%15s?start=%d&end=%d", imei, &start, &end);
+    rc = sscanf(req.uri.c_str(), "/v1/history/%15s?start=%d&end=%d%*s", imei, &start, &end);
     if(rc == 3)
     {
         char *gps = history_getGPS(imei, start, end);
@@ -58,15 +58,12 @@ http::server::reply itinerary_reply(const http::server::request &req)
     int end = 0;
     char imei[IMEI_LENGTH + 1] = {0};
     LOG_INFO("%s",req.uri.c_str());
-    rc = sscanf(req.uri.c_str(), "/v1/itinerary/%15s?start=%d&end=%d", imei, &start, &end);
+    rc = sscanf(req.uri.c_str(), "/v1/itinerary/%15s?start=%d&end=%d%*s", imei, &start, &end);
+    LOG_INFO("%s", req.method.c_str());
     if(rc == 3)
     {
         char *itinerary = history_getItinerary(imei, start, end);
-        if(!itinerary)
-        {
-            rsp += "error:no database is in db!";
-        }
-        else
+        if(itinerary)
         {
             rsp += itinerary;
             history_freeMsg(itinerary);
@@ -82,6 +79,59 @@ http::server::reply itinerary_reply(const http::server::request &req)
     rep.headers["Content-Type"] = "text/plain";
     return rep;
 }
+
+http::server::reply telephone_reply(const http::server::request &req)
+{
+    int rc;
+    char imei[IMEI_LENGTH + 1] = {0};
+    char telNumber[TELNUMBER_LENGTH + 1] = {0};
+    LOG_INFO("%s",req.uri.c_str());
+
+    if(req.method == "POST" || req.method == "PUT")// set or update
+    {
+        rc = sscanf(req.uri.c_str(), "/v1/telephone/%15s?telephone=%11s%*s", imei, telNumber);
+        if(rc == 2)
+        {
+            rc = telephone_replaceTelNumber(imei, telNumber);
+            if(!rc)
+            {
+                http::server::reply rep(rep.ok);
+                return rep;
+            }
+        }
+    }
+
+    if(req.method == "DELETE")//delete
+    {
+        rc = sscanf(req.uri.c_str(), "/v1/telephone/%15s%*s", imei);
+        if(rc == 1)
+        {
+            rc = telephone_deleteTelNumber(imei);
+            if(!rc)
+            {
+                http::server::reply rep(rep.ok);
+                return rep;
+            }
+        }
+    }
+
+    if(req.method == "GET")//get
+    {
+        rc = sscanf(req.uri.c_str(), "/v1/telephone/%15s%*s", imei);
+
+        if(rc == 1)
+        {
+            string rsp = telephone_getTelNumber(imei);
+            http::server::reply rep(rsp);
+            rep.headers["Content-Type"] = "text/plain";
+            return rep;
+        }
+    }
+
+    http::server::reply rep(rep.bad_request);
+    return rep;
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -107,6 +157,7 @@ int main(int argc, char *argv[])
 
   s.add_handler("/v1/history",history_reply);
   s.add_handler("/v1/itinerary",itinerary_reply);
+  s.add_handler("/v1/telephone",telephone_reply);
 
   // Run the server until stopped.
   LOG_INFO("history server start.");

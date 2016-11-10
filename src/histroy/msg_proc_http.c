@@ -148,6 +148,43 @@ char *history_getItinerary(const char *imeiName, int starttime, int endtime)
     return json;
 }
 
+int telephone_deleteTelNumber(const char *imeiName)
+{
+    return db_deleteTelNumber(imeiName);
+}
+
+int telephone_replaceTelNumber(const char *imeiName, const char *telNumber)
+{
+    return db_replaceTelNumber(imeiName, telNumber);
+}
+
+char *telephone_getTelNumber(const char *imeiName)
+{
+    char telNumber[TELNUMBER_LENGTH + 1] = {0};
+
+    cJSON *rsp = cJSON_CreateObject();
+    if(!rsp)
+    {
+        LOG_FATAL("failed to alloc memory");
+        return NULL;
+    }
+
+    int rc = db_getTelNumber(imeiName, telNumber);
+    if(rc)
+    {
+        cJSON_AddNumberToObject(rsp, "code", 101);
+    }
+    else
+    {
+        cJSON_AddStringToObject(rsp, "telephone", telNumber);
+    }
+
+    char *json = cJSON_PrintUnformatted(rsp);
+    LOG_DEBUG("%s",json);
+    cJSON_Delete(rsp);
+    return json;
+}
+
 void history_freeMsg(char *msg)
 {
     free(msg);
