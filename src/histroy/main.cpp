@@ -16,9 +16,7 @@ using namespace std;
 http::server::reply history_reply(const http::server::request &req)
 {
     int rc;
-    string rsp;
-    int start = 0;
-    int end = 0;
+    int start = 0, end = 0;
     char imei[IMEI_LENGTH + 1] = {0};
 
     LOG_INFO("%s",req.uri.c_str());
@@ -35,9 +33,7 @@ http::server::reply history_reply(const http::server::request &req)
 http::server::reply itinerary_reply(const http::server::request &req)
 {
     int rc;
-    string rsp;
-    int start = 0;
-    int end = 0;
+    int start = 0, end = 0;
     char imei[IMEI_LENGTH + 1] = {0};
 
     LOG_INFO("%s",req.uri.c_str());
