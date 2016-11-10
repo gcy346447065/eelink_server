@@ -97,6 +97,20 @@ static void msg_saveSimInfo(cJSON* json)
     return;
 }
 
+static void msg_callAlarm(cJSON* json)
+{
+    cJSON* telNumber = cJSON_GetObjectItem(json, TAG_TELNUMBER);
+    if (!telNumber)
+    {
+        LOG_ERROR("call Alarm failed");
+        return;
+    }
+
+    phone_alarm(telNumber->valuestring);
+
+    return;
+}
+
 #if 0
 int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
 {
@@ -166,6 +180,10 @@ int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
 
             case CMD_SYNC_NEW_SIM_INFO:
 //                msg_saveSimInfo(root);
+                break;
+
+            case CMD_SYNC_CALL_ALARM:
+                msg_callAlarm(root);
                 break;
 
             default:

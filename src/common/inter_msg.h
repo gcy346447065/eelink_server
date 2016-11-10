@@ -9,7 +9,8 @@ enum
     CMD_SYNC_NEW_DID,
     CMD_SYNC_NEW_GPS,
     CMD_SYNC_NEW_ITINERARY,
-    CMD_SYNC_NEW_SIM_INFO
+    CMD_SYNC_NEW_SIM_INFO,
+    CMD_SYNC_CALL_ALARM,
 };
 
 #define TAG_CMD "CMD"
@@ -20,6 +21,7 @@ enum
 #define TAG_SPEED "SPEED"
 #define TAG_COURSE "COURSE"
 #define TAG_DID "DID"
+#define TAG_TELNUMBER "TELNUMBER"
 
 #define TAG_CCID "CCID"
 #define TAG_IMSI "IMSI"

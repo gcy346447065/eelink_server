@@ -20,6 +20,7 @@
 #include "log.h"
 #include "port.h"
 #include "timer.h"
+#include "macro.h"
 
 static struct bufferevent *bev = NULL;
 static struct event *evTimerReconnect = NULL;
@@ -186,6 +187,40 @@ void sync_newIMEI(const char *imei)
 
     return;
 }
+
+void sync_callAlarm(const char *imei)
+{
+    char telNumber[TELNUMBER_LENGTH + 1] = {0};
+    int rc = db_getTelNumber(imei, telNumber);
+    if(rc)
+    {
+        LOG_INFO("No telNumber(%s) in database!",imei);
+        return;
+    }
+
+    cJSON *root = cJSON_CreateObject();
+
+    cJSON_AddNumberToObject(root, TAG_CMD, CMD_SYNC_CALL_ALARM);
+    cJSON_AddStringToObject(root, TAG_TELNUMBER, telNumber);
+
+    char *data = cJSON_PrintUnformatted(root);
+
+    if (!data)
+    {
+        LOG_ERROR("internal error");
+        cJSON_Delete(root);
+        return;
+    }
+
+    sendMsg2Sync(data, strlen(data));
+    LOG_INFO("send imei(%s) to sync", imei);
+
+    free(data);
+    cJSON_Delete(root);
+
+    return;
+}
+
 
 void sync_gps(const char* imei, int timestamp, float lat, float lng, char speed, short course, int gps_switch)
 {
