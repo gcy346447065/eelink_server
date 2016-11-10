@@ -14,10 +14,14 @@ SET(SOURCE_FILE
     objectID_leancloud.h
 
     msg_proc.h
-    msg_proc.c)
+    msg_proc.c
+
+    phone_alarm.h
+    phone_alarm.c
+)
 
 MESSAGE(STATUS "configure Server for sync")
 link_directories(/usr/lib64/mysql)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 add_executable(sync_server ${SOURCE_FILE})
-TARGET_LINK_LIBRARIES(sync_server electromble)
+TARGET_LINK_LIBRARIES(sync_server electromble alidayu)
