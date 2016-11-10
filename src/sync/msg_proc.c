@@ -142,7 +142,7 @@ int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
     const char *msg = m;
     cJSON *root;
 
-    while(root = cJSON_ParseWithOpts(msg, &msg, 0))
+    while((root = cJSON_ParseWithOpts(msg, &msg, 0)))
     {
         cJSON* cmd = cJSON_GetObjectItem(root, TAG_CMD);
 	if (!cmd)
