@@ -39,6 +39,9 @@ int db_getItinerary(const char *imeiName, int starttime, int endtime, void *acti
 int db_createItinerary(const char* tableName);
 int db_saveItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary);
 int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cellNo);
+int db_deleteTelNumber(const char *imeiName);
+int db_replaceTelNumber(const char *imeiName, const char *telNumber);
+int db_getTelNumber(const char *imeiName, char *telNumber);
 
 int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *), int ObjectType);
 int db_insertOBJ(const char *imeiName, int ObjectType, char Volatge);

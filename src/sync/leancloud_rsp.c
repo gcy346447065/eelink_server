@@ -15,10 +15,8 @@
 #include "db.h"
 #include "objectID_leancloud.h"
 
-size_t leancloud_onSaveGPS(void *contents, size_t size, size_t nmemb, void *userdata)
+size_t leancloud_onSaveGPS(void *contents, size_t size, size_t nmemb, void *userdata  __attribute__((unused)))
 {
-	userdata = userdata;
-
 	char* rsp = malloc(size * nmemb + 1);
 	memcpy(rsp, contents, size * nmemb);
 	rsp[size * nmemb] = 0;
@@ -80,10 +78,8 @@ size_t leancloud_onSaveDID(void *contents, size_t size, size_t nmemb, void *user
 	return size * nmemb;
 }
 
-size_t leancloud_onSaveItinerary(void *contents, size_t size, size_t nmemb, void *userdata)
+size_t leancloud_onSaveItinerary(void *contents, size_t size, size_t nmemb, void *userdata  __attribute__((unused)))
 {
-	userdata = userdata;
-
 	char* rsp = malloc(size * nmemb + 1);
 	memcpy(rsp, contents, size * nmemb);
 	rsp[size * nmemb] = 0;
@@ -105,10 +101,8 @@ size_t leancloud_onSaveItinerary(void *contents, size_t size, size_t nmemb, void
 	return size * nmemb;
 }
 
-size_t leancloud_onSaveSimInfo(void *contents, size_t size, size_t nmemb, void *userdata)
+size_t leancloud_onSaveSimInfo(void *contents, size_t size, size_t nmemb, void *userdata  __attribute__((unused)))
 {
-	userdata = userdata;
-
 	char* rsp = malloc(size * nmemb + 1);
 	memcpy(rsp, contents, size * nmemb);
 	rsp[size * nmemb] = 0;
@@ -130,10 +124,8 @@ size_t leancloud_onSaveSimInfo(void *contents, size_t size, size_t nmemb, void *
 	return size * nmemb;
 }
 
-size_t leancloud_onGetObjectIDWithImei(void *contents, size_t size, size_t nmemb, void *userdata)
+size_t leancloud_onGetObjectIDWithImei(void *contents, size_t size, size_t nmemb, void *userdata  __attribute__((unused)))
 {
-	userdata = userdata;
-
 	char* rsp = malloc(size * nmemb + 1);
 	memcpy(rsp, contents, size * nmemb);
 	rsp[size * nmemb] = 0;
