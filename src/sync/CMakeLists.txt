@@ -16,8 +16,6 @@ SET(SOURCE_FILE
     msg_proc.h
     msg_proc.c
 
-    phone_alarm.h
-    phone_alarm.c
 )
 
 MESSAGE(STATUS "configure Server for sync")
