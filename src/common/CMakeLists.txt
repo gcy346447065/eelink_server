@@ -37,10 +37,13 @@ SET(SOURCE_FILE
 
     timer.h
     timer.c
+
+    phone_alarm.h
+    phone_alarm.c
 )
 
 MESSAGE(STATUS "configure common library")
 link_directories(/usr/lib64/mysql)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 add_library(electromble SHARED ${SOURCE_FILE})
-TARGET_LINK_LIBRARIES(electromble m event zlog curl mosquitto paho-mqtt3c mysqlclient json)
+TARGET_LINK_LIBRARIES(electromble alidayu m event zlog curl mosquitto paho-mqtt3c mysqlclient json)

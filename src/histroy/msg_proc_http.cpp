@@ -222,3 +222,9 @@ http::server::reply history_errorMsg(void)
     return rep;
 }
 
+http::server::reply history_okMsg(void)
+{
+    http::server::reply rep(rep.ok);
+    return rep;
+}
+

@@ -21,6 +21,7 @@ http::server::reply telephone_deleteTelNumber(const char *imeiName);
 http::server::reply telephone_replaceTelNumber(const char *imeiName, const char *telNumber);
 http::server::reply telephone_getTelNumber(const char *imeiName);
 http::server::reply history_errorMsg(void);
+http::server::reply history_okMsg(void);
 
 #ifdef __cplusplus
     }

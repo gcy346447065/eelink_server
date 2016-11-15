@@ -11,6 +11,7 @@
 #include "msg_proc_http.hpp"
 #include "db.h"
 #include "log.h"
+#include "phone_alarm.h"
 
 using namespace std;
 http::server::reply history_reply(const http::server::request &req)
@@ -86,6 +87,23 @@ http::server::reply telephone_reply(const http::server::request &req)
     return history_errorMsg();
 }
 
+http::server::reply telephone_testCall(const http::server::request &req)
+{
+    int rc;
+    int start = 0, end = 0;
+    char number[TELNUMBER_LENGTH + 1] = {0};
+
+    LOG_INFO("%s",req.uri.c_str());
+
+    rc = sscanf(req.uri.c_str(), "/v1/test/%11s%*s", number);
+    if(rc == 1)
+    {
+         phone_alarm(number);
+         return history_okMsg();
+    }
+
+    return history_errorMsg();
+}
 
 int main(int argc, char *argv[])
 {
@@ -112,6 +130,7 @@ int main(int argc, char *argv[])
   s.add_handler("/v1/history",history_reply);
   s.add_handler("/v1/itinerary",itinerary_reply);
   s.add_handler("/v1/telephone",telephone_reply);
+  s.add_handler("/v1/test",telephone_testCall);
 
   // Run the server until stopped.
   LOG_INFO("history server start.");
