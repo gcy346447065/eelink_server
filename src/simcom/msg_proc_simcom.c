@@ -250,8 +250,8 @@ static int simcom_ping(const void *msg, SESSION *session)
         LOG_WARN("MC must first login");
         return -1;
     }
-
-    LOG_INFO("imei(%s) ping", obj->IMEI);
+    obj->gsm = ntohs(req->status);
+    LOG_INFO("imei(%s) ping, gsm(%d)", obj->IMEI, obj->gsm);
 
     return 0;
 }
