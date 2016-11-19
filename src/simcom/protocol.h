@@ -232,7 +232,8 @@ typedef MSG_HEADER MSG_LOGIN_RSP;
 typedef struct
 {
     MSG_HEADER header;
-    short gsm;
+    char gsm;
+    char voltage;
 }__attribute__((__packed__)) MSG_PING_REQ;
 
 typedef MSG_HEADER MSG_PING_RSP;
