@@ -232,7 +232,7 @@ typedef MSG_HEADER MSG_LOGIN_RSP;
 typedef struct
 {
     MSG_HEADER header;
-    short status;   //TODO: to define the status bits
+    short gsm;
 }__attribute__((__packed__)) MSG_PING_REQ;
 
 typedef MSG_HEADER MSG_PING_RSP;
