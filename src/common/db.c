@@ -580,7 +580,7 @@ static int _db_getLastGPS(OBJECT *obj)
 
     if(mysql_query(conn, query))
     {
-        LOG_INFO("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        LOG_ERROR("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
         return 2;
     }
 
