@@ -1101,6 +1101,7 @@ static int simcom_DefendOn(const void *msg, SESSION *session)
 
     if(rsp->result == 0)
     {
+        db_add_log(strIMEI,"Defend on");
         app_sendCmdRsp2App(APP_CMD_FENCE_ON, CODE_SUCCESS, strIMEI);
     }
     else
@@ -1143,6 +1144,7 @@ static int simcom_DefendOff(const void *msg, SESSION *session)
 
     if(rsp->result == 0)
     {
+        db_add_log(strIMEI,"Defend off");
         app_sendCmdRsp2App(APP_CMD_FENCE_OFF, CODE_SUCCESS, strIMEI);
     }
     else
