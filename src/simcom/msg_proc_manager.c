@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "log.h"
+#include "cJSON.h"
 #include "macro.h"
 #include "object.h"
 #include "session.h"
@@ -154,13 +155,132 @@ static int manager_imeiData(const void *msg, SESSION_MANAGER *sessionManager)
         {
             LOG_INFO("failed to find imei(%s) in object, send null rsp", imei);
         }
-        
+
         manager_sendMsg(rsp, sizeof(MANAGER_MSG_IMEI_DATA_RSP), sessionManager);
         LOG_INFO("send imei data rsp");
     }
     else
     {
         LOG_ERROR("insufficient memory");
+        return -1;
+    }
+
+    return 0;
+}
+
+static int manager_sendDaily(void *session, char *time, char *event)
+{
+    SESSION_MANAGER *simcomSession = (SESSION_MANAGER *)session;
+
+    cJSON *json = cJSON_CreateObject();
+    if(!json)
+    {
+        LOG_ERROR("insufficient memory");
+        return -1;
+    }
+    cJSON_AddStringToObject(json, "time", time);
+    cJSON_AddStringToObject(json, "event", event);
+
+    char *data = cJSON_PrintUnformatted(json);
+    cJSON_Delete(json);
+
+    short msgLen = sizeof(MANAGER_MSG_GET_LOG_RSP)+strlen(data) + 1;
+    MANAGER_MSG_GET_LOG_RSP *msg = alloc_managerSimcomRsp(MANAGER_CMD_GET_IMEIDAILY, msgLen-sizeof(MANAGER_MSG_GET_LOG_RSP));
+    if(!msg)
+    {
+        LOG_ERROR("insufficient memory");
+        return -1;
+    }
+
+    strncpy(msg->data,data,strlen(data));
+    msg->data[strlen(data)] = 0;
+    free(data);
+
+    LOG_HEX(msg, msgLen);
+    manager_sendMsg(msg, msgLen, simcomSession);
+
+    return 0;
+
+}
+
+static int manager_getdaily(const void *msg, SESSION_MANAGER *sessionManager)
+{
+    const MANAGER_MSG_IMEI_DAILY_REQ *req = (const MANAGER_MSG_IMEI_DAILY_REQ *)msg;
+    if(ntohs(req->header.length) != sizeof(MANAGER_MSG_IMEI_DAILY_REQ) - MANAGER_MSG_HEADER_LEN)
+    {
+        LOG_ERROR("login message length not enough");
+        return -1;
+    }
+
+    char imei[IMEI_LENGTH + 1] = {0};
+    memcpy(imei, req->IMEI, IMEI_LENGTH);
+
+    LOG_INFO("get daily req, imei(%s)", imei);
+
+    db_getLog(sessionManager, manager_sendDaily, imei);
+
+    return 0;
+}
+
+static int manager_setserver(const void *msg, SESSION_MANAGER *sessionManager)
+{
+#define SERVER_MAX_LEN 50
+    size_t msgLen = 0;
+    char buf[SERVER_MAX_LEN] = {0};
+    const MANAGER_MSG_AT_REQ *req = (const MANAGER_MSG_AT_REQ *)msg;
+
+    if(ntohs(req->header.length) != sizeof(MANAGER_MSG_AT_REQ) - MANAGER_MSG_HEADER_LEN)
+    {
+        LOG_ERROR("get GSM message length not enough");
+        return -1;
+    }
+
+    char imei[IMEI_LENGTH + 1] = {0};
+    memcpy(imei, req->IMEI, IMEI_LENGTH);
+
+    LOG_INFO("get SET SERVER req, imei(%s)", imei);
+
+    //send req msg to simcom
+    OBJECT *obj = obj_get(imei);
+    if(obj)
+    {
+        SESSION *simcomSession = (SESSION *)obj->session;
+        if (!simcomSession)
+        {
+            LOG_ERROR("device offline");
+            return -1;
+        }
+        MSG_SEND pfn = simcomSession->pSendMsg;
+        if (!pfn)
+        {
+            LOG_ERROR("device offline");
+            return -1;
+        }
+
+        LOG_INFO("succeed to find imei(%s) in object, send req to simcom", imei);
+
+        strncpy(buf, req->data, SERVER_MAX_LEN);
+        LOG_INFO("%s",buf);
+        msgLen = sizeof(MSG_SET_SERVER_REQ) + strlen(buf);
+        LOG_INFO("%d",msgLen);
+
+        MSG_SET_SERVER_REQ *req4simcom = (MSG_SET_SERVER_REQ *)alloc_simcomManagerMsg(CMD_SERVER, msgLen);
+        if(!req4simcom)
+        {
+            LOG_FATAL("insufficient memory");
+            return -1;
+        }
+        req4simcom->managerSeq = htonl(sessionManager->sequence);
+        strncpy(req4simcom->data,buf,strlen(buf));
+
+
+        LOG_HEX(req4simcom, msgLen);
+        pfn(simcomSession->bev, req4simcom, msgLen); //simcom_sendMsg
+
+    }
+    else
+    {
+        LOG_INFO("failed to find imei(%s) in object, don't send req", imei);
         return -1;
     }
 
@@ -338,6 +458,31 @@ static int manager_getAT(const void *msg, SESSION_MANAGER *sessionManager)
 
     return 0;
 }
+
+static int manager_sendimeiData(const void *msg, SESSION_MANAGER *sessionManager, const char*imei, const char on_offline, int version, int timestamp, float lat, float lon, char speed, short course)
+{
+    MANAGER_MSG_IMEI_DATA_RSP *rsp = (MANAGER_MSG_IMEI_DATA_RSP *)alloc_manager_rspMsg((const MANAGER_MSG_HEADER *)msg);
+
+    rsp->imei_data.online_offline = on_offline;
+    rsp->imei_data.version = htonl(version);
+
+    memcpy(rsp->imei_data.IMEI, imei, 15);
+    rsp->imei_data.gps.timestamp = htonl(timestamp);
+    rsp->imei_data.gps.latitude = lat;
+    rsp->imei_data.gps.longitude = lon;
+    rsp->imei_data.gps.speed = speed;
+    rsp->imei_data.gps.course = htons(course);
+
+    manager_sendMsg(rsp, sizeof(MANAGER_MSG_IMEI_DATA_RSP), sessionManager);
+    return 0;
+}
+
+static int manager_getImeiData(const void *msg, SESSION_MANAGER *sessionManager)
+{
+    obj_sendImeiData2ManagerLoop(msg, sessionManager, manager_sendimeiData);
+    return 0;
+}
+
 
 static int manager_getGSM(const void *msg, SESSION_MANAGER *sessionManager)
 {
@@ -684,6 +829,9 @@ static MANAGER_MSG_PROC_MAP msgProcs[] =
     {MANAGER_CMD_REBOOT,            manager_reboot},
     {MANAGER_CMD_UPGRADE,           manager_upgrade},
     {MANAGER_CMD_GET_AT,            manager_getAT},
+    {MANAGER_CMD_GET_IMEIDATA,      manager_getImeiData},
+    {MANAGER_CMD_GET_IMEIDAILY,     manager_getdaily},
+    {MANAGER_CMD_SET_SERVER,        manager_setserver},
 };
 
 static int handle_one_msg(const void *m, SESSION_MANAGER *ctx)

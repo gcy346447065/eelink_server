@@ -80,8 +80,9 @@ typedef struct
 } OBJECT;
 
 typedef int (*SIMCOM_SAVEITINERARY_PROC)(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary);
-typedef int (*MANAGER_SEND_PROC)(const void *msg, SESSION *ManagerSession, const char *imei, SESSION *deviceSession, int timestamp, float lon, float lat, char speed, short course);
-void obj_sendImeiData2ManagerLoop(const void *msg, SESSION *session, MANAGER_SEND_PROC proc);
+typedef int (*MANAGER_SEND_PROC)(const void *msg, const void *sessionManager, const char*imei, const char on_offline, int version, int timestamp, float lat, float lon, char speed, short course);
+
+void obj_sendImeiData2ManagerLoop(const void *msg, const void *sessionManager, MANAGER_SEND_PROC func);
 
 void obj_table_initial(void (*mqtt_sub)(const char *), int ObjectType);
 void obj_table_GPSinitial(void);
@@ -96,5 +97,7 @@ OBJECT *obj_get(const char IMEI[]);
 int obj_did_got(OBJECT *obj);
 const char* get_IMEI_STRING(const char* IMEI);
 const char* getMacFromIMEI(const unsigned char* IMEI);
+
+
 
 #endif /* SRC_OBJECT_ */

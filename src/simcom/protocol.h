@@ -32,6 +32,7 @@ enum
 
 enum
 {
+    CMD_SERVER          = -9,
     CMD_GET_AT          = -8,
     CMD_REBOOT          = -7,
     CMD_GET_LOG         = -6,
@@ -101,6 +102,22 @@ typedef struct
     MSG_HEADER header;
     int managerSeq;
 }__attribute__((__packed__)) MSG_GET_HEADER;
+
+/*
+ * set server message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+    char data[];
+}__attribute__((__packed__)) MSG_SET_SERVER_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    int managerSeq;
+}__attribute__((__packed__)) MSG_SET_SERVER_RSP;
 
 /*
  * get log message structure

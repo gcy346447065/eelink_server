@@ -2079,6 +2079,61 @@ static int simcom_getAT(const void *msg, SESSION *session)
     return 0;
 }
 
+static int simcom_setServerRsp(const void *msg, SESSION *session)
+{
+    const MSG_SET_SERVER_RSP *rsp = (const MSG_SET_SERVER_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_SET_SERVER_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("get battery message length not enough");
+        return -1;
+    }
+
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    LOG_INFO("imei(%s) get AT rsp send to manager", obj->IMEI);
+
+    int seq = ntohl(rsp->managerSeq);
+    SESSION_MANAGER *sessionManager = sessionManager_get(seq);
+    if(!sessionManager)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+    MSG_SEND pfn = sessionManager->pSendMsg;
+    if(!pfn)
+    {
+        LOG_ERROR("manager offline");
+        return -1;
+    }
+
+    MANAGER_MSG_AT_RSP *rsp4manager = (MANAGER_MSG_AT_RSP *)alloc_managerSimcomRsp(MANAGER_CMD_SET_SERVER, 0);
+    if(!rsp4manager)
+    {
+        LOG_ERROR("failed to alloc rsp for manager");
+        return -1;
+    }
+
+    LOG_HEX(rsp4manager, sizeof(MANAGER_MSG_SETSERVER_RSP) );
+    pfn(sessionManager->bev, rsp4manager, sizeof(MANAGER_MSG_SETSERVER_RSP)); //manager_sendMsg
+
+
+    return 0;
+}
+
 
 static MSG_PROC_MAP msgProcs[] =
 {
@@ -2111,6 +2166,7 @@ static MSG_PROC_MAP msgProcs[] =
     {CMD_DEVICE_INFO_GET,   simcom_DeviceInfoGet},
     {CMD_GPS_PACK,          simcom_gpsPack},
     {CMD_GET_LOG,           simcom_getLog},
+    {CMD_SERVER,            simcom_setServerRsp},
     {CMD_GET_433,           simcom_get433},
     {CMD_GET_GSM,           simcom_getGSM},
     {CMD_GET_GPS,           simcom_getGPS},

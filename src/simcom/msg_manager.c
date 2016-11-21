@@ -41,6 +41,10 @@ MANAGER_MSG_HEADER *alloc_manager_rspMsg(const MANAGER_MSG_HEADER *pMsg)
             msgLen = sizeof(MANAGER_MSG_IMEI_DATA_RSP);
             break;
 
+        case MANAGER_CMD_GET_IMEIDATA:
+            msgLen = sizeof(MANAGER_MSG_IMEI_DATA_RSP);
+            break;
+
         default:
             return NULL;
     }
@@ -87,6 +91,14 @@ void *alloc_managerSimcomRsp(int cmd, int data_length)
             break;
         case MANAGER_CMD_GET_AT:
             msgLen = sizeof(MANAGER_MSG_AT_RSP) + data_length;
+            break;
+
+        case MANAGER_CMD_GET_IMEIDAILY:
+            msgLen = sizeof(MANAGER_MSG_IMEI_DAILY_RSP) + data_length;
+            break;
+
+        case MANAGER_CMD_SET_SERVER:
+            msgLen = sizeof(MANAGER_MSG_SETSERVER_RSP) + data_length;
             break;
 
         default:
