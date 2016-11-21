@@ -68,7 +68,7 @@ static void obj_ItieraryJudge(gpointer key, gpointer value, gpointer user_data)
 
     if(obj->isStarted && ++obj->timecount >= 5)
     {
-        if(obj->starttime <= obj->timestamp)//dec one floating piont GPS
+        if(obj->starttime < obj->timestamp)//dec one floating piont GPS
         {
             fun(obj->IMEI, obj->starttime, obj->startlat, obj->startlon, obj->timestamp, obj->lat, obj->lon, obj->itineray);
         }
