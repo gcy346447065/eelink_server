@@ -217,7 +217,7 @@ static int simcom_login(const void *msg, SESSION *session)
     }
     else
     {
-        LOG_ERROR("can't get valid theLastVersion");
+        LOG_WARN("can't get valid theLastVersion");
     }
 
     return 0;

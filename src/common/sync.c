@@ -194,7 +194,7 @@ void sync_callAlarm(const char *imei)
     int rc = db_getTelNumber(imei, telNumber);
     if(rc)
     {
-        LOG_INFO("No telNumber(%s) in database!",imei);
+        LOG_WARN("No telNumber(%s) in database!",imei);
         return;
     }
 
