@@ -430,7 +430,10 @@ static int simcom_alarm(const void *msg, SESSION *session)
     jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
 
     //send call alarm
-    sync_callAlarm(obj->IMEI);
+    if(req->alarmType == ALARM_VIBRATE)
+    {
+        sync_callAlarm(obj->IMEI);
+    }
 
     LOG_INFO("imei(%s) send alarm(%d)", obj->IMEI, req->alarmType);
 
