@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <curl/curl.h>
+#include <sys/time.h>
 
 #include "jiguang_push.h"
 #include "cJSON.h"
@@ -46,6 +47,7 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
         cJSON *android = cJSON_CreateObject();
         cJSON *ios = cJSON_CreateObject();
         cJSON *alert;
+        cJSON *extras;
         switch(jiguang_cmd)
         {
             case JIGUANG_CMD_ALARM:
@@ -98,6 +100,16 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
             default:
                 break;
         }
+
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        extras = cJSON_CreateObject();
+        cJSON_AddNumberToObject(extras, "timestamp", tv.tv_sec);
+        cJSON_AddItemToObject(ios, "extras", extras);
+        extras = cJSON_CreateObject();
+        cJSON_AddNumberToObject(extras, "timestamp", tv.tv_sec);
+        cJSON_AddItemToObject(android, "extras", extras);
+
         cJSON_AddItemToObject(notification, "android", android);
         cJSON_AddItemToObject(notification, "ios", ios);
         cJSON_AddItemToObject(root, "notification", notification);
