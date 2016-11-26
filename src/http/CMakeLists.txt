@@ -11,7 +11,7 @@ SET(SOURCE_FILE
 MESSAGE(STATUS "configure Server for http")
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/usr/local/share/cmake/Modules/")
-
+link_directories(/usr/lib64/mysql)
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 ADD_EXECUTABLE(http_server ${SOURCE_FILE})
 TARGET_LINK_LIBRARIES(http_server electromble glog)
