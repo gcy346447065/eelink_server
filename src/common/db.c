@@ -116,7 +116,7 @@ static int _db_initial()
 
         /* creat table Itinerary if not exists */
         snprintf(query, MAX_QUERY, "create table if not exists Itinerary(imei char(15) not null primary key, \
-                                    itinerary int not null,\
+                                    itinerary int not null default 0,\
                                     update_At timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
 
         if(mysql_ping(conn))
