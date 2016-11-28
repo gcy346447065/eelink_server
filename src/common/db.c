@@ -515,7 +515,7 @@ static int _db_getGPS(const char *imeiName, void *action, void *userdata)
     return 0;
 }
 
-static int _db_getItinerary(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
+static int _db_getiItinerary(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
 {
     ONEITINERARY_PROC fun = action;
     char query[MAX_QUERY] = {0};
@@ -1044,6 +1044,37 @@ static int _db_updateItinerary(const char *imeiName, long itinerary)
     return 0;
 }
 
+static int _db_getItinerary(const char *imeiName)
+{
+    int itinerary = 0;
+    char query[MAX_QUERY] = {0};
+    snprintf(query,MAX_QUERY,"select itinerary from Itinerary where imei = \'%s\'", imeiName);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return NULL;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return NULL;
+    }
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    result = mysql_store_result(conn);
+
+    if(row = mysql_fetch_row(result))
+    {
+        itinerary = atoi(row[0]);
+    }
+
+    mysql_free_result(result);
+    return itinerary;
+
+}
+
 int db_initial(void)
 {
 #ifdef WITH_DB
@@ -1142,10 +1173,10 @@ int db_getGPS(const char *imeiName, void *action, void *userdata)
 #endif
 }
 
-int db_getItinerary(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
+int db_getiItinerary(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
 {
 #ifdef WITH_DB
-    return _db_getItinerary(imeiName, starttime, endtime, action, userdata);
+    return _db_getiItinerary(imeiName, starttime, endtime, action, userdata);
 #else
     return 0;
 #endif
@@ -1267,4 +1298,14 @@ int db_updateItinerary(const char *imeiName, long itinerary)
     return 0;
 #endif
 }
+
+int db_getItinerary(const char *imeiName)
+{
+#ifdef WITH_DB
+    return _db_getItinerary(imeiName);
+#else
+    return 0;
+#endif
+}
+
 

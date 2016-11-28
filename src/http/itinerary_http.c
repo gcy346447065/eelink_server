@@ -60,7 +60,7 @@ static void http_getiItinerary(struct evhttp_request *req, const char *imeiName,
         return;
     }
 
-    int rc = db_getItinerary(imeiName, starttime, endtime,(void *)one_Itinerary,itinerary_Array);
+    int rc = db_getiItinerary(imeiName, starttime, endtime,(void *)one_Itinerary,itinerary_Array);
     int num = cJSON_GetArraySize(itinerary_Array);
 
     LOG_INFO("there are %d itinerary", num);
@@ -92,7 +92,45 @@ static void http_getiItinerary(struct evhttp_request *req, const char *imeiName,
 
 static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
 {
-    http_okMsg(req);
+    int itinerary = db_getItinerary(imeiName);
+
+    cJSON *json = cJSON_CreateObject();
+    if(!json)
+    {
+        LOG_FATAL("failed to alloc memory");
+        http_errorMsg(req);
+        return;
+    }
+
+    cJSON *itinerary_Array = cJSON_CreateArray();
+    if(!itinerary_Array)
+    {
+        LOG_FATAL("failed to alloc memory");
+        cJSON_Delete(json);
+        http_errorMsg(req);
+        return;
+    }
+	cJSON *iItitnerary = cJSON_CreateObject();
+    if(!iItitnerary)
+    {
+        LOG_FATAL("failed to alloc memory");
+        cJSON_Delete(json);
+        cJSON_Delete(itinerary_Array);
+        http_errorMsg(req);
+        return;
+    }
+
+    cJSON_AddNumberToObject(iItitnerary, "start", 0);
+    cJSON_AddNumberToObject(iItitnerary, "end", 0);
+    cJSON_AddNumberToObject(iItitnerary, "miles", itinerary);
+    cJSON_AddItemToArray(itinerary_Array, iItitnerary);
+    cJSON_AddItemToObject(json, "itinerary", itinerary_Array);
+
+    char *rsp = cJSON_PrintUnformatted(json);
+    cJSON_Delete(json);
+
+    http_rspMsg(req, rsp);
+    free(rsp);
     return;
 }
 
@@ -119,9 +157,11 @@ void http_replyItinerary(struct evhttp_request *req)
                 http_getiItinerary(req, imei, start, end);
                 return;
             }
+            rc = sscanf(req->uri, "/v1/itinerary/%15s%*s", imei);
             if(rc == 1)
             {
                 http_getItinerary(req, imei);
+                return;
             }
             break;
         case EVHTTP_REQ_PUT:

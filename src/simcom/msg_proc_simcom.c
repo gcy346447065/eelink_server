@@ -1640,6 +1640,7 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
     obj->timecount = 0;//every GPS comes, set the count as 0, when it reach 5, one itinerary generats
 
     simcom_itinerary_push(obj->IMEI,(int)miles);
+    db_updateItinerary(obj->IMEI,(int)miles);
 
     //send the last gps in GPS_PACK to app
     app_sendGpsMsg2App(session);
