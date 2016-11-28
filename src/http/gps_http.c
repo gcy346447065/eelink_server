@@ -34,7 +34,7 @@ static int one_GPS(int timestamp, double latitude, double longitude, char speed,
     return 0;
 }
 
-static void http_getGPS(struct evhttp_request *req, const char *imeiName, int starttime, int endtime)
+static void http_getHistoryGPS(struct evhttp_request *req, const char *imeiName, int starttime, int endtime)
 {
     cJSON *json = cJSON_CreateObject();
     if(!json)
@@ -53,7 +53,7 @@ static void http_getGPS(struct evhttp_request *req, const char *imeiName, int st
         return;
     }
 
-    int rc = db_getGPS(imeiName, starttime, endtime, (void *)one_GPS, gps_Array);
+    int rc = db_getHistoryGPS(imeiName, starttime, endtime, (void *)one_GPS, gps_Array);
     int num = cJSON_GetArraySize(gps_Array);
 
     LOG_INFO("there are %d gps", num);
@@ -82,6 +82,52 @@ static void http_getGPS(struct evhttp_request *req, const char *imeiName, int st
     return;
 }
 
+static void http_getLastGPS(struct evhttp_request *req, const char *imeiName)
+{
+    cJSON *json = cJSON_CreateObject();
+    if(!json)
+    {
+        LOG_FATAL("failed to alloc memory");
+        http_errorMsg(req);
+        return;
+    }
+
+    cJSON *gps_Array = cJSON_CreateArray();
+    if(!gps_Array)
+    {
+        LOG_FATAL("failed to alloc memory");
+        cJSON_Delete(json);
+        http_errorMsg(req);
+        return;
+    }
+
+    int rc = db_getGPS(imeiName, (void *)one_GPS, gps_Array);
+    int num = cJSON_GetArraySize(gps_Array);
+    if(rc)
+    {
+        LOG_WARN("no database gps_%s", imeiName);
+        cJSON_AddNumberToObject(json, "code", 101);
+    }
+    else if(num == 0)
+    {
+        LOG_INFO("there is no data in gps_%s", imeiName);
+        cJSON_AddNumberToObject(json, "code", 102);
+    }
+    else
+    {
+        cJSON_AddItemToObject(json, "gps", gps_Array);
+    }
+    char *msg = cJSON_PrintUnformatted(json);
+    cJSON_Delete(json);
+
+    LOG_DEBUG("%s",msg);
+    http_rspMsg(req, msg);
+
+    free(msg);
+    return;
+}
+
+
 void http_replyGPS(struct evhttp_request *req)
 {
     int rc;
@@ -92,15 +138,31 @@ void http_replyGPS(struct evhttp_request *req)
     switch(req->type)
     {
         case EVHTTP_REQ_GET:
-        case EVHTTP_REQ_PUT:
-        case EVHTTP_REQ_POST:
-        case EVHTTP_REQ_DELETE:
             rc = sscanf(req->uri, "/v1/history/%15s?start=%d&end=%d%*s", imei, &start, &end);
             if(rc == 3)
             {
-                http_getGPS(req, imei, start, end);
+                http_getHistoryGPS(req, imei, start, end);
                 return;
             }
+            rc = sscanf(req->uri, "/v1/history/%15s?start=%d%*s", imei, &start);
+            end =  start + 86400 - (start % 86400);
+            if(rc == 2)
+            {
+                http_getHistoryGPS(req, imei, start, end);
+                LOG_FATAL("%s,%d",imei,start);
+                return;
+            }
+            rc = sscanf(req->uri, "/v1/history/%15s%*s", imei);
+            if(rc == 1)
+            {
+                http_getLastGPS(req, imei);
+                return;
+            }
+            break;
+
+        case EVHTTP_REQ_PUT:
+        case EVHTTP_REQ_POST:
+        case EVHTTP_REQ_DELETE:
             break;
 
         default:

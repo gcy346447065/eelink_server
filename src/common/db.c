@@ -386,7 +386,7 @@ static int _db_createItinerary(const char* tableName)
 }
 
 
-static int _db_getGPS(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
+static int _db_getHistoryGPS(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
 {
     char speed = 0;
     short course = 0;
@@ -394,6 +394,62 @@ static int _db_getGPS(const char *imeiName, int starttime, int endtime, void *ac
     char query[MAX_QUERY] = {0};
 
     snprintf(query,MAX_QUERY,"select * from gps_%s where timestamp >= %d and timestamp<= %d", imeiName, starttime, endtime);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    result = mysql_store_result(conn);
+    while(row = mysql_fetch_row(result))
+    {
+        if(!row[0] || !row[1] || !row[2])
+        {
+            LOG_ERROR("There is somerow as timestamp or lat or lon is null:%s", imeiName);
+            continue;
+        }
+
+        if(row[3])
+        {
+            speed = atoi(row[3]);
+        }
+        else
+        {
+            speed = 0;
+        }
+
+        if(row[4])
+        {
+            course = atoi(row[4]);
+        }
+        else
+        {
+            course = 0;
+        }
+
+        fun(atoi(row[0]), atof(row[1]), atof(row[2]), speed, course, userdata);
+
+    }
+    mysql_free_result(result);
+    return 0;
+}
+
+static int _db_getGPS(const char *imeiName, void *action, void *userdata)
+{
+    char speed = 0;
+    short course = 0;
+    ONEGPS_PROC fun = action;
+    char query[MAX_QUERY] = {0};
+
+    snprintf(query,MAX_QUERY,"select * from gps_%s order by timestamp desc limit 1", imeiName);
     if(mysql_ping(conn))
     {
         LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -995,10 +1051,19 @@ int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char s
 #endif
 }
 
-int db_getGPS(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
+int db_getHistoryGPS(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
 {
 #ifdef WITH_DB
-    return _db_getGPS(imeiName, starttime, endtime, action, userdata);
+    return _db_getHistoryGPS(imeiName, starttime, endtime, action, userdata);
+#else
+    return 0;
+#endif
+}
+
+int db_getGPS(const char *imeiName, void *action, void *userdata)
+{
+#ifdef WITH_DB
+    return _db_getGPS(imeiName, action, userdata);
 #else
     return 0;
 #endif
