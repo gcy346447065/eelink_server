@@ -6,6 +6,21 @@ SET(SOURCE_FILE
 
         msg_proc_http.c
         msg_proc_http.h
+
+        gps_http.c
+        gps_http.h
+
+        device_http.c
+        device_http.h
+
+        itinerary_http.c
+        itinerary_http.h
+
+        telephone_http.c
+        telephone_http.h
+
+        session_http.c
+        session_http.h
         )
 
 MESSAGE(STATUS "configure Server for http")
