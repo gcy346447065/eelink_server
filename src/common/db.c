@@ -114,6 +114,23 @@ static int _db_initial()
             return 2;
         }
 
+        /* creat table Itinerary if not exists */
+        snprintf(query, MAX_QUERY, "create table if not exists Itinerary(imei char(15) not null primary key, \
+                                    itinerary int not null,\
+                                    update_At timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+
+        if(mysql_ping(conn))
+        {
+            LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+            return 1;
+        }
+
+        if(mysql_query(conn, query))
+        {
+            LOG_ERROR("can't creat table imei2Telnumber(%u, %s)", mysql_errno(conn), mysql_error(conn));
+            return 2;
+        }
+
         /* creat table log if not exists */
         snprintf(query, MAX_QUERY, "create table if not exists log(time timestamp default CURRENT_TIMESTAMP, \
                                     imei char(15) not null,  \
