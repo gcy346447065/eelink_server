@@ -145,9 +145,9 @@ void http_replyGPS(struct evhttp_request *req)
                 return;
             }
             rc = sscanf(req->uri, "/v1/history/%15s?start=%d%*s", imei, &start);
-            end =  start + 86400 - (start % 86400);
             if(rc == 2)
             {
+                end =  start + 86400 - (start % 86400);
                 http_getHistoryGPS(req, imei, start, end);
                 LOG_FATAL("%s,%d",imei,start);
                 return;

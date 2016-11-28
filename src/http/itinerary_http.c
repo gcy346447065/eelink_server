@@ -41,7 +41,7 @@ static int one_Itinerary(int starttime, double startlat, double startlon, int en
     return 0;
 }
 
-static void http_getItinerary(struct evhttp_request *req, const char *imeiName, int starttime, int endtime)
+static void http_getiItinerary(struct evhttp_request *req, const char *imeiName, int starttime, int endtime)
 {
     cJSON *json = cJSON_CreateObject();
     if(!json)
@@ -90,6 +90,12 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName, 
     return;
 }
 
+static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
+{
+    http_okMsg(req);
+    return;
+}
+
 void http_replyItinerary(struct evhttp_request *req)
 {
     int rc;
@@ -100,15 +106,27 @@ void http_replyItinerary(struct evhttp_request *req)
     switch(req->type)
     {
         case EVHTTP_REQ_GET:
-        case EVHTTP_REQ_PUT:
-        case EVHTTP_REQ_POST:
-        case EVHTTP_REQ_DELETE:
             rc = sscanf(req->uri, "/v1/itinerary/%15s?start=%d&end=%d%*s", imei, &start, &end);
             if(rc == 3)
             {
-                http_getItinerary(req, imei, start, end);
+                http_getiItinerary(req, imei, start, end);
                 return;
             }
+            rc = sscanf(req->uri, "/v1/itinerary/%15s?start=%d%*s", imei, &start);
+            if(rc == 2)
+            {
+                end =  start + 86400 - (start % 86400);
+                http_getiItinerary(req, imei, start, end);
+                return;
+            }
+            if(rc == 1)
+            {
+                http_getItinerary(req, imei);
+            }
+            break;
+        case EVHTTP_REQ_PUT:
+        case EVHTTP_REQ_POST:
+        case EVHTTP_REQ_DELETE:
             break;
 
         default:
