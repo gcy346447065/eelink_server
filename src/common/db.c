@@ -1010,9 +1010,10 @@ static int _db_updateItinerary(const char *imeiName, long itinerary)
     int num = atoi(row[0]);
     mysql_free_result(result);
 
-    if(0 < num)
+    if(0 >= num)
     {
-        snprintf(query,MAX_QUERY,"insert into Itinerary(imei,itinerary) value(\'%s\',%d)", imeiName, itinerary);
+        // for the first maybe from (0,0), set itinerary = 0
+        snprintf(query,MAX_QUERY,"insert into Itinerary(imei,itinerary) value(\'%s\',%d)", imeiName, itinerary = 0);
         if(mysql_ping(conn))
         {
             LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -1040,7 +1041,7 @@ static int _db_updateItinerary(const char *imeiName, long itinerary)
             return NULL;
         }
     }
-
+    LOG_INFO("update Itinerary imei(%s) itnerary(%d)", imeiName, itinerary);
     return 0;
 }
 
