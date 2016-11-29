@@ -9,6 +9,7 @@
 #endif
 
 int phone_alarm(const char* telphone);
+int phone_alarmWithCaller(const char* telphone, const char* caller);
 #ifdef __cplusplus
             }
 #endif

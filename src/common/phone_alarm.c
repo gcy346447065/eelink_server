@@ -44,3 +44,36 @@ int phone_alarm(const char* telphone)
     destroy_taobao_client(pClient);
 
 }
+
+int phone_alarmWithCaller(const char* telphone, const char* caller)
+{
+    pTopRequest pRequest = alloc_top_request();
+    pTopResponse pResponse = NULL;
+    pTaobaoClient pClient = alloc_taobao_client(url, appkey, appsecret);
+    set_api_name(pRequest, "alibaba.aliqin.fc.tts.num.singlecall" );
+    // add_param(pRequest, "extend" , "12345" );
+    // add_param(pRequest, "tts_param" , "{\"AckNum\":\"123456\"}" );
+    add_param(pRequest, "called_num" , telphone);
+    add_param(pRequest, "called_show_num" ,  caller);
+    add_param(pRequest, "tts_code" , tts_template);
+    pResponse = top_execute(pClient,pRequest,NULL);
+    printf( "ret code:%d\n" ,pResponse->code);
+    if (pResponse->code == 0 ){
+        pTopResponseIterator ite = init_response_iterator(pResponse);
+        pResultItem pResultItem = alloc_result_item();
+        while (parseNext(ite, pResultItem) == 0 ){
+            printf( "%s:%s\n" ,pResultItem->key,pResultItem->value);
+        }
+        destroy_response_iterator(ite);
+        destroy_result_item(pResultItem);
+    }
+    else
+    {
+        printf("msg = %s\nsubcode = %s\nsubmsg=%s", pResponse->msg, pResponse->subCode, pResponse->subMsg);
+    }
+    destroy_top_request(pRequest);
+    destroy_top_response(pResponse);
+    destroy_taobao_client(pClient);
+
+}
+

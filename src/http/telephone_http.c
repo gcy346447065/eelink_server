@@ -4,6 +4,8 @@
  *  Created on: 2016/11/28
  *      Author: lc
  */
+#include <event.h>
+#include <evutil.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -72,6 +74,42 @@ static void telephone_getTelNumber(struct evhttp_request *req, const char *imeiN
     return;
 }
 
+static void telephone_callTelNumber(struct evhttp_request *req, const char *imeiName)
+{
+    char post_data[128] = {0};
+    char telNumber[TELNUMBER_LENGTH + 1] = {0};
+    char caller[TELNUMBER_LENGTH + 1] = {0};
+
+    if(db_getTelNumber(imeiName,telNumber) != 0)
+    {
+        http_errorMsg(req);
+        return;
+    }
+
+    evbuffer_copyout(req->input_buffer,post_data,128);
+    cJSON * json= cJSON_Parse(post_data);
+    if(!json)
+    {
+        http_errorMsg(req);
+        return;
+    }
+    cJSON * telephone = cJSON_GetObjectItem(json, "caller");
+    if(!telephone)
+    {
+        cJSON_Delete(json);
+        http_errorMsg(req);
+        return;
+    }
+    strncpy(caller, telephone->valuestring, TELNUMBER_LENGTH);
+    cJSON_Delete(json);
+    LOG_INFO("test call alarm server imei(%s) telNumber(%s) caller(%s)", imeiName, telNumber, caller);
+    phone_alarmWithCaller(telNumber, caller);
+
+    http_okMsg(req);
+    return;
+}
+
+
 void http_replyTelephone(struct evhttp_request *req)
 {
     int rc;
@@ -90,10 +128,41 @@ void http_replyTelephone(struct evhttp_request *req)
             break;
 
         case EVHTTP_REQ_PUT:
+            rc = sscanf(req->uri, "/v1/telephone/%15s%*s", imei);
+            if(rc == 1)
+            {
+                telephone_callTelNumber(req, imei);
+                return;
+            }
+            break;
         case EVHTTP_REQ_POST:
             rc = sscanf(req->uri, "/v1/telephone/%15s?telephone=%11s%*s", imei, telNumber);
             if(rc == 2)
             {
+                LOG_INFO("open call alarm server imei(%s) telNumber(%s)", imei, telNumber);
+                telephone_replaceTelNumber(req, imei, telNumber);
+                return;
+            }
+            rc = sscanf(req->uri, "/v1/telephone/%15s%*s", imei);
+            if(rc == 1)
+            {
+                char post_data[128];
+                evbuffer_copyout(req->input_buffer,post_data,128);
+                cJSON * json= cJSON_Parse(post_data);
+                if(!json)
+                {
+                    http_errorMsg(req);
+                    return;
+                }
+                cJSON * telephone = cJSON_GetObjectItem(json, "telephone");
+                if(!telephone)
+                {
+                    cJSON_Delete(json);
+                    http_errorMsg(req);
+                    return;
+                }
+                strncpy(telNumber, telephone->valuestring, TELNUMBER_LENGTH);
+                cJSON_Delete(json);
                 LOG_INFO("open call alarm server imei(%s) telNumber(%s)", imei, telNumber);
                 telephone_replaceTelNumber(req, imei, telNumber);
                 return;
@@ -123,7 +192,7 @@ void http_replyTelephone(struct evhttp_request *req)
 void http_replyCall(struct evhttp_request *req)
 {
     int rc;
-    char number[TELNUMBER_LENGTH + 1] = {0};
+    char telNumber[TELNUMBER_LENGTH + 1] = {0};
 
     LOG_INFO("%s",req->uri);
     switch(req->type)
@@ -132,10 +201,10 @@ void http_replyCall(struct evhttp_request *req)
         case EVHTTP_REQ_PUT:
         case EVHTTP_REQ_POST:
         case EVHTTP_REQ_DELETE:
-            rc = sscanf(req->uri, "/v1/test/%11s%*s", number);
+            rc = sscanf(req->uri, "/v1/test/%11s%*s", telNumber);
             if(rc == 1)
             {
-                 phone_alarm(number);
+                 phone_alarm(telNumber);
                  http_okMsg(req);
                  return;
             }
