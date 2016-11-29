@@ -959,7 +959,7 @@ static int _db_add_log(const char *imei, const char *event)
     return 0;
 }
 
-static int _db_getLog(void *session, void *pfn, const char *imeiName)
+static int _db_getLog(void *userdata, void *pfn, const char *imeiName)
 {
     MSG_SEND_LOG fun = pfn;
     char query[MAX_QUERY] = {0};
@@ -981,7 +981,7 @@ static int _db_getLog(void *session, void *pfn, const char *imeiName)
     result = mysql_store_result(conn);
     while(row = mysql_fetch_row(result))
     {
-        fun(session, row[0], row[2]);//TODO:send the daily to manager row[0]:time,row[2]:event
+        fun(userdata, row[0], row[2]);//TODO:send the daily to manager row[0]:time,row[2]:event
     }
     mysql_free_result(result);
     return 0;
@@ -1281,10 +1281,10 @@ int db_add_log(const char *imei, const char *event)
 #endif
 }
 
-int db_getLog(void *session, void *pfn, const char *imeiName)
+int db_getLog(void *userdata, void *pfn, const char *imeiName)
 {
 #ifdef WITH_DB
-    return _db_getLog(session, pfn, imeiName);
+    return _db_getLog(userdata, pfn, imeiName);
 #else
     return 0;
 #endif

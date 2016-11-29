@@ -100,6 +100,9 @@ void *alloc_managerSimcomRsp(int cmd, int data_length)
         case MANAGER_CMD_SET_SERVER:
             msgLen = sizeof(MANAGER_MSG_SETSERVER_RSP) + data_length;
             break;
+        case MANAGER_CMD_GET_IMEIDATA:
+            msgLen = sizeof(MANAGER_MSG_IMEI_DATA_ONCE_RSP) + data_length;
+            break;
 
         default:
             return NULL;

@@ -71,7 +71,7 @@ typedef struct
 typedef struct
 {
     char IMEI[MANAGER_MAX_IMEI_LENGTH];
-    char online_offline; //1 for online; 2 for offline
+    char online_offline; // 1 for online; 2 for offline
     int version;
     MANAGER_GPS gps;
 }__attribute__((__packed__)) MANAGER_IMEI_DATA;
@@ -81,6 +81,15 @@ typedef struct
     MANAGER_MSG_HEADER header;
     MANAGER_IMEI_DATA imei_data;
 }__attribute__((__packed__)) MANAGER_MSG_IMEI_DATA_RSP;
+
+typedef MANAGER_MSG_HEADER MANAGER_MSG_IMEI_DATA_ONCE_REQ;
+
+typedef struct
+{
+    MANAGER_MSG_HEADER header;
+    char data[];
+}__attribute__((__packed__)) MANAGER_MSG_IMEI_DATA_ONCE_RSP;
+
 
 /*
  * get daily message structure
