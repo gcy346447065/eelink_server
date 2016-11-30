@@ -191,9 +191,9 @@ static int simcom_login(const void *msg, SESSION *session)
     if(!db_isTableCreated(obj->IMEI, &num) && 3 > num)
     {
         LOG_INFO("db_isTableCreated:%d", num);
-        db_createCGI(obj->IMEI);
+        //db_createCGI(obj->IMEI);
         db_createGPS(obj->IMEI);
-        db_createItinerary(obj->IMEI);
+        db_createiItinerary(obj->IMEI);
     }
 
     //get version, compare the version number; if not, send upgrade start message
@@ -1459,7 +1459,8 @@ static int simcom_SimInfo(const void *msg, SESSION *session)
         memcpy(obj->CCID, ccid, CCID_LENGTH + 1);
         memcpy(obj->IMSI, imsi, IMSI_LENGTH + 1);
 
-        sync_SimInfo(obj->IMEI, obj->CCID, obj->IMSI);
+        //sync_SimInfo(obj->IMEI, obj->CCID, obj->IMSI);
+        db_updateSimInfo(obj->IMEI, obj->CCID, obj->IMSI);
     }
     else
     {

@@ -161,7 +161,7 @@ int main(int argc, char **argv)
 
     //start a one minutes timer to resave multiple unsaved DIDs
     struct timeval five_min = { 60, 0 };
-    (void)timer_newLoop(base, &five_min, ItieraryJudge_cb, db_saveItinerary);
+    (void)timer_newLoop(base, &five_min, ItieraryJudge_cb, db_saveiItinerary);
 
     rc = sync_init(base);
     if (rc)

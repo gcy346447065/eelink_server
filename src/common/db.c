@@ -64,11 +64,17 @@ static int _db_initial()
         }
 
         /* creat table object if not exists */
-        snprintf(query, MAX_QUERY, "create table if not exists object(imei char(16) not null primary key, \
-                                    RegisterTime timestamp default CURRENT_TIMESTAMP, \
-                                    IsPosted tinyint default '0', \
-                                    ObjectType int(4) not null, \
-                                    Voltage tinyint default '0')");
+        snprintf(query, MAX_QUERY,
+        "create table if not exists object( \
+        imei char(16) not null primary key, \
+        RegisterTime timestamp default CURRENT_TIMESTAMP, \
+        IsPosted tinyint default 0, \
+        ObjectType int(4) not null, \
+        voltage tinyint default 0, \
+        itinerary bigint default 0, \
+        ccid char(20), \
+        imsi char(15) \
+        )");
 
         if(mysql_ping(conn))
         {
@@ -101,23 +107,6 @@ static int _db_initial()
         /* creat table imei2objectID if not exists */
         snprintf(query, MAX_QUERY, "create table if not exists imei2Telnumber(imei char(15) not null primary key, \
                                     Telnumber char(11) not null)");
-
-        if(mysql_ping(conn))
-        {
-            LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
-            return 1;
-        }
-
-        if(mysql_query(conn, query))
-        {
-            LOG_ERROR("can't creat table imei2Telnumber(%u, %s)", mysql_errno(conn), mysql_error(conn));
-            return 2;
-        }
-
-        /* creat table Itinerary if not exists */
-        snprintf(query, MAX_QUERY, "create table if not exists Itinerary(imei char(15) not null primary key, \
-                                    itinerary int not null default 0,\
-                                    update_At timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
 
         if(mysql_ping(conn))
         {
@@ -380,7 +369,7 @@ static int _db_createCGI(const char* tableName)
     return 0;
 }
 
-static int _db_createItinerary(const char* tableName)
+static int _db_createiItinerary(const char* tableName)
 {
     char query[MAX_QUERY];
     //create table cgi_IMEI(timestamp INT, mcc SMALLINT, mnc SMALLINT, lac0 SMALLINT, ci0 SMALLINT, rxl0 SMALLINT...)
@@ -735,7 +724,7 @@ static int _db_getLastGPS(OBJECT *obj)
     return 0;
 }
 
-static int _db_saveItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary)
+static int _db_saveiItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary)
 {
     //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
     char query[MAX_QUERY];
@@ -825,10 +814,29 @@ static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *)
     return 0;
 }
 
-static int _db_insertOBJ(const char *imeiName, int ObjectType, char Voltage)
+static int _db_insertOBJ(const char *imeiName, int ObjectType, char voltage)
 {
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into object(imei, ObjectType, Voltage) values(\'%s\', %d, %d)", imeiName, ObjectType, Voltage);
+    snprintf(query, MAX_QUERY, "insert into object(imei, ObjectType, voltage) values(\'%s\', %d, %d)", imeiName, ObjectType, voltage);
+
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_ERROR("can't insert %s into object(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+    return 0;
+}
+
+static int _db_updateSimInfo(const char *imeiName, const char *ccid, const char *imsi)
+{
+    char query[MAX_QUERY];
+    snprintf(query, MAX_QUERY, "update object set ccid = \'%s\' , imsi = \'%s\' where imei =\'%s\'", ccid, imsi, imeiName);
 
     if(mysql_ping(conn))
     {
@@ -990,7 +998,7 @@ static int _db_getLog(void *userdata, void *pfn, const char *imeiName)
 static int _db_updateItinerary(const char *imeiName, long itinerary)
 {
     char query[MAX_QUERY] = {0};
-    snprintf(query,MAX_QUERY,"select count(*) from Itinerary where imei = \'%s\'", imeiName);
+    snprintf(query,MAX_QUERY,"update object set itinerary = itinerary + %d where imei = \'%s\'", itinerary, imeiName);
     if(mysql_ping(conn))
     {
         LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -1003,44 +1011,6 @@ static int _db_updateItinerary(const char *imeiName, long itinerary)
         return NULL;
     }
 
-    MYSQL_RES *result;
-    MYSQL_ROW row;
-    result = mysql_store_result(conn);
-    row = mysql_fetch_row(result);
-    int num = atoi(row[0]);
-    mysql_free_result(result);
-
-    if(0 >= num)
-    {
-        // for the first maybe from (0,0), set itinerary = 0
-        snprintf(query,MAX_QUERY,"insert into Itinerary(imei,itinerary) value(\'%s\',%d)", imeiName, itinerary);
-        if(mysql_ping(conn))
-        {
-            LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
-            return NULL;
-        }
-
-        if(mysql_query(conn, query))
-        {
-            LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
-            return NULL;
-        }
-    }
-    else
-    {
-        snprintf(query,MAX_QUERY,"update Itinerary set itinerary = itinerary + %d where imei = \'%s\'", itinerary, imeiName);
-        if(mysql_ping(conn))
-        {
-            LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
-            return NULL;
-        }
-
-        if(mysql_query(conn, query))
-        {
-            LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
-            return NULL;
-        }
-    }
     LOG_INFO("update Itinerary imei(%s) itnerary(%d)", imeiName, itinerary);
     return 0;
 }
@@ -1049,7 +1019,7 @@ static int _db_getItinerary(const char *imeiName)
 {
     int itinerary = 0;
     char query[MAX_QUERY] = {0};
-    snprintf(query,MAX_QUERY,"select itinerary from Itinerary where imei = \'%s\'", imeiName);
+    snprintf(query,MAX_QUERY,"select itinerary from object where imei = \'%s\'", imeiName);
     if(mysql_ping(conn))
     {
         LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -1129,19 +1099,19 @@ int db_createCGI(const char* tableName)
 #endif
 }
 
-int db_createItinerary(const char* tableName)
+int db_createiItinerary(const char* tableName)
 {
 #ifdef WITH_DB
-    return _db_createItinerary(tableName);
+    return _db_createiItinerary(tableName);
 #else
     return 0;
 #endif
 }
 
-int db_saveItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary)
+int db_saveiItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary)
 {
 #ifdef WITH_DB
-    return _db_saveItinerary(tableName, starttime, startlat, startlon, endtime, endlat, endlon, itinerary);
+    return _db_saveiItinerary(tableName, starttime, startlat, startlon, endtime, endlat, endlon, itinerary);
 #else
     return 0;
 #endif
@@ -1228,10 +1198,19 @@ int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *), int Obj
 #endif
 }
 
-int db_insertOBJ(const char *imeiName, int ObjectType, char Voltage)
+int db_insertOBJ(const char *imeiName, int ObjectType, char voltage)
 {
 #ifdef WITH_DB
-    return _db_insertOBJ(imeiName, ObjectType, Voltage);
+    return _db_insertOBJ(imeiName, ObjectType, voltage);
+#else
+    return 0;
+#endif
+}
+
+int db_updateSimInfo(const char *imeiName, const char *ccid, const char *imsi)
+{
+#ifdef WITH_DB
+    return _db_updateSimInfo(imeiName, ccid, imsi);
 #else
     return 0;
 #endif
