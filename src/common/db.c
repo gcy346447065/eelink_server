@@ -1013,7 +1013,7 @@ static int _db_updateItinerary(const char *imeiName, long itinerary)
     if(0 >= num)
     {
         // for the first maybe from (0,0), set itinerary = 0
-        snprintf(query,MAX_QUERY,"insert into Itinerary(imei,itinerary) value(\'%s\',%d)", imeiName, itinerary = 0);
+        snprintf(query,MAX_QUERY,"insert into Itinerary(imei,itinerary) value(\'%s\',%d)", imeiName, itinerary);
         if(mysql_ping(conn))
         {
             LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));

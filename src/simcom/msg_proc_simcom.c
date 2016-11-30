@@ -1615,7 +1615,7 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
         obj->speed = gps[i].speed;
         obj->course = ntohs(gps[i].course);
 
-        LOG_INFO("imei(%s) GPS_PACK(%d/%d): timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
+        LOG_DEBUG("imei(%s) GPS_PACK(%d/%d): timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
                 obj->IMEI, i+1, num, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
 
         db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
@@ -1624,12 +1624,13 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
     obj->isGPSlocated = 0x01;
 
     miles = getDistance(lat_pre, lon_pre, obj->lat, obj->lon) + 0.5;
+    if(!timestamp_pre)miles = 0;// if the device is first used time , GPS_pre maybe at(0,0)
 
     if(obj->isStarted)//if itinerary has started, add the miles instantly
     {
         obj->itineray += (int)miles;
     }
-    else if(miles > 15)//if itinerary has not started && move avove 15m, judge start new itinerary, record the start msg
+    else if(miles > 15)//if itinerary has not started && move above 15m, judge start new itinerary, record the start msg
     {
         obj->isStarted = 1;
         obj->starttime = ntohl(gps[0].timestamp);

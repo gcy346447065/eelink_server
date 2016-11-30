@@ -187,6 +187,7 @@ OBJECT *obj_new()
 	make_pwd(obj->pwd);
     obj->gps_switch = 1;
     obj->isStarted = 0;
+    obj->timestamp = 0;
 
 	return obj;
 }
