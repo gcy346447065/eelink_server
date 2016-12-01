@@ -135,7 +135,7 @@ static void http_replyGPS(struct evhttp_request *req)
     return;
 }
 
-static int one_Itinerary(int starttime, double startlat, double startlon, int endtime, double endlat, double endlon, short miles, void *userdata)
+static int one_Itinerary(int starttime, double startlat, double startlon, int endtime, double endlat, double endlon, int miles, void *userdata)
 {
     if(!userdata)
     {
