@@ -76,7 +76,7 @@ typedef struct
     int starttime;
     float startlat;
     float startlon;
-    short itineray;
+    int itineray;
 } OBJECT;
 
 typedef int (*SIMCOM_SAVEITINERARY_PROC)(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary);
