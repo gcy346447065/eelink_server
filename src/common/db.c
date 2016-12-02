@@ -1046,6 +1046,38 @@ static int _db_getItinerary(const char *imeiName)
 
 }
 
+static int _db_getAppPackage(void *action, void *userdata)
+{
+    GET_APP_PACKAGE_PROC fun = action;
+    int itinerary = 0;
+    char query[MAX_QUERY] = {0};
+    snprintf(query,MAX_QUERY,"select * from AppPackage order by id desc limit 1");
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    result = mysql_store_result(conn);
+
+    if(row = mysql_fetch_row(result))
+    {
+        fun(row[1], row[2], row[3], row[4], row[5], userdata);
+    }
+
+    mysql_free_result(result);
+    return 0;
+
+}
+
 int db_initial(void)
 {
 #ifdef WITH_DB
@@ -1283,6 +1315,15 @@ int db_getItinerary(const char *imeiName)
 {
 #ifdef WITH_DB
     return _db_getItinerary(imeiName);
+#else
+    return 0;
+#endif
+}
+
+int db_getAppPackage(void *action, void *userdata)
+{
+#ifdef WITH_DB
+    return _db_getAppPackage(action, userdata);
 #else
     return 0;
 #endif
