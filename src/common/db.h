@@ -24,7 +24,7 @@
 #define MAX_QUERY 400
 
 typedef void (*MSG_SEND_LOG)(void *,char *, char *);
-typedef int (*ONEITINERARY_PROC)(int starttime, double startlat, double startlon, int endtime, double endlat, double endlon, short itinerary, void *userdata);
+typedef int (*ONEITINERARY_PROC)(int starttime, double startlat, double startlon, int endtime, double endlat, double endlon, int itinerary, void *userdata);
 typedef int (*ONEGPS_PROC)(int timestamp, double latitude, double longitude, char speed, short course, void *userdata);
 
 int db_initial(void);
@@ -39,7 +39,7 @@ int db_getHistoryGPS(const char *imeiName, int starttime, int endtime, void *act
 int db_getGPS(const char *imeiName, void *action, void *userdata);
 int db_getiItinerary(const char *imeiName, int starttime, int endtime, void *action, void *userdata);
 int db_createiItinerary(const char* tableName);
-int db_saveiItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary);
+int db_saveiItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, int itinerary);
 int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cellNo);
 int db_deleteTelNumber(const char *imeiName);
 int db_replaceTelNumber(const char *imeiName, const char *telNumber);

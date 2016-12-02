@@ -373,7 +373,7 @@ static int _db_createiItinerary(const char* tableName)
 {
     char query[MAX_QUERY];
     //create table cgi_IMEI(timestamp INT, mcc SMALLINT, mnc SMALLINT, lac0 SMALLINT, ci0 SMALLINT, rxl0 SMALLINT...)
-    snprintf(query, MAX_QUERY, "create table if not exists itinerary_%s(CreateAt timestamp default CURRENT_TIMESTAMP,starttime INT not NULL,startlat DOUBLE(9,6),startlon DOUBLE(9,6),endtime INT not NULL,endlat DOUBLE(9,6),endlon DOUBLE(9,6),itinerary SMALLINT default 0)", tableName);
+    snprintf(query, MAX_QUERY, "create table if not exists itinerary_%s(CreateAt timestamp default CURRENT_TIMESTAMP,starttime INT not NULL,startlat DOUBLE(9,6),startlon DOUBLE(9,6),endtime INT not NULL,endlat DOUBLE(9,6),endlon DOUBLE(9,6),itinerary INT default 0)", tableName);
 
     if(mysql_ping(conn))
     {
@@ -724,7 +724,7 @@ static int _db_getLastGPS(OBJECT *obj)
     return 0;
 }
 
-static int _db_saveiItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary)
+static int _db_saveiItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, int itinerary)
 {
     //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
     char query[MAX_QUERY];
@@ -1108,7 +1108,7 @@ int db_createiItinerary(const char* tableName)
 #endif
 }
 
-int db_saveiItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary)
+int db_saveiItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, int itinerary)
 {
 #ifdef WITH_DB
     return _db_saveiItinerary(tableName, starttime, startlat, startlon, endtime, endlat, endlon, itinerary);
