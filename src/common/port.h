@@ -9,6 +9,6 @@
 #define PORT_SIMCOM     9880
 #define PORT_SYNC       9890
 #define PORT_MANAGER    9898
-#define PORT_HTTP       8082
+#define PORT_HTTP       8081
 
 #endif //ELECTROMBILE_PORT_H
