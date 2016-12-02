@@ -25,7 +25,7 @@ static MSG_PROC_MAP msgProcs[] =
     {"/v1/itinerary",   http_replyItinerary},
 	{"/v1/telephone",   http_replyTelephone},
 	{"/v1/test",        http_replyCall},
-	{"v1/device",       http_deviceHandler},
+	{"/v1/device",      http_deviceHandler},
 };
 
 void httpd_handler(struct evhttp_request *req, void *arg __attribute__((unused)))

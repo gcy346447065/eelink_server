@@ -17,12 +17,12 @@ typedef struct
     struct event_base* base;
 	OBJECT* obj;
 	HTTP_RSP_PROC* pfn;
-}HTTP_SESSION;
+}HTTP_CONNECTION;
 
-void init_session(HTTP_SESSION* session, struct event_base* base, OBJECT* object, HTTP_RSP_PROC* pfn);
+void init_session(HTTP_CONNECTION *session, struct event_base* base, OBJECT *object, HTTP_RSP_PROC *pfn);
 
-void *http_get(HTTP_SESSION* session, const char *url);
+void *http_get(HTTP_CONNECTION *session, const char *url);
 
-void *http_post(HTTP_SESSION* session, const char *url,  const char* data);
+void *http_post(HTTP_CONNECTION *session, const char *url,  const char *data);
 
 #endif /* SRC_HTTP_H_ */

@@ -12,6 +12,8 @@
 #include "macro.h"
 #include "msg_proc_http.h"
 
+struct event_base *base;
+
 static void signal_handler(int sig)
 {
     switch (sig)
@@ -63,7 +65,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-	struct event_base *base = event_base_new();
+	base = event_base_new();
 	if (!base)
     {
 		LOG_ERROR("event_base_new failed...");

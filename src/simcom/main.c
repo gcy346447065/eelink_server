@@ -18,6 +18,7 @@
 #include "sync.h"
 #include "session.h"
 #include "session_manager.h"
+#include <evhttp.h>
 
 static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
@@ -37,6 +38,23 @@ static void ItieraryJudge_cb(evutil_socket_t fd __attribute__((unused)), short w
     return;
 }
 
+static void httpd_handler(struct evhttp_request *req, void *arg __attribute__((unused)))
+{
+    evhttp_add_header(req->output_headers, "Server", "simcom v1");
+    evhttp_add_header(req->output_headers, "Content-Type", "application/json");
+    evhttp_add_header(req->output_headers, "Connection", "close");
+    struct evbuffer *buf = evbuffer_new();
+
+    char post_data[128] = {0};
+    evbuffer_copyout(req->input_buffer,post_data,128);
+    if(post_data)
+    {
+        evbuffer_add_printf(buf, "%s", post_data);
+    }
+    evhttp_send_reply(req, HTTP_OK, "OK", buf);
+    evbuffer_free(buf);
+    return;
+}
 
 int main(int argc, char **argv)
 {
@@ -168,6 +186,21 @@ int main(int argc, char **argv)
     {
         LOG_ERROR("connect to sync server failed, try later");
     }
+
+	struct evhttp *httpd = evhttp_new(base);
+	if (!httpd) {
+		LOG_ERROR("couldn't create evhttp. Exiting.");
+		return 1;
+	}
+
+    if (evhttp_bind_socket(httpd, "0.0.0.0", 8082) != 0)
+    {
+        LOG_ERROR("bind socket failed at port:%d", 8082);
+        return 1;
+    }
+
+    evhttp_set_timeout(httpd, 4);
+    evhttp_set_gencb(httpd, httpd_handler, NULL);
 
     //start the event loop
     LOG_INFO("start the event loop");
