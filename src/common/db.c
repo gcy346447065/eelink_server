@@ -64,11 +64,17 @@ static int _db_initial()
         }
 
         /* creat table object if not exists */
-        snprintf(query, MAX_QUERY, "create table if not exists object(imei char(16) not null primary key, \
-                                    RegisterTime timestamp default CURRENT_TIMESTAMP, \
-                                    IsPosted tinyint default '0', \
-                                    ObjectType int(4) not null, \
-                                    Voltage tinyint default '0')");
+        snprintf(query, MAX_QUERY,
+        "create table if not exists object( \
+        imei char(16) not null primary key, \
+        RegisterTime timestamp default CURRENT_TIMESTAMP, \
+        IsPosted tinyint default 0, \
+        ObjectType int(4) not null, \
+        voltage tinyint default 0, \
+        itinerary bigint default 0, \
+        ccid char(20), \
+        imsi char(15) \
+        )");
 
         if(mysql_ping(conn))
         {
@@ -363,7 +369,7 @@ static int _db_createCGI(const char* tableName)
     return 0;
 }
 
-static int _db_createItinerary(const char* tableName)
+static int _db_createiItinerary(const char* tableName)
 {
     char query[MAX_QUERY];
     //create table cgi_IMEI(timestamp INT, mcc SMALLINT, mnc SMALLINT, lac0 SMALLINT, ci0 SMALLINT, rxl0 SMALLINT...)
@@ -386,7 +392,7 @@ static int _db_createItinerary(const char* tableName)
 }
 
 
-static int _db_getGPS(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
+static int _db_getHistoryGPS(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
 {
     char speed = 0;
     short course = 0;
@@ -442,7 +448,63 @@ static int _db_getGPS(const char *imeiName, int starttime, int endtime, void *ac
     return 0;
 }
 
-static int _db_getItinerary(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
+static int _db_getGPS(const char *imeiName, void *action, void *userdata)
+{
+    char speed = 0;
+    short course = 0;
+    ONEGPS_PROC fun = action;
+    char query[MAX_QUERY] = {0};
+
+    snprintf(query,MAX_QUERY,"select * from gps_%s order by timestamp desc limit 1", imeiName);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    result = mysql_store_result(conn);
+    while(row = mysql_fetch_row(result))
+    {
+        if(!row[0] || !row[1] || !row[2])
+        {
+            LOG_ERROR("There is somerow as timestamp or lat or lon is null:%s", imeiName);
+            continue;
+        }
+
+        if(row[3])
+        {
+            speed = atoi(row[3]);
+        }
+        else
+        {
+            speed = 0;
+        }
+
+        if(row[4])
+        {
+            course = atoi(row[4]);
+        }
+        else
+        {
+            course = 0;
+        }
+
+        fun(atoi(row[0]), atof(row[1]), atof(row[2]), speed, course, userdata);
+
+    }
+    mysql_free_result(result);
+    return 0;
+}
+
+static int _db_getiItinerary(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
 {
     ONEITINERARY_PROC fun = action;
     char query[MAX_QUERY] = {0};
@@ -662,7 +724,7 @@ static int _db_getLastGPS(OBJECT *obj)
     return 0;
 }
 
-static int _db_saveItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, int itinerary)
+static int _db_saveiItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, int itinerary)
 {
     //timestamp INT, lat DOUBLE, lon DOUBLE, speed TINYINT, course SMALLINT
     char query[MAX_QUERY];
@@ -752,10 +814,29 @@ static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *)
     return 0;
 }
 
-static int _db_insertOBJ(const char *imeiName, int ObjectType, char Voltage)
+static int _db_insertOBJ(const char *imeiName, int ObjectType, char voltage)
 {
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into object(imei, ObjectType, Voltage) values(\'%s\', %d, %d)", imeiName, ObjectType, Voltage);
+    snprintf(query, MAX_QUERY, "insert into object(imei, ObjectType, voltage) values(\'%s\', %d, %d)", imeiName, ObjectType, voltage);
+
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_ERROR("can't insert %s into object(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+    return 0;
+}
+
+static int _db_updateSimInfo(const char *imeiName, const char *ccid, const char *imsi)
+{
+    char query[MAX_QUERY];
+    snprintf(query, MAX_QUERY, "update object set ccid = \'%s\' , imsi = \'%s\' where imei =\'%s\'", ccid, imsi, imeiName);
 
     if(mysql_ping(conn))
     {
@@ -886,8 +967,7 @@ static int _db_add_log(const char *imei, const char *event)
     return 0;
 }
 
-typedef void (*MSG_SEND_LOG)(void *,char *, char *);
-static int _db_getLog(void *session, void *pfn, const char *imeiName)
+static int _db_getLog(void *userdata, void *pfn, const char *imeiName)
 {
     MSG_SEND_LOG fun = pfn;
     char query[MAX_QUERY] = {0};
@@ -909,10 +989,61 @@ static int _db_getLog(void *session, void *pfn, const char *imeiName)
     result = mysql_store_result(conn);
     while(row = mysql_fetch_row(result))
     {
-        fun(session, row[0], row[2]);//TODO:send the daily to manager row[0]:time,row[2]:event
+        fun(userdata, row[0], row[2]);//TODO:send the daily to manager row[0]:time,row[2]:event
     }
     mysql_free_result(result);
     return 0;
+}
+
+static int _db_updateItinerary(const char *imeiName, long itinerary)
+{
+    char query[MAX_QUERY] = {0};
+    snprintf(query,MAX_QUERY,"update object set itinerary = itinerary + %d where imei = \'%s\'", itinerary, imeiName);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return NULL;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return NULL;
+    }
+
+    LOG_INFO("update Itinerary imei(%s) itnerary(%d)", imeiName, itinerary);
+    return 0;
+}
+
+static int _db_getItinerary(const char *imeiName)
+{
+    int itinerary = 0;
+    char query[MAX_QUERY] = {0};
+    snprintf(query,MAX_QUERY,"select itinerary from object where imei = \'%s\'", imeiName);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return NULL;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return NULL;
+    }
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    result = mysql_store_result(conn);
+
+    if(row = mysql_fetch_row(result))
+    {
+        itinerary = atoi(row[0]);
+    }
+
+    mysql_free_result(result);
+    return itinerary;
+
 }
 
 int db_initial(void)
@@ -968,19 +1099,19 @@ int db_createCGI(const char* tableName)
 #endif
 }
 
-int db_createItinerary(const char* tableName)
+int db_createiItinerary(const char* tableName)
 {
 #ifdef WITH_DB
-    return _db_createItinerary(tableName);
+    return _db_createiItinerary(tableName);
 #else
     return 0;
 #endif
 }
 
-int db_saveItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, int itinerary)
+int db_saveiItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, int itinerary)
 {
 #ifdef WITH_DB
-    return _db_saveItinerary(tableName, starttime, startlat, startlon, endtime, endlat, endlon, itinerary);
+    return _db_saveiItinerary(tableName, starttime, startlat, startlon, endtime, endlat, endlon, itinerary);
 #else
     return 0;
 #endif
@@ -995,19 +1126,28 @@ int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char s
 #endif
 }
 
-int db_getGPS(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
+int db_getHistoryGPS(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
 {
 #ifdef WITH_DB
-    return _db_getGPS(imeiName, starttime, endtime, action, userdata);
+    return _db_getHistoryGPS(imeiName, starttime, endtime, action, userdata);
 #else
     return 0;
 #endif
 }
 
-int db_getItinerary(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
+int db_getGPS(const char *imeiName, void *action, void *userdata)
 {
 #ifdef WITH_DB
-    return _db_getItinerary(imeiName, starttime, endtime, action, userdata);
+    return _db_getGPS(imeiName, action, userdata);
+#else
+    return 0;
+#endif
+}
+
+int db_getiItinerary(const char *imeiName, int starttime, int endtime, void *action, void *userdata)
+{
+#ifdef WITH_DB
+    return _db_getiItinerary(imeiName, starttime, endtime, action, userdata);
 #else
     return 0;
 #endif
@@ -1058,10 +1198,19 @@ int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *), int Obj
 #endif
 }
 
-int db_insertOBJ(const char *imeiName, int ObjectType, char Voltage)
+int db_insertOBJ(const char *imeiName, int ObjectType, char voltage)
 {
 #ifdef WITH_DB
-    return _db_insertOBJ(imeiName, ObjectType, Voltage);
+    return _db_insertOBJ(imeiName, ObjectType, voltage);
+#else
+    return 0;
+#endif
+}
+
+int db_updateSimInfo(const char *imeiName, const char *ccid, const char *imsi)
+{
+#ifdef WITH_DB
+    return _db_updateSimInfo(imeiName, ccid, imsi);
 #else
     return 0;
 #endif
@@ -1112,12 +1261,31 @@ int db_add_log(const char *imei, const char *event)
 #endif
 }
 
-int db_getLog(void *session, void *pfn, const char *imeiName)
+int db_getLog(void *userdata, void *pfn, const char *imeiName)
 {
 #ifdef WITH_DB
-    return _db_getLog(session, pfn, imeiName);
+    return _db_getLog(userdata, pfn, imeiName);
 #else
     return 0;
 #endif
 }
+
+int db_updateItinerary(const char *imeiName, long itinerary)
+{
+#ifdef WITH_DB
+    return _db_updateItinerary(imeiName, itinerary);
+#else
+    return 0;
+#endif
+}
+
+int db_getItinerary(const char *imeiName)
+{
+#ifdef WITH_DB
+    return _db_getItinerary(imeiName);
+#else
+    return 0;
+#endif
+}
+
 

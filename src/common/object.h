@@ -80,9 +80,9 @@ typedef struct
 } OBJECT;
 
 typedef int (*SIMCOM_SAVEITINERARY_PROC)(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary);
-typedef int (*MANAGER_SEND_PROC)(const void *msg, const void *sessionManager, const char*imei, const char on_offline, int version, int timestamp, float lat, float lon, char speed, short course);
+typedef int (*MANAGER_SEND_PROC)(const void *msg, const char*imei, const char on_offline, int version, int timestamp, float lat, float lon, char speed, short course, char voltage);
 
-void obj_sendImeiData2ManagerLoop(const void *msg, const void *sessionManager, MANAGER_SEND_PROC func);
+void obj_sendData2Manager(const void *msg, MANAGER_SEND_PROC func);
 
 void obj_table_initial(void (*mqtt_sub)(const char *), int ObjectType);
 void obj_table_GPSinitial(void);

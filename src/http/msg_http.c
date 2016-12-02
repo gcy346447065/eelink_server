@@ -12,7 +12,7 @@
 void http_rspMsg(struct evhttp_request *req, char *data)
 {
     evhttp_add_header(req->output_headers, "Server", MYHTTPD_SIGNATURE);
-    evhttp_add_header(req->output_headers, "Content-Type", "text/plain; charset=UTF-8");
+    evhttp_add_header(req->output_headers, "Content-Type", "application/json");
     evhttp_add_header(req->output_headers, "Connection", "close");
     struct evbuffer *buf = evbuffer_new();
     if(data)

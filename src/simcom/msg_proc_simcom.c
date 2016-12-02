@@ -191,9 +191,9 @@ static int simcom_login(const void *msg, SESSION *session)
     if(!db_isTableCreated(obj->IMEI, &num) && 3 > num)
     {
         LOG_INFO("db_isTableCreated:%d", num);
-        db_createCGI(obj->IMEI);
+        //db_createCGI(obj->IMEI);
         db_createGPS(obj->IMEI);
-        db_createItinerary(obj->IMEI);
+        db_createiItinerary(obj->IMEI);
     }
 
     //get version, compare the version number; if not, send upgrade start message
@@ -1459,7 +1459,8 @@ static int simcom_SimInfo(const void *msg, SESSION *session)
         memcpy(obj->CCID, ccid, CCID_LENGTH + 1);
         memcpy(obj->IMSI, imsi, IMSI_LENGTH + 1);
 
-        sync_SimInfo(obj->IMEI, obj->CCID, obj->IMSI);
+        //sync_SimInfo(obj->IMEI, obj->CCID, obj->IMSI);
+        db_updateSimInfo(obj->IMEI, obj->CCID, obj->IMSI);
     }
     else
     {
@@ -1615,7 +1616,7 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
         obj->speed = gps[i].speed;
         obj->course = ntohs(gps[i].course);
 
-        LOG_INFO("imei(%s) GPS_PACK(%d/%d): timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
+        LOG_DEBUG("imei(%s) GPS_PACK(%d/%d): timestamp(%d), latitude(%f), longitude(%f), speed(%d), course(%d)",
                 obj->IMEI, i+1, num, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
 
         db_saveGPS(obj->IMEI, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course);
@@ -1624,12 +1625,13 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
     obj->isGPSlocated = 0x01;
 
     miles = getDistance(lat_pre, lon_pre, obj->lat, obj->lon) + 0.5;
+    if(!timestamp_pre)miles = 0;// if the device is first used time , GPS_pre maybe at(0,0)
 
     if(obj->isStarted)//if itinerary has started, add the miles instantly
     {
         obj->itineray += (int)miles;
     }
-    else if(miles > 15)//if itinerary has not started && move avove 15m, judge start new itinerary, record the start msg
+    else if(miles > 15)//if itinerary has not started && move above 15m, judge start new itinerary, record the start msg
     {
         obj->isStarted = 1;
         obj->starttime = ntohl(gps[0].timestamp);
@@ -1640,6 +1642,7 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
     obj->timecount = 0;//every GPS comes, set the count as 0, when it reach 5, one itinerary generats
 
     simcom_itinerary_push(obj->IMEI,(int)miles);
+    db_updateItinerary(obj->IMEI,(int)miles);
 
     //send the last gps in GPS_PACK to app
     app_sendGpsMsg2App(session);

@@ -23,6 +23,7 @@
 #define DB_NAME "gps"
 #define MAX_QUERY 400
 
+typedef void (*MSG_SEND_LOG)(void *,char *, char *);
 typedef int (*ONEITINERARY_PROC)(int starttime, double startlat, double startlon, int endtime, double endlat, double endlon, int itinerary, void *userdata);
 typedef int (*ONEGPS_PROC)(int timestamp, double latitude, double longitude, char speed, short course, void *userdata);
 
@@ -34,10 +35,11 @@ int db_createGPS(const char* tableName);
 int db_getLastGPS(OBJECT *obj);
 int db_createCGI(const char* tableName);
 int db_saveGPS(const char* imeiName, int timestamp, float lat, float lon, char speed, short course);
-int db_getGPS(const char *imeiName, int starttime, int endtime, void *action, void *userdata);
-int db_getItinerary(const char *imeiName, int starttime, int endtime, void *action, void *userdata);
-int db_createItinerary(const char* tableName);
-int db_saveItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, int itinerary);
+int db_getHistoryGPS(const char *imeiName, int starttime, int endtime, void *action, void *userdata);
+int db_getGPS(const char *imeiName, void *action, void *userdata);
+int db_getiItinerary(const char *imeiName, int starttime, int endtime, void *action, void *userdata);
+int db_createiItinerary(const char* tableName);
+int db_saveiItinerary(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, int itinerary);
 int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cellNo);
 int db_deleteTelNumber(const char *imeiName);
 int db_replaceTelNumber(const char *imeiName, const char *telNumber);
@@ -45,6 +47,7 @@ int db_getTelNumber(const char *imeiName, char *telNumber);
 
 int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *), int ObjectType);
 int db_insertOBJ(const char *imeiName, int ObjectType, char Volatge);
+int db_updateSimInfo(const char *imeiName, const char *ccid, const char *imsi);
 int db_updateOBJIsPosted(const char *imeiName);
 int db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*));
 
@@ -52,6 +55,8 @@ int db_doWithObjectID(int (*func1)(const char*, const char*));
 int db_add_ObjectID(const char *imei, const char *objectID);
 int db_add_log(const char *imei, const char *event);
 int db_getLog(void *fun, void *pfn, const char *imeiName);
+int db_updateItinerary(const char *imeiName, long itinerary);
+int db_getItinerary(const char *imeiName);
 
 #ifdef __cplusplus
     }
