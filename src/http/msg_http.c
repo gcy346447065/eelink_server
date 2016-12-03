@@ -7,7 +7,6 @@
 
 #include "msg_http.h"
 
-#define MYHTTPD_SIGNATURE   "http v1"
 
 void http_rspMsg(struct evhttp_request *req, char *data)
 {

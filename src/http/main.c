@@ -30,9 +30,6 @@ static void signal_handler(int sig)
 
 int main(int argc, char *argv[])
 {
-
-	struct evhttp_bound_socket *handle;
-
     int http_port = PORT_HTTP;
     char *httpd_listen = "0.0.0.0"; // locaol adress
     int httpd_timeout = 30;         // in seconds
@@ -88,7 +85,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-    if (evhttp_bind_socket(httpd, "0.0.0.0", http_port) != 0)
+    if (evhttp_bind_socket(httpd, httpd_listen, http_port) != 0)
     {
         LOG_ERROR("bind socket failed at port:%d", http_port);
         return 1;

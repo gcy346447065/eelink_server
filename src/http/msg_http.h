@@ -13,5 +13,9 @@ void http_rspMsg(struct evhttp_request *req, char *data);
 void http_errorMsg(struct evhttp_request *req);
 void http_okMsg(struct evhttp_request *req);
 
+
+#define MYHTTPD_SIGNATURE   "http v1"
+#define SECONDS_PER_DAY (86400)
+
 #endif
 

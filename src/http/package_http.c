@@ -84,6 +84,45 @@ static void package_getVersion(struct evhttp_request *req)
     return;
 }
 
+static int http_sendPackage(struct evhttp_request * req, const char *filename)
+{
+    evhttp_add_header(req->output_headers, "Server", MYHTTPD_SIGNATURE);
+    evhttp_add_header(req->output_headers, "Content-Type", "application/vnd.android.package-archive");
+    evhttp_send_reply_start(req, HTTP_OK, "OK");
+
+    char path[MAX_PATH_LEN] = "./app/";
+
+    strcat(path,filename);
+
+    FILE *fp = fopen(path,"r");
+    if(!fp)
+    {
+        LOG_ERROR("open %s error!", path);
+        return 1;
+    }
+
+    size_t readLen = 0, len = 0;
+    char readBuf[READ_BUFFER_LEN + 1] = {0};
+
+    struct evbuffer *buf = evbuffer_new();
+
+    do
+    {
+        len = fread(readBuf, 1, READ_BUFFER_LEN, fp);
+        evbuffer_add(buf, readBuf, len);
+        readLen += len;
+        fseek(fp, readLen, SEEK_SET);
+    }while(len >= READ_BUFFER_LEN);
+
+    fclose(fp);
+
+    evhttp_send_reply_chunk(req,buf);
+    evbuffer_free(buf);
+
+    evhttp_add_header(req->output_headers, "Connection", "close");
+    evhttp_send_reply_end(req);
+    return 0;
+}
 
 static void http_getPackage(struct evhttp_request *req)
 {
@@ -103,37 +142,10 @@ static void http_getPackage(struct evhttp_request *req)
         return;
     }
 
-    evhttp_add_header(req->output_headers, "Server", "http v1");
-    evhttp_add_header(req->output_headers, "Content-Type", "application/vnd.android.package-archive");
-    evhttp_send_reply_start(req, HTTP_OK, "OK");
-
-    char path[MAX_PATH_LEN] = "./app/";
-
-    strcat(path,app_packageInfo->fileName);
-
-    FILE *fp = fopen(path,"r");
-    if(!fp)
+    if(http_sendPackage(req, app_packageInfo->fileName) != 0)
     {
-        LOG_ERROR("open %s error!", path);
+        http_errorMsg(req);
     }
-
-    size_t readLen = 0, len = 0;
-    char readBuf[READ_BUFFER_LEN + 1] = {0};
-
-    struct evbuffer *buf = evbuffer_new();
-    do
-    {
-        len = fread(readBuf, 1, READ_BUFFER_LEN, fp);
-        evbuffer_add(buf, readBuf, len);
-        readLen += len;
-        fseek(fp, readLen, SEEK_SET);
-    }while(len >= READ_BUFFER_LEN);
-    fclose(fp);
-
-    evhttp_send_reply_chunk(req,buf);
-    evbuffer_free(buf);
-
-    evhttp_send_reply_end(req);
     free(app_packageInfo);
     return;
 }
@@ -141,9 +153,6 @@ static void http_getPackage(struct evhttp_request *req)
 
 void http_replyVersion(struct evhttp_request *req)
 {
-    int rc;
-    char telNumber[TELNUMBER_LENGTH + 1] = {0};
-
     LOG_INFO("%s",req->uri);
     switch(req->type)
     {
@@ -169,9 +178,6 @@ void http_replyVersion(struct evhttp_request *req)
 
 void http_replyPackage(struct evhttp_request *req)
 {
-    int rc;
-    char telNumber[TELNUMBER_LENGTH + 1] = {0};
-
     LOG_INFO("%s",req->uri);
     switch(req->type)
     {
