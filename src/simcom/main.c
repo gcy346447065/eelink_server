@@ -38,13 +38,12 @@ static void ItieraryJudge_cb(evutil_socket_t fd __attribute__((unused)), short w
     return;
 }
 
-static void httpd_handler(struct evhttp_request *req, void *arg __attribute__((unused)))
+static void https_handler(struct evhttp_request *req, void *arg __attribute__((unused)))
 {
     evhttp_add_header(req->output_headers, "Server", "simcom v1");
     evhttp_add_header(req->output_headers, "Content-Type", "application/json");
     evhttp_add_header(req->output_headers, "Connection", "close");
     struct evbuffer *buf = evbuffer_new();
-
     char post_data[128] = {0};
     evbuffer_copyout(req->input_buffer,post_data,128);
     if(post_data)
@@ -200,7 +199,7 @@ int main(int argc, char **argv)
     }
 
     evhttp_set_timeout(httpd, 4);
-    evhttp_set_gencb(httpd, httpd_handler, NULL);
+    evhttp_set_gencb(httpd, https_handler, NULL);
 
     //start the event loop
     LOG_INFO("start the event loop");

@@ -13,6 +13,10 @@
 #include "msg_http.h"
 #include "device_http.h"
 
+#define SIMCOM_URL "http://test.xiaoan110.com"
+#define SIMCOM_HTTPPORT ":8082"
+#define SIMCOM_URI "/v1/device"
+
 extern struct event_base *base;
 
 typedef struct
@@ -28,17 +32,16 @@ void http_requset_post_cb(struct evhttp_request *req, void *arg)
 
     char post_data[128] = {0};
     evbuffer_copyout(req->input_buffer,post_data,128);
+    LOG_INFO("%s", post_data);
 
     http_rspMsg(connection->req,post_data);
     return;
 }
 
-static void http_wild2Simcom(struct evhttp_request *req, const char *url, char *data)
+static void http_wild2Simcom(struct evhttp_request *req, char *url, char *data)
 {
 	struct evhttp_uri *uri = evhttp_uri_parse(url);
-
 	int port = evhttp_uri_get_port(uri);
-
 	struct evhttp_connection *connect = evhttp_connection_base_new(base, NULL, evhttp_uri_get_host(uri), (port == -1 ? 8082 : port));
 
     HTTP_CONNECTION *http_connection = (HTTP_CONNECTION *)malloc(sizeof(HTTP_CONNECTION));
@@ -52,6 +55,7 @@ static void http_wild2Simcom(struct evhttp_request *req, const char *url, char *
     evhttp_add_header(post->output_headers, "Host", evhttp_uri_get_host(uri));
 
     evhttp_make_request(connect, post, EVHTTP_REQ_POST, evhttp_uri_get_path(uri));
+    free(uri);
     return;
 }
 
@@ -59,8 +63,8 @@ void http_deviceHandler(struct evhttp_request *req)
 {
     char post_data[128] = {0};
     evbuffer_copyout(req->input_buffer,post_data,128);
-
-    http_wild2Simcom(req,"test.xiaoan110.com:8082/v1/device",post_data);
+    LOG_INFO("%s",post_data);
+    http_wild2Simcom(req, SIMCOM_URL SIMCOM_HTTPPORT SIMCOM_URI, post_data);
     return;
 }
 
