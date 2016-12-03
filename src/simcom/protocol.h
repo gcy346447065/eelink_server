@@ -72,6 +72,7 @@ enum
     CMD_DEVICE_INFO_GET = 28,
     CMD_GPS_PACK        = 29,
     CMD_SET_BATTERY_TYPE= 30,
+    CMD_DEVICE          = 31,
 };
 
 enum
