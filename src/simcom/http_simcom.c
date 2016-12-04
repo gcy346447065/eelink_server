@@ -8,11 +8,12 @@
 
 #include "http_simcom.h"
 #include "session.h"
+#include "log.h"
 
 static void simcom_deviceHandler(struct evhttp_request *req)
 {
-    char post_data[MSG_MAX_LEN] = {0};
-    evbuffer_copyout(req->input_buffer,post_data,MSG_MAX_LEN);
+    char post_data[1024] = {0};
+    evbuffer_copyout(req->input_buffer,post_data,1024);
     LOG_INFO("get the request from http:%s", post_data);
     return;
 }

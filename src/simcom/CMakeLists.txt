@@ -28,11 +28,14 @@ SET(SOURCE_FILE
     server_simcom.c
     server_simcom.h
 
-    session_http.h
-    session_http.c
-
     session_manager.h
     session_manager.c
+    
+    http_connect_simcom.c
+    http_connect_simcom.h
+    
+    http_simcom.c
+    http_simcom.h
 
     version.h
     )

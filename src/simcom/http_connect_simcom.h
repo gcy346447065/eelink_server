@@ -16,10 +16,10 @@ typedef struct
     struct evhttp_request *req;
 }HTTP_CONNECTION;
 
-SESSION_HTTP *session_new_hash(long int key);
-SESSION_HTTP *session_get_hash(long int key);
-void session_add_hash(SESSION_HTTP *session);
-void session_del_hash(SESSION_HTTP *session);
+HTTP_CONNECTION *session_new_hash(long int key);
+HTTP_CONNECTION *session_get_hash(long int key);
+void session_add_hash(HTTP_CONNECTION *session);
+void session_del_hash(HTTP_CONNECTION *session);
 void session_table_initial(void);
 void session_table_destruct(void);
 
