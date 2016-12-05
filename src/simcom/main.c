@@ -4,6 +4,8 @@
 #include <signal.h>
 #include <openssl/ssl.h>
 #include <event2/listener.h>
+#include <evhttp.h>
+#include <timer.h>
 
 #include "log.h"
 #include "version.h"
@@ -18,7 +20,7 @@
 #include "sync.h"
 #include "session.h"
 #include "session_manager.h"
-#include <evhttp.h>
+#include "http_simcom.h"
 
 static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
@@ -35,23 +37,6 @@ static void ItieraryJudge_cb(evutil_socket_t fd __attribute__((unused)), short w
 
     obj_table_ItieraryJudge(arg); //simcom_server to judge if the itinerary reaches end
 
-    return;
-}
-
-static void https_handler(struct evhttp_request *req, void *arg __attribute__((unused)))
-{
-    evhttp_add_header(req->output_headers, "Server", "simcom v1");
-    evhttp_add_header(req->output_headers, "Content-Type", "application/json");
-    evhttp_add_header(req->output_headers, "Connection", "close");
-    struct evbuffer *buf = evbuffer_new();
-    char post_data[128] = {0};
-    evbuffer_copyout(req->input_buffer,post_data,128);
-    if(post_data)
-    {
-        evbuffer_add_printf(buf, "%s", post_data);
-    }
-    evhttp_send_reply(req, HTTP_OK, "OK", buf);
-    evbuffer_free(buf);
     return;
 }
 
@@ -199,7 +184,7 @@ int main(int argc, char **argv)
     }
 
     evhttp_set_timeout(httpd, 4);
-    evhttp_set_gencb(httpd, https_handler, NULL);
+    evhttp_set_gencb(httpd, simcom_http_handler, NULL);
 
     //start the event loop
     LOG_INFO("start the event loop");

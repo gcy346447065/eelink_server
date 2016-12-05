@@ -15,6 +15,7 @@ typedef struct
 {
     struct event_base *base;
     struct bufferevent *bev;
+    struct evhttp_request *req;
 
     void *obj;
     MSG_SEND pSendMsg;

@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 
     int http_port = PORT_HTTP;
     char *httpd_listen = "0.0.0.0"; // locaol adress
-    int httpd_timeout = 30;         // in seconds
+    int httpd_timeout = 5;         // in seconds
 
     setvbuf(stdout, NULL, _IONBF, 0);
 

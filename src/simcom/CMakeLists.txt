@@ -30,10 +30,7 @@ SET(SOURCE_FILE
 
     session_manager.h
     session_manager.c
-    
-    http_connect_simcom.c
-    http_connect_simcom.h
-    
+
     http_simcom.c
     http_simcom.h
 
