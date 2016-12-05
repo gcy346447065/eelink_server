@@ -59,9 +59,25 @@ static void package_getVersion(struct evhttp_request *req)
         return;
     }
 
+    char path[MAX_PATH_LEN] = "./app/";
+
+    strcat(path,packageInfo.fileName);
+
+    FILE *fp = fopen(path,"r");
+    if(!fp)
+    {
+        LOG_ERROR("open %s error!", path);
+        http_errorMsg(req);
+        return;
+    }
+    fseek(fp,0L,SEEK_END);
+    int packageSize=ftell(fp);
+    fclose(fp);
+
     cJSON_AddStringToObject(json, "versionName", packageInfo.versionName);
     cJSON_AddNumberToObject(json, "versionCode", packageInfo.versionCode);
     cJSON_AddStringToObject(json, "changelog", packageInfo.changeLog);
+    cJSON_AddNumberToObject(json, "packageSize", packageSize);
 
     char *msg = cJSON_PrintUnformatted(json);
     cJSON_Delete(json);
