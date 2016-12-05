@@ -30,33 +30,24 @@ typedef struct
     int type;
 }APP_PACKAGE_INFO;
 
-static int save_appPackageInfo(const char *versionName, int versionCode, const char *changeLog, const char *fileName, int type, void *userdata)
+static int save_appPackageInfo(const char *versionName, int versionCode, const char *changeLog, const char *fileName, int type, APP_PACKAGE_INFO *pPackageInfo)
 {
-    APP_PACKAGE_INFO *app_packageInfo = userdata;
-
-    strncpy(app_packageInfo->versionName,versionName,MAX_NAME_LEN);
-    strncpy(app_packageInfo->changeLog,changeLog,MAX_LOG_LEN);
-    strncpy(app_packageInfo->fileName,fileName,MAX_NAME_LEN);
-    app_packageInfo->versionCode = versionCode;
-    app_packageInfo->type = type;
+    strncpy(pPackageInfo->versionName,versionName,MAX_NAME_LEN);
+    strncpy(pPackageInfo->changeLog,changeLog,MAX_LOG_LEN);
+    strncpy(pPackageInfo->fileName,fileName,MAX_NAME_LEN);
+    pPackageInfo->versionCode = versionCode;
+    pPackageInfo->type = type;
     return 0;
 }
 
 static void package_getVersion(struct evhttp_request *req)
 {
-    APP_PACKAGE_INFO *app_packageInfo = (APP_PACKAGE_INFO *)malloc(sizeof(APP_PACKAGE_INFO));
-    if(!app_packageInfo)
-    {
-        LOG_ERROR("failed to alloc memory");
-        http_errorMsg(req);
-        return;
-    }
+    APP_PACKAGE_INFO packageInfo;
 
-    if(db_getAppPackage(save_appPackageInfo,app_packageInfo) != 0)
+    if(db_getAppPackage(save_appPackageInfo, &packageInfo) != 0)
     {
         LOG_ERROR("get app package info error");
         http_errorMsg(req);
-        free(app_packageInfo);
         return;
     }
 
@@ -65,13 +56,12 @@ static void package_getVersion(struct evhttp_request *req)
     {
         LOG_FATAL("failed to alloc memory");
         http_errorMsg(req);
-        free(app_packageInfo);
         return;
     }
 
-    cJSON_AddStringToObject(json, "versionName", app_packageInfo->versionName);
-    cJSON_AddStringToObject(json, "versionCode", app_packageInfo->versionCode);
-    cJSON_AddStringToObject(json, "changelog", app_packageInfo->changeLog);
+    cJSON_AddStringToObject(json, "versionName", packageInfo.versionName);
+    cJSON_AddStringToObject(json, "versionCode", packageInfo.versionCode);
+    cJSON_AddStringToObject(json, "changelog", packageInfo.changeLog);
 
     char *msg = cJSON_PrintUnformatted(json);
     cJSON_Delete(json);
@@ -79,7 +69,6 @@ static void package_getVersion(struct evhttp_request *req)
     LOG_DEBUG("%s",msg);
 
     http_rspMsg(req, msg);
-    free(app_packageInfo);
     free(msg);
     return;
 }
@@ -126,27 +115,19 @@ static int http_sendPackage(struct evhttp_request * req, const char *filename)
 
 static void http_getPackage(struct evhttp_request *req)
 {
-    APP_PACKAGE_INFO *app_packageInfo = (APP_PACKAGE_INFO *)malloc(sizeof(APP_PACKAGE_INFO));
-    if(!app_packageInfo)
-    {
-        LOG_ERROR("failed to alloc memory");
-        http_errorMsg(req);
-        return;
-    }
+    APP_PACKAGE_INFO packageInfo;
 
-    if(db_getAppPackage(save_appPackageInfo,app_packageInfo) != 0)
+    if(db_getAppPackage(save_appPackageInfo,&packageInfo) != 0)
     {
         LOG_ERROR("get app package info error");
         http_errorMsg(req);
-        free(app_packageInfo);
         return;
     }
 
-    if(http_sendPackage(req, app_packageInfo->fileName) != 0)
+    if(http_sendPackage(req, packageInfo.fileName) != 0)
     {
         http_errorMsg(req);
     }
-    free(app_packageInfo);
     return;
 }
 
@@ -157,15 +138,15 @@ void http_replyVersion(struct evhttp_request *req)
     switch(req->type)
     {
         case EVHTTP_REQ_GET:
-        case EVHTTP_REQ_PUT:
-        case EVHTTP_REQ_POST:
-        case EVHTTP_REQ_DELETE:
             {
                 package_getVersion(req);
                 return;
             }
             break;
 
+        case EVHTTP_REQ_PUT:
+        case EVHTTP_REQ_POST:
+        case EVHTTP_REQ_DELETE:
         default:
             LOG_ERROR("unkown http type: %d",req->type);
             break;
@@ -182,15 +163,15 @@ void http_replyPackage(struct evhttp_request *req)
     switch(req->type)
     {
         case EVHTTP_REQ_GET:
-        case EVHTTP_REQ_PUT:
-        case EVHTTP_REQ_POST:
-        case EVHTTP_REQ_DELETE:
             {
                  http_getPackage(req);
                  return;
             }
             break;
 
+        case EVHTTP_REQ_PUT:
+        case EVHTTP_REQ_POST:
+        case EVHTTP_REQ_DELETE:
         default:
             LOG_ERROR("unkown http type: %d",req->type);
             break;
