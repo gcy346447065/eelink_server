@@ -429,16 +429,25 @@ static int simcom_alarm(const void *msg, SESSION *session)
     //send alarm by jiguang push
     jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
 
-    //send call alarm
-    if(req->alarmType == ALARM_VIBRATE)
+    switch(req->alarmType)
     {
-        sync_callAlarm(obj->IMEI);
+        case ALARM_VIBRATE:
+            db_add_log(obj->IMEI, "move alarm");
+            sync_callAlarm(obj->IMEI);//send call alarm
+            break;
+
+        case ALARM_BATTERY50:
+            db_add_log(obj->IMEI, "battery50");
+            break;
+
+        case ALARM_BATTERY30:
+            db_add_log(obj->IMEI, "battery30");
+            break;
     }
 
     LOG_INFO("imei(%s) send alarm(%d)", obj->IMEI, req->alarmType);
 
     //add alarm log in db
-    db_add_log(obj->IMEI, "alarm");
 
     //alarm rsp
     MSG_ALARM_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
