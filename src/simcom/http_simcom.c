@@ -26,7 +26,7 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     if(!json)
     {
         LOG_ERROR("get data is not json type");
-        simcom_replyHttp(req, NULL);
+        simcom_errorHttp(req, CODE_ERROR_CONTENT);
         return;
     }
 
@@ -35,7 +35,7 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     {
         LOG_ERROR("no imei in data");
         cJSON_Delete(json);
-        simcom_replyHttp(req, NULL);
+        simcom_errorHttp(req, CODE_ERROR_CONTENT);
         return;
     }
 
@@ -44,7 +44,7 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     {
         LOG_WARN("object not exists");
         cJSON_Delete(json);
-        simcom_replyHttp(req, NULL);
+        simcom_errorHttp(req, CODE_IMEI_NOT_FOUND);
         return;
     }
 
@@ -53,7 +53,7 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     {
         LOG_ERROR("device offline");
         cJSON_Delete(json);
-        simcom_replyHttp(req, NULL);
+        simcom_errorHttp(req, CODE_DEVICE_OFFLINE);
         return;
     }
 
@@ -61,7 +61,7 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     if (!pfn)
     {
         LOG_ERROR("device offline");
-        cJSON_Delete(json);
+        simcom_errorHttp(req, CODE_DEVICE_OFFLINE);
         return;
     }
 
@@ -70,7 +70,7 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     {
         LOG_ERROR("no param in data");
         cJSON_Delete(json);
-        simcom_replyHttp(req, NULL);
+        simcom_errorHttp(req, CODE_ERROR_CONTENT);
         return;
     }
 
@@ -79,7 +79,7 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     {
         LOG_ERROR("no param in data");
         cJSON_Delete(json);
-        simcom_replyHttp(req, NULL);
+        simcom_errorHttp(req, CODE_ERROR_CONTENT);
         return;
     }
 
@@ -88,7 +88,7 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     {
         LOG_ERROR("no memory");
         cJSON_Delete(json);
-        simcom_replyHttp(req, NULL);
+        simcom_errorHttp(req, CODE_INTERNAL_ERR);
         return;
     }
 
@@ -99,16 +99,18 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     {
         LOG_ERROR("no memory");
         cJSON_Delete(json);
-        simcom_replyHttp(req, NULL);
+        simcom_errorHttp(req, CODE_INTERNAL_ERR);
         free(data);
         return;
     }
 
     msg->action = action->valueint;
-    strncpy(msg,data,strlen(data));
+    strncpy(msg->data, data, strlen(data));
 
-    LOG_HEX(msg, sizeof(MSG_GET_BATTERY_REQ));
+    LOG_HEX(msg, sizeof(MSG_DEVICE_REQ));
     pfn(session->bev, msg, msgLen); //simcom_sendMsg
+
+    //TODO:set a timer to response to http if request can't get response.
 
     session->req = req;
     cJSON_Delete(json);
@@ -142,5 +144,11 @@ void simcom_replyHttp(struct evhttp_request *req, const char *data)
     evhttp_send_reply(req, HTTP_OK, "OK", buf);
     evbuffer_free(buf);
     return;
+}
+
+void simcom_errorHttp(struct evhttp_request *req, char errorType)
+{
+    char buf[32] = {0};
+    snprintf(buf, 32, "{\"code\":%d},errorType");
 }
 

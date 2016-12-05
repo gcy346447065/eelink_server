@@ -60,7 +60,7 @@ static void http_wild2Simcom(struct evhttp_request *req, char *url, char *data)
     evhttp_make_request(connect, post, EVHTTP_REQ_POST, evhttp_uri_get_path(uri));// publish the request
     free(uri);
 
-    //set a timer to cancel and free the connection and req if request can't get response
+    //TODO:set a timer to cancel and free the connection and req if request can't get response
 
     return;
 }

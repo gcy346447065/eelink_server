@@ -21,6 +21,7 @@ enum
     CODE_RANGE_TOO_LARGE    = 103,
     CODE_URL_ERR            = 104,
     CODE_ERROR_CONTENT      = 105,
+    SIMCOM_NO_RESPONSE      = 106,
 };
 #endif
 
