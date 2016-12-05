@@ -610,6 +610,23 @@ typedef struct
 
 typedef MSG_HEADER MSG_SET_BATTERY_TYPE_RSP;
 
+/*
+ * CMD_DEVICE message structure
+ */
+typedef struct
+{
+    MSG_HEADER header;
+    char action;
+    char data[];
+}__attribute__((__packed__)) MSG_DEVICE_REQ;
+
+typedef struct
+{
+    MSG_HEADER header;
+    char action;
+    char data[];
+}__attribute__((__packed__)) MSG_DEVICE_RSP;
+
 typedef MSG_HEADER MSG_DEBUG_REQ;
 
 typedef struct

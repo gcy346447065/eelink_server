@@ -25,7 +25,7 @@ static void telephone_deleteTelNumber(struct evhttp_request *req, const char *im
         return;
     }
 
-    http_errorMsg(req);
+    http_errorMsg(req, CODE_IMEI_NOT_FOUND);
     return;
 }
 
@@ -38,7 +38,7 @@ static void telephone_replaceTelNumber(struct evhttp_request *req, const char *i
         return;
     }
 
-    http_errorMsg(req);
+    http_errorMsg(req, CODE_IMEI_NOT_FOUND);
     return;
 }
 
@@ -50,7 +50,7 @@ static void telephone_getTelNumber(struct evhttp_request *req, const char *imeiN
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req);
+        http_errorMsg(req, CODE_INTERNAL_ERR);
         return;
     }
 
@@ -65,6 +65,11 @@ static void telephone_getTelNumber(struct evhttp_request *req, const char *imeiN
     }
 
     char *msg = cJSON_PrintUnformatted(json);
+    if(!msg)
+    {
+        LOG_FATAL("failed to alloc memory");
+        http_errorMsg(req, CODE_INTERNAL_ERR);
+    }
     cJSON_Delete(json);
 
     LOG_DEBUG("%s",msg);
@@ -80,24 +85,32 @@ static void telephone_callTelNumber(struct evhttp_request *req, const char *imei
     char telNumber[TELNUMBER_LENGTH + 1] = {0};
     char caller[TELNUMBER_LENGTH + 1] = {0};
 
-    if(db_getTelNumber(imeiName,telNumber) != 0)
+    int rc = db_getTelNumber(imeiName,telNumber);
+    if(rc != 0)
     {
-        http_errorMsg(req);
-        return;
+        if(3 == rc)
+        {
+            http_errorMsg(req, CODE_NO_CONTENT);
+            return;
+        }
+        else
+        {
+            http_errorMsg(req, CODE_IMEI_NOT_FOUND);
+        }
     }
 
     evbuffer_copyout(req->input_buffer,post_data,128);
     cJSON * json= cJSON_Parse(post_data);
     if(!json)
     {
-        http_errorMsg(req);
+        http_errorMsg(req, CODE_ERROR_CONTENT);
         return;
     }
     cJSON * telephone = cJSON_GetObjectItem(json, "caller");
     if(!telephone)
     {
         cJSON_Delete(json);
-        http_errorMsg(req);
+        http_errorMsg(req, CODE_ERROR_CONTENT);
         return;
     }
     strncpy(caller, telephone->valuestring, TELNUMBER_LENGTH);
@@ -151,14 +164,14 @@ void http_replyTelephone(struct evhttp_request *req)
                 cJSON * json= cJSON_Parse(post_data);
                 if(!json)
                 {
-                    http_errorMsg(req);
+                    http_errorMsg(req, CODE_ERROR_CONTENT);
                     return;
                 }
                 cJSON * telephone = cJSON_GetObjectItem(json, "telephone");
                 if(!telephone)
                 {
                     cJSON_Delete(json);
-                    http_errorMsg(req);
+                    http_errorMsg(req, CODE_ERROR_CONTENT);
                     return;
                 }
                 strncpy(telNumber, telephone->valuestring, TELNUMBER_LENGTH);
@@ -185,7 +198,7 @@ void http_replyTelephone(struct evhttp_request *req)
 
     }
 
-    http_errorMsg(req);
+    http_errorMsg(req, CODE_URL_ERR);
     return;
 }
 
@@ -215,7 +228,7 @@ void http_replyCall(struct evhttp_request *req)
             break;
     }
 
-    http_errorMsg(req);
+    http_errorMsg(req, CODE_URL_ERR);
     return;
 }
 

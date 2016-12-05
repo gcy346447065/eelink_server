@@ -40,7 +40,7 @@ static void http_getHistoryGPS(struct evhttp_request *req, const char *imeiName,
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req);
+        http_errorMsg(req, CODE_INTERNAL_ERR);
         return;
     }
 
@@ -49,7 +49,7 @@ static void http_getHistoryGPS(struct evhttp_request *req, const char *imeiName,
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req);
+        http_errorMsg(req, CODE_INTERNAL_ERR);
         return;
     }
 
@@ -61,12 +61,12 @@ static void http_getHistoryGPS(struct evhttp_request *req, const char *imeiName,
     if(rc)
     {
         LOG_WARN("no database gps_%s", imeiName);
-        cJSON_AddNumberToObject(json, "code", 101);
+        cJSON_AddNumberToObject(json, "code", 101);// imei not exists
     }
     else if(num == 0)
     {
         LOG_INFO("%s no data bettween %d and %d", imeiName, starttime, endtime);
-        cJSON_AddNumberToObject(json, "code", 102);
+        cJSON_AddNumberToObject(json, "code", 102);// no content
     }
     else
     {
@@ -88,7 +88,7 @@ static void http_getLastGPS(struct evhttp_request *req, const char *imeiName)
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req);
+        http_errorMsg(req, CODE_INTERNAL_ERR);
         return;
     }
 
@@ -97,7 +97,7 @@ static void http_getLastGPS(struct evhttp_request *req, const char *imeiName)
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req);
+        http_errorMsg(req, CODE_INTERNAL_ERR);
         return;
     }
 
@@ -106,12 +106,12 @@ static void http_getLastGPS(struct evhttp_request *req, const char *imeiName)
     if(rc)
     {
         LOG_WARN("no database gps_%s", imeiName);
-        cJSON_AddNumberToObject(json, "code", 101);
+        cJSON_AddNumberToObject(json, "code", 101);// imei not exists
     }
     else if(num == 0)
     {
         LOG_INFO("there is no data in gps_%s", imeiName);
-        cJSON_AddNumberToObject(json, "code", 102);
+        cJSON_AddNumberToObject(json, "code", 102);// no content
     }
     else
     {
@@ -170,7 +170,7 @@ void http_replyGPS(struct evhttp_request *req)
             break;
     }
 
-    http_errorMsg(req);
+    http_errorMsg(req, CODE_URL_ERR);
     return;
 }
 

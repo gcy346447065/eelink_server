@@ -11,6 +11,7 @@
 #include "log.h"
 #include "cJSON.h"
 #include "object.h"
+#include "protocol.h"
 
 #define MSG_MAX_LEN 1024
 
@@ -24,20 +25,25 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     cJSON *json = cJSON_Parse(post_data);
     if(!json)
     {
+        LOG_ERROR("get data is not json type");
         simcom_replyHttp(req, NULL);
         return;
     }
 
-    char *imei = cJSON_GetObjectItem(json, "imei")->valuestring;
+    cJSON *imei = cJSON_GetObjectItem(json, "imei");
     if(!imei)
     {
+        LOG_ERROR("no imei in data");
+        cJSON_Delete(json);
         simcom_replyHttp(req, NULL);
         return;
     }
 
-    OBJECT *obj = obj_get(imei);
+    OBJECT *obj = obj_get(imei->valuestring);
     if(!obj)
     {
+        LOG_WARN("object not exists");
+        cJSON_Delete(json);
         simcom_replyHttp(req, NULL);
         return;
     }
@@ -45,11 +51,68 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     SESSION *session = obj->session;
     if(!session)
     {
+        LOG_ERROR("device offline");
+        cJSON_Delete(json);
         simcom_replyHttp(req, NULL);
         return;
     }
-    session->req = req;
 
+    MSG_SEND pfn = session->pSendMsg;
+    if (!pfn)
+    {
+        LOG_ERROR("device offline");
+        cJSON_Delete(json);
+        return;
+    }
+
+    cJSON *param = cJSON_GetObjectItem(json, "param");
+    if(!param)
+    {
+        LOG_ERROR("no param in data");
+        cJSON_Delete(json);
+        simcom_replyHttp(req, NULL);
+        return;
+    }
+
+    cJSON *action = cJSON_GetObjectItem(json, "action");
+    if(!action)
+    {
+        LOG_ERROR("no param in data");
+        cJSON_Delete(json);
+        simcom_replyHttp(req, NULL);
+        return;
+    }
+
+    char *data = cJSON_PrintUnformatted(param);
+    if(!data)
+    {
+        LOG_ERROR("no memory");
+        cJSON_Delete(json);
+        simcom_replyHttp(req, NULL);
+        return;
+    }
+
+    int msgLen = sizeof(MSG_DEVICE_REQ) + strlen(data);
+
+    MSG_DEVICE_REQ *msg = alloc_simcom_msg(CMD_DEVICE, msgLen);
+    if(!msg)
+    {
+        LOG_ERROR("no memory");
+        cJSON_Delete(json);
+        simcom_replyHttp(req, NULL);
+        free(data);
+        return;
+    }
+
+    msg->action = action->valueint;
+    strncpy(msg,data,strlen(data));
+
+    LOG_HEX(msg, sizeof(MSG_GET_BATTERY_REQ));
+    pfn(session->bev, msg, msgLen); //simcom_sendMsg
+
+    session->req = req;
+    cJSON_Delete(json);
+    free(data);
     return;
 }
 

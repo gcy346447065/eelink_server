@@ -24,16 +24,17 @@ void http_rspMsg(struct evhttp_request *req, char *data)
     return;
 }
 
-void http_errorMsg(struct evhttp_request *req)
-{
-    http_rspMsg(req,"{\"code\":101}");
-    return;
-}
-
 void http_okMsg(struct evhttp_request *req)
 {
     http_rspMsg(req, NULL);
     return;
 }
 
+void http_errorMsg(struct evhttp_request *req, char errorType)
+{
+    char errorCode[32] = {0};
+    snprintf(errorCode, 32, "{\"code\":%d}", errorType);
+    http_rspMsg(req,errorCode);
+    return;
+}
 

@@ -47,7 +47,7 @@ static void http_getiItinerary(struct evhttp_request *req, const char *imeiName,
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req);
+        http_errorMsg(req, CODE_INTERNAL_ERR);
         return;
     }
 
@@ -56,7 +56,7 @@ static void http_getiItinerary(struct evhttp_request *req, const char *imeiName,
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req);
+        http_errorMsg(req, CODE_INTERNAL_ERR);
         return;
     }
 
@@ -98,7 +98,7 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req);
+        http_errorMsg(req, CODE_INTERNAL_ERR);
         return;
     }
 
@@ -107,7 +107,7 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req);
+        http_errorMsg(req, CODE_INTERNAL_ERR);
         return;
     }
 	cJSON *iItitnerary = cJSON_CreateObject();
@@ -116,7 +116,7 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
         cJSON_Delete(itinerary_Array);
-        http_errorMsg(req);
+        http_errorMsg(req, CODE_INTERNAL_ERR);
         return;
     }
 
@@ -127,8 +127,13 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
     cJSON_AddItemToObject(json, "itinerary", itinerary_Array);
 
     char *rsp = cJSON_PrintUnformatted(json);
-    cJSON_Delete(json);
+    if(!rsp)
+    {
+        cJSON_Delete(json);
+        http_errorMsg(req, CODE_INTERNAL_ERR);
+    }
 
+    cJSON_Delete(json);
     http_rspMsg(req, rsp);
     free(rsp);
     return;
@@ -164,6 +169,7 @@ void http_replyItinerary(struct evhttp_request *req)
                 return;
             }
             break;
+
         case EVHTTP_REQ_PUT:
         case EVHTTP_REQ_POST:
         case EVHTTP_REQ_DELETE:
@@ -175,7 +181,7 @@ void http_replyItinerary(struct evhttp_request *req)
 
     }
 
-    http_errorMsg(req);
+    http_errorMsg(req, CODE_URL_ERR);
     return;
 }
 
