@@ -60,7 +60,7 @@ static void package_getVersion(struct evhttp_request *req)
     }
 
     cJSON_AddStringToObject(json, "versionName", packageInfo.versionName);
-    cJSON_AddStringToObject(json, "versionCode", packageInfo.versionCode);
+    cJSON_AddNumberToObject(json, "versionCode", packageInfo.versionCode);
     cJSON_AddStringToObject(json, "changelog", packageInfo.changeLog);
 
     char *msg = cJSON_PrintUnformatted(json);
