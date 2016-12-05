@@ -19,6 +19,10 @@ SET(SOURCE_FILE
         telephone_http.c
         telephone_http.h
 
+        package_http.c
+        package_http.h
+
+
         session_http.c
         session_http.h
         )
