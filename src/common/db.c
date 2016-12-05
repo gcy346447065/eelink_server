@@ -1070,7 +1070,7 @@ static int _db_getAppPackage(void *action, void *userdata)
 
     if(row = mysql_fetch_row(result))
     {
-        fun(row[1], row[2], row[3], row[4], row[5], userdata);
+        fun(row[1], atoi(row[2]), row[3], row[4], atoi(row[5]), userdata);
     }
 
     mysql_free_result(result);
