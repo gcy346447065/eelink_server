@@ -2168,6 +2168,7 @@ static int simcom_deviceReply(const void *msg, SESSION *session)
     LOG_INFO("imei(%s) get device rsp send to manager", obj->IMEI);
 
     simcom_replyHttp(session->req, rsp->data);
+    session->req = NULL;
     return 0;
 }
 
