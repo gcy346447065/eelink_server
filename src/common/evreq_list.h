@@ -17,11 +17,12 @@ typedef struct NODE
     struct NODE *next;
 } REQLIST;
 
-int insert_reqList(REQLIST *reqList, struct evhttp_request *req, unsigned char seq);
-void remove_reqList(REQLIST *reqList, unsigned char seq);
-REQLIST *init_reqList(REQLIST *reqList);
-int distruct_reqList(REQLIST *reqList);
+REQLIST *init_reqList(void);
+REQLIST *insert_reqList(REQLIST *reqList, struct evhttp_request *req, unsigned char seq);
+REQLIST *remove_reqList(REQLIST *reqList, unsigned char seq);
 REQLIST *find_reqList(REQLIST *reqList, unsigned char seq);
+REQLIST *distruct_reqList(REQLIST *reqList);
+int size_reqList(REQLIST *reqList);
 
 #endif/*    SRC_EVREQ_LIST_H_   */
 

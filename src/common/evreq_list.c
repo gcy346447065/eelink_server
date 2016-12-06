@@ -12,13 +12,13 @@
 #include "log.h"
 
 /*      initail reqList         */
-REQLIST *init_reqList(REQLIST *reqList)
+REQLIST *init_reqList(void)
 {
-    return reqList = NULL;
+    return NULL;
 }
 
 /*   insert into reqList what req and seq needed, it doesnt matter when reqList is null  */
-int insert_reqList(REQLIST *reqList, struct evhttp_request *req, unsigned char seq)
+REQLIST *insert_reqList(REQLIST *reqList, struct evhttp_request *req, unsigned char seq)
 {
     REQLIST *ptmp = reqList;
     REQLIST *p = (REQLIST *)malloc(sizeof(REQLIST));
@@ -33,8 +33,7 @@ int insert_reqList(REQLIST *reqList, struct evhttp_request *req, unsigned char s
 
     if(!reqList)// the first one ,set it as head
     {
-        reqList = p;
-        return 0;
+        return reqList = p;
     }
 
     while(ptmp->next != NULL)ptmp = ptmp->next;// move the point to the tail
@@ -42,11 +41,11 @@ int insert_reqList(REQLIST *reqList, struct evhttp_request *req, unsigned char s
     ptmp->next = p;
 
     LOG_INFO("insert reqList success");
-    return 0;
+    return reqList;
 }
 
 /*      delete from reqList where seq is exact  */
-void remove_reqList(REQLIST *reqList, unsigned char seq)
+REQLIST *remove_reqList(REQLIST *reqList, unsigned char seq)
 {
     int i = 0, pos = 0;
     REQLIST *pTemp,*pLast,*pNext;
@@ -73,7 +72,7 @@ void remove_reqList(REQLIST *reqList, unsigned char seq)
     if(i == 0)
     {
         LOG_DEBUG("reqList has no seq = %d ", seq);
-        return;
+        return reqList;
     }
 
     if(pos == 0)
@@ -88,7 +87,7 @@ void remove_reqList(REQLIST *reqList, unsigned char seq)
     LOG_INFO("remove reqList success");
 
     free(pTemp);
-    return;
+    return reqList;
 }
 
 /*      delete from reqList where seq is exact  */
@@ -139,7 +138,7 @@ int size_reqList(REQLIST *reqList)
 }
 
 /* distruct reqList and reply the rest to http*/
-int distruct_reqList(REQLIST *reqList)
+REQLIST *distruct_reqList(REQLIST *reqList)
 {
     REQLIST *pTmp, *pLast;
     pTmp = reqList;
@@ -154,6 +153,6 @@ int distruct_reqList(REQLIST *reqList)
     reqList = NULL;
 
     LOG_INFO("distruct reqList success");
-    return 0;
+    return reqList;
 }
 

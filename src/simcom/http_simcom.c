@@ -123,7 +123,7 @@ static void simcom_deviceHandler(struct evhttp_request *req)
 
     LOG_HEX(msg, sizeof(MSG_DEVICE_REQ));
     pfn(session->bev, msg, msgLen); //simcom_sendMsg
-    insert_reqList(session->reqList, req, seq++);
+    session->reqList = insert_reqList(session->reqList, req, seq++);
     cJSON_Delete(json);
     free(data);
 

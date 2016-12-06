@@ -83,7 +83,7 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
 
         //add timeout log in db
         db_add_log(obj->IMEI, "timeout");
-        distruct_reqList(session->reqList);
+        session->reqList = distruct_reqList(session->reqList);
         session_del(session);
         evutil_socket_t socket = bufferevent_getfd(bev);
         EVUTIL_CLOSESOCKET(socket);
@@ -105,7 +105,7 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
 
         //add logout log in db
         db_add_log(obj->IMEI, "logout");
-        distruct_reqList(session->reqList);
+        session->reqList = distruct_reqList(session->reqList);
         session_del(session);
         evutil_socket_t socket = bufferevent_getfd(bev);
         EVUTIL_CLOSESOCKET(socket);
@@ -142,7 +142,7 @@ static void accept_conn_cb(struct evconnlistener *listener,
     session->base = base;
     session->bev = bev;
     session->obj = NULL;
-    session->reqList = 0;
+    session->reqList = init_reqList();
     session->pSendMsg = send_msg;
 
     //TODO: set the water-mark and timeout

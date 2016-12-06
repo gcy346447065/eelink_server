@@ -2175,7 +2175,7 @@ static int simcom_deviceReply(const void *msg, SESSION *session)
         if(reqlist->req)
         {
             http_postReply(reqlist->req, rsp->data);
-            remove_reqList(session->reqList, rsp->header.seq);
+            session->reqList = remove_reqList(session->reqList, rsp->header.seq);
         }
     }
     return 0;
