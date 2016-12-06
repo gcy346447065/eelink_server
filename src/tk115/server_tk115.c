@@ -105,7 +105,6 @@ static void accept_conn_cb(struct evconnlistener *listener,
 	SESSION* ctx = malloc(sizeof(SESSION));
 	ctx->base = base;
 	ctx->bev = bev;
-    ctx->req = NULL;
 	ctx->obj = NULL;
 	ctx->pSendMsg = send_msg;
 

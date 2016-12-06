@@ -32,6 +32,7 @@ void *alloc_simcomUpgradeEndReq(int checksum, int size);
 
 void *alloc_simcomManagerReq(int cmd);
 void *alloc_simcomManagerMsg(int cmd, size_t msgLen);
+MSG_HEADER* alloc_device_msg(char cmd, size_t length, unsigned char seq);
 
 
 #endif /* SRC_MSG_SIMCOM_H_ */

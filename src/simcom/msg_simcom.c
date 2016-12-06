@@ -27,6 +27,21 @@ MSG_HEADER* alloc_simcom_msg(char cmd, size_t length)
     return msg;
 }
 
+MSG_HEADER* alloc_device_msg(char cmd, size_t length, unsigned char seq)
+{
+    MSG_HEADER* msg = malloc(length);
+
+    if(msg)
+    {
+        msg->signature = htons(START_FLAG);
+        msg->cmd = cmd;
+        msg->seq = seq;
+        msg->length = htons(length - MSG_HEADER_LEN);
+    }
+
+    return msg;
+}
+
 MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER *pMsg)
 {
     size_t msgLen = 0;

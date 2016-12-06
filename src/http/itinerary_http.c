@@ -11,6 +11,7 @@
 #include "log.h"
 #include "cJSON.h"
 #include "msg_http.h"
+#include "http.h"
 #include "itinerary_http.h"
 
 static int one_Itinerary(int starttime, double startlat, double startlon, int endtime, double endlat, double endlon, short miles, void *userdata)
@@ -47,7 +48,7 @@ static void http_getiItinerary(struct evhttp_request *req, const char *imeiName,
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req, CODE_INTERNAL_ERR);
+        http_errorMsg(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -56,7 +57,7 @@ static void http_getiItinerary(struct evhttp_request *req, const char *imeiName,
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req, CODE_INTERNAL_ERR);
+        http_errorMsg(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -98,7 +99,7 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req, CODE_INTERNAL_ERR);
+        http_errorMsg(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -107,7 +108,7 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req, CODE_INTERNAL_ERR);
+        http_errorMsg(req, CODE_INTERNAL_ERROR);
         return;
     }
 	cJSON *iItitnerary = cJSON_CreateObject();
@@ -116,7 +117,7 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
         cJSON_Delete(itinerary_Array);
-        http_errorMsg(req, CODE_INTERNAL_ERR);
+        http_errorMsg(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -130,7 +131,7 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
     if(!rsp)
     {
         cJSON_Delete(json);
-        http_errorMsg(req, CODE_INTERNAL_ERR);
+        http_errorMsg(req, CODE_INTERNAL_ERROR);
     }
 
     cJSON_Delete(json);

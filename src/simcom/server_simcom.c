@@ -20,6 +20,7 @@
 #include "session.h"
 #include "server_simcom.h"
 #include "msg_proc_simcom.h"
+#include "http_simcom.h"
 
 static void send_msg(struct bufferevent* bev, const void* buf, size_t n)
 {
@@ -82,7 +83,7 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
 
         //add timeout log in db
         db_add_log(obj->IMEI, "timeout");
-
+        distruct_reqList(session->reqList);
         session_del(session);
         evutil_socket_t socket = bufferevent_getfd(bev);
         EVUTIL_CLOSESOCKET(socket);
@@ -104,7 +105,7 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
 
         //add logout log in db
         db_add_log(obj->IMEI, "logout");
-
+        distruct_reqList(session->reqList);
         session_del(session);
         evutil_socket_t socket = bufferevent_getfd(bev);
         EVUTIL_CLOSESOCKET(socket);
@@ -141,6 +142,7 @@ static void accept_conn_cb(struct evconnlistener *listener,
     session->base = base;
     session->bev = bev;
     session->obj = NULL;
+    session->reqList = 0;
     session->pSendMsg = send_msg;
 
     //TODO: set the water-mark and timeout
@@ -172,7 +174,7 @@ struct evconnlistener* server_simcom(struct event_base* base, int port)
     /* Clear the sockaddr before using it, in case there are extra
      * platform-specific fields that can mess us up. */
     memset(&sin, 0, sizeof(sin));
-    
+
     sin.sin_family = AF_INET; /* This is an INET address */
     sin.sin_addr.s_addr = INADDR_ANY; /* Listen on 0.0.0.0 */
     sin.sin_port = htons(port); /* Listen on the given port. */

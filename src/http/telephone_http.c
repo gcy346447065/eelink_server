@@ -12,6 +12,7 @@
 #include "db.h"
 #include "log.h"
 #include "cJSON.h"
+#include "http.h"
 #include "msg_http.h"
 #include "phone_alarm.h"
 #include "telephone_http.h"
@@ -50,7 +51,7 @@ static void telephone_getTelNumber(struct evhttp_request *req, const char *imeiN
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req, CODE_INTERNAL_ERR);
+        http_errorMsg(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -68,7 +69,7 @@ static void telephone_getTelNumber(struct evhttp_request *req, const char *imeiN
     if(!msg)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req, CODE_INTERNAL_ERR);
+        http_errorMsg(req, CODE_INTERNAL_ERROR);
     }
     cJSON_Delete(json);
 

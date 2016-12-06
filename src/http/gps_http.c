@@ -10,6 +10,7 @@
 #include "db.h"
 #include "log.h"
 #include "cJSON.h"
+#include "http.h"
 #include "msg_http.h"
 #include "gps_http.h"
 
@@ -40,7 +41,7 @@ static void http_getHistoryGPS(struct evhttp_request *req, const char *imeiName,
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req, CODE_INTERNAL_ERR);
+        http_errorMsg(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -49,7 +50,7 @@ static void http_getHistoryGPS(struct evhttp_request *req, const char *imeiName,
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req, CODE_INTERNAL_ERR);
+        http_errorMsg(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -88,7 +89,7 @@ static void http_getLastGPS(struct evhttp_request *req, const char *imeiName)
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req, CODE_INTERNAL_ERR);
+        http_errorMsg(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -97,7 +98,7 @@ static void http_getLastGPS(struct evhttp_request *req, const char *imeiName)
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req, CODE_INTERNAL_ERR);
+        http_errorMsg(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -170,7 +171,7 @@ void http_replyGPS(struct evhttp_request *req)
             break;
     }
 
-    http_errorMsg(req, CODE_URL_ERR);
+    http_errorMsg(req, CODE_INTERNAL_ERROR);
     return;
 }
 

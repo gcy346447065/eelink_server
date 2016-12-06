@@ -19,10 +19,10 @@ SET(SOURCE_FILE
 
     conf.c
     conf.h
-    
+
     session.h
     session.c
-    
+
     mqtt.h
     mqtt.c
 
@@ -31,6 +31,12 @@ SET(SOURCE_FILE
 
     sync.h
     sync.c
+
+    http.h
+    http.c
+
+    evreq_list.h
+    evreq_list.c
 
     msg_app.h
     msg_app.c

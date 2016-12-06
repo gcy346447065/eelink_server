@@ -14,30 +14,26 @@
 #include "protocol.h"
 #include "timer.h"
 #include "msg_simcom.h"
-
-struct NODE
-{
-    char seq;
-    struct evhttp_request *req;
-    NODE *next;
-};
-extern struct event_base *base;
-#define MSG_MAX_LEN 256
+#include "http.h"
 
 static void timer_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
     SESSION *session = arg;
-    if(session->req)
+    if(session->reqList)
     {
-        simcom_errorHttp(session->req, CODE_DEVICE_NO_RESPONSE);
+        if(session->reqList->req)
+        {
+            simcom_errorHttp(session->reqList->req, CODE_DEVICE_NO_RESPONSE);
+        }
     }
     return;
 }
 
 static void simcom_deviceHandler(struct evhttp_request *req)
 {
-    char post_data[MSG_MAX_LEN] = {0};
-    evbuffer_copyout(req->input_buffer,post_data,MSG_MAX_LEN);
+    static unsigned char seq;
+    char post_data[MSGHTTP_MAX_LEN] = {0};
+    evbuffer_copyout(req->input_buffer,post_data,MSGHTTP_MAX_LEN);
 
     LOG_INFO("get the request from http:%s", post_data);
 
@@ -72,7 +68,7 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     {
         LOG_ERROR("device offline");
         cJSON_Delete(json);
-        simcom_errorHttp(req, CODE_DEVICE_OFFLINE);
+        simcom_errorHttp(req, CODE_DEVICE_OFF);
         return;
     }
 
@@ -80,7 +76,7 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     if (!pfn)
     {
         LOG_ERROR("device offline");
-        simcom_errorHttp(req, CODE_DEVICE_OFFLINE);
+        simcom_errorHttp(req, CODE_DEVICE_OFF);
         return;
     }
 
@@ -107,18 +103,17 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     {
         LOG_ERROR("no memory");
         cJSON_Delete(json);
-        simcom_errorHttp(req, CODE_INTERNAL_ERR);
+        simcom_errorHttp(req, CODE_INTERNAL_ERROR);
         return;
     }
 
     int msgLen = sizeof(MSG_DEVICE_REQ) + strlen(data);
-
-    MSG_DEVICE_REQ *msg = alloc_simcom_msg(CMD_DEVICE, msgLen);
+    MSG_DEVICE_REQ *msg = alloc_device_msg(CMD_DEVICE, msgLen, seq);
     if(!msg)
     {
         LOG_ERROR("no memory");
         cJSON_Delete(json);
-        simcom_errorHttp(req, CODE_INTERNAL_ERR);
+        simcom_errorHttp(req, CODE_INTERNAL_ERROR);
         free(data);
         return;
     }
@@ -128,13 +123,14 @@ static void simcom_deviceHandler(struct evhttp_request *req)
 
     LOG_HEX(msg, sizeof(MSG_DEVICE_REQ));
     pfn(session->bev, msg, msgLen); //simcom_sendMsg
-    session->req = req;
+    insert_reqList(session->reqList, req, seq++);
     cJSON_Delete(json);
     free(data);
 
     //set a timer to response to http if request can't get response from device.
     struct timeval tv = {4, 5000};// 4.005 seconds
-    timer_newOnce(base, &tv, timer_cb, session);
+    timer_newOnce(session->base, &tv, timer_cb, session);
+
     return;
 }
 
@@ -158,26 +154,4 @@ void simcom_http_handler(struct evhttp_request *req, void *arg __attribute__((un
     return;
 }
 
-void simcom_replyHttp(struct evhttp_request *req, const char *data)
-{
-    evhttp_add_header(req->output_headers, "Server", "simcom v1");
-    evhttp_add_header(req->output_headers, "Content-Type", "application/json");
-    evhttp_add_header(req->output_headers, "Connection", "close");
-    struct evbuffer *buf = evbuffer_new();
-    if(data)
-    {
-        evbuffer_add_printf(buf, "%s", data);
-    }
-    evhttp_send_reply(req, HTTP_OK, "OK", buf);
-    evbuffer_free(buf);
-    return;
-}
-
-void simcom_errorHttp(struct evhttp_request *req, int errorType)
-{
-    char errorCode[32] = {0};
-    snprintf(errorCode, 32, "{\"code\":%d}", errorType);
-    simcom_replyHttp(req,errorCode);
-    return;
-}
 
