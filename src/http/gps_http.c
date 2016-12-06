@@ -10,7 +10,7 @@
 #include "db.h"
 #include "log.h"
 #include "cJSON.h"
-#include "http.h"
+#include "msg_http.h"
 #include "gps_http.h"
 
 static int one_GPS(int timestamp, double latitude, double longitude, char speed, short course, void *userdata)
@@ -40,7 +40,7 @@ static void http_getHistoryGPS(struct evhttp_request *req, const char *imeiName,
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req, CODE_INTERNAL_ERROR);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -49,7 +49,7 @@ static void http_getHistoryGPS(struct evhttp_request *req, const char *imeiName,
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req, CODE_INTERNAL_ERROR);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -76,7 +76,7 @@ static void http_getHistoryGPS(struct evhttp_request *req, const char *imeiName,
     cJSON_Delete(json);
 
     LOG_DEBUG("%s",msg);
-    http_rspMsg(req, msg);
+    http_errorReply(req, msg);
 
     free(msg);
     return;
@@ -88,7 +88,7 @@ static void http_getLastGPS(struct evhttp_request *req, const char *imeiName)
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req, CODE_INTERNAL_ERROR);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -97,7 +97,7 @@ static void http_getLastGPS(struct evhttp_request *req, const char *imeiName)
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req, CODE_INTERNAL_ERROR);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -121,7 +121,7 @@ static void http_getLastGPS(struct evhttp_request *req, const char *imeiName)
     cJSON_Delete(json);
 
     LOG_DEBUG("%s",msg);
-    http_rspMsg(req, msg);
+    http_postReply(req, msg);
 
     free(msg);
     return;
@@ -170,7 +170,7 @@ void http_replyGPS(struct evhttp_request *req)
             break;
     }
 
-    http_errorMsg(req, CODE_INTERNAL_ERROR);
+    http_errorReply(req, CODE_INTERNAL_ERROR);
     return;
 }
 

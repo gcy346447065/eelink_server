@@ -8,7 +8,7 @@
 #include <malloc.h>
 
 #include "evreq_list.h"
-#include "http.h"
+#include "msg_http.h"
 #include "log.h"
 
 /*      initail reqList         */
@@ -147,7 +147,7 @@ int distruct_reqList(REQLIST *reqList)
     {
         pLast = pTmp;
         pTmp = pTmp->next;
-        simcom_errorHttp(pLast->req, CODE_DEVICE_OFF);
+        http_errorReply(pLast->req, CODE_DEVICE_OFF);
         free(pLast);
     }
 

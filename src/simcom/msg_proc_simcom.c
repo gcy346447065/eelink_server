@@ -29,7 +29,7 @@
 #include "firmware_upgrade.h"
 #include "session_manager.h"
 #include "msg_manager.h"
-#include "http.h"
+#include "msg_http.h"
 #include "evreq_list.h"
 
 #define EARTH_RADIUS 6378137 //radius of our earth unit :  m
@@ -2174,7 +2174,7 @@ static int simcom_deviceReply(const void *msg, SESSION *session)
     {
         if(reqlist->req)
         {
-            simcom_replyHttp(reqlist->req, rsp->data);
+            http_postReply(reqlist->req, rsp->data);
             remove_reqList(session->reqList, rsp->header.seq);
         }
     }

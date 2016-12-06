@@ -48,14 +48,14 @@ static void package_getVersion(struct evhttp_request *req)
     if(!app_packageInfo)
     {
         LOG_ERROR("failed to alloc memory");
-        http_errorMsg(req);
+        http_errorReply(req);
         return;
     }
 
     if(db_getAppPackage(save_appPackageInfo,app_packageInfo) != 0)
     {
         LOG_ERROR("get app package info error");
-        http_errorMsg(req);
+        http_errorReply(req);
         free(app_packageInfo);
         return;
     }
@@ -64,7 +64,7 @@ static void package_getVersion(struct evhttp_request *req)
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req);
+        http_errorReply(req);
         free(app_packageInfo);
         return;
     }
@@ -78,7 +78,7 @@ static void package_getVersion(struct evhttp_request *req)
 
     LOG_DEBUG("%s",msg);
 
-    http_rspMsg(req, msg);
+    http_postReply(req, msg);
     free(app_packageInfo);
     free(msg);
     return;
@@ -91,14 +91,14 @@ static void http_getPackage(struct evhttp_request *req)
     if(!app_packageInfo)
     {
         LOG_ERROR("failed to alloc memory");
-        http_errorMsg(req);
+        http_errorReply(req);
         return;
     }
 
     if(db_getAppPackage(save_appPackageInfo,app_packageInfo) != 0)
     {
         LOG_ERROR("get app package info error");
-        http_errorMsg(req);
+        http_errorReply(req);
         free(app_packageInfo);
         return;
     }
@@ -162,7 +162,7 @@ void http_replyVersion(struct evhttp_request *req)
             break;
     }
 
-    http_errorMsg(req);
+    http_errorReply(req);
     return;
 }
 
@@ -190,7 +190,7 @@ void http_replyPackage(struct evhttp_request *req)
             break;
     }
 
-    http_errorMsg(req);
+    http_errorReply(req);
     return;
 }
 

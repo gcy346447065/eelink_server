@@ -32,8 +32,8 @@ SET(SOURCE_FILE
     sync.h
     sync.c
 
-    http.h
-    http.c
+    msg_http.h
+    msg_http.c
 
     evreq_list.h
     evreq_list.c

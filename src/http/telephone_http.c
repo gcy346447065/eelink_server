@@ -12,7 +12,7 @@
 #include "db.h"
 #include "log.h"
 #include "cJSON.h"
-#include "http.h"
+#include "msg_http.h"
 #include "phone_alarm.h"
 #include "telephone_http.h"
 
@@ -21,11 +21,11 @@ static void telephone_deleteTelNumber(struct evhttp_request *req, const char *im
     int rc = db_deleteTelNumber(imeiName);
     if(!rc)
     {
-        http_okMsg(req);
+        http_okReply(req);
         return;
     }
 
-    http_errorMsg(req, CODE_IMEI_NOT_FOUND);
+    http_errorReply(req, CODE_IMEI_NOT_FOUND);
     return;
 }
 
@@ -34,11 +34,11 @@ static void telephone_replaceTelNumber(struct evhttp_request *req, const char *i
     int rc = db_replaceTelNumber(imeiName, telNumber);
     if(!rc)
     {
-        http_okMsg(req);
+        http_okReply(req);
         return;
     }
 
-    http_errorMsg(req, CODE_IMEI_NOT_FOUND);
+    http_errorReply(req, CODE_IMEI_NOT_FOUND);
     return;
 }
 
@@ -50,7 +50,7 @@ static void telephone_getTelNumber(struct evhttp_request *req, const char *imeiN
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req, CODE_INTERNAL_ERROR);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -68,13 +68,13 @@ static void telephone_getTelNumber(struct evhttp_request *req, const char *imeiN
     if(!msg)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req, CODE_INTERNAL_ERROR);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
     }
     cJSON_Delete(json);
 
     LOG_DEBUG("%s",msg);
 
-    http_rspMsg(req, msg);
+    http_postReply(req, msg);
     free(msg);
     return;
 }
@@ -90,12 +90,12 @@ static void telephone_callTelNumber(struct evhttp_request *req, const char *imei
     {
         if(3 == rc)
         {
-            http_errorMsg(req, CODE_NO_CONTENT);
+            http_errorReply(req, CODE_NO_CONTENT);
             return;
         }
         else
         {
-            http_errorMsg(req, CODE_IMEI_NOT_FOUND);
+            http_errorReply(req, CODE_IMEI_NOT_FOUND);
         }
     }
 
@@ -103,14 +103,14 @@ static void telephone_callTelNumber(struct evhttp_request *req, const char *imei
     cJSON * json= cJSON_Parse(post_data);
     if(!json)
     {
-        http_errorMsg(req, CODE_ERROR_CONTENT);
+        http_errorReply(req, CODE_ERROR_CONTENT);
         return;
     }
     cJSON * telephone = cJSON_GetObjectItem(json, "caller");
     if(!telephone)
     {
         cJSON_Delete(json);
-        http_errorMsg(req, CODE_ERROR_CONTENT);
+        http_errorReply(req, CODE_ERROR_CONTENT);
         return;
     }
     strncpy(caller, telephone->valuestring, TELNUMBER_LENGTH);
@@ -118,7 +118,7 @@ static void telephone_callTelNumber(struct evhttp_request *req, const char *imei
     LOG_INFO("test call alarm server imei(%s) telNumber(%s) caller(%s)", imeiName, telNumber, caller);
     phone_alarmWithCaller(telNumber, caller);
 
-    http_okMsg(req);
+    http_okReply(req);
     return;
 }
 
@@ -164,14 +164,14 @@ void http_replyTelephone(struct evhttp_request *req)
                 cJSON * json= cJSON_Parse(post_data);
                 if(!json)
                 {
-                    http_errorMsg(req, CODE_ERROR_CONTENT);
+                    http_errorReply(req, CODE_ERROR_CONTENT);
                     return;
                 }
                 cJSON * telephone = cJSON_GetObjectItem(json, "telephone");
                 if(!telephone)
                 {
                     cJSON_Delete(json);
-                    http_errorMsg(req, CODE_ERROR_CONTENT);
+                    http_errorReply(req, CODE_ERROR_CONTENT);
                     return;
                 }
                 strncpy(telNumber, telephone->valuestring, TELNUMBER_LENGTH);
@@ -198,7 +198,7 @@ void http_replyTelephone(struct evhttp_request *req)
 
     }
 
-    http_errorMsg(req, CODE_URL_ERR);
+    http_errorReply(req, CODE_URL_ERR);
     return;
 }
 
@@ -218,7 +218,7 @@ void http_replyCall(struct evhttp_request *req)
             if(rc == 1)
             {
                  phone_alarm(telNumber);
-                 http_okMsg(req);
+                 http_okReply(req);
                  return;
             }
             break;
@@ -228,7 +228,7 @@ void http_replyCall(struct evhttp_request *req)
             break;
     }
 
-    http_errorMsg(req, CODE_URL_ERR);
+    http_errorReply(req, CODE_URL_ERR);
     return;
 }
 

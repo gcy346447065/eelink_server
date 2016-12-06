@@ -10,7 +10,7 @@
 #include "db.h"
 #include "log.h"
 #include "port.h"
-#include "http.h"
+#include "msg_http.h"
 #include "cJSON.h"
 #include "device_http.h"
 
@@ -25,7 +25,7 @@ void http_deviceHandler(struct evhttp_request *req)
     char post_data[MSGHTTP_MAX_LEN] = {0};
     evbuffer_copyout(req->input_buffer,post_data,MSGHTTP_MAX_LEN);
     LOG_INFO("get the request from app:%s", post_data);
-    http_wild2Simcom(base,req, SIMCOM_URL SIMCOM_HTTPPORT SIMCOM_URI, post_data);
+    http_sendData(base,req, SIMCOM_URL SIMCOM_HTTPPORT SIMCOM_URI, post_data);
     return;
 }
 

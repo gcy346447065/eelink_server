@@ -10,7 +10,7 @@
 #include "db.h"
 #include "log.h"
 #include "cJSON.h"
-#include "http.h"
+#include "msg_http.h"
 #include "itinerary_http.h"
 
 static int one_Itinerary(int starttime, double startlat, double startlon, int endtime, double endlat, double endlon, short miles, void *userdata)
@@ -47,7 +47,7 @@ static void http_getiItinerary(struct evhttp_request *req, const char *imeiName,
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req, CODE_INTERNAL_ERROR);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -56,7 +56,7 @@ static void http_getiItinerary(struct evhttp_request *req, const char *imeiName,
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req, CODE_INTERNAL_ERROR);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -85,7 +85,7 @@ static void http_getiItinerary(struct evhttp_request *req, const char *imeiName,
 
     LOG_DEBUG("%s",msg);
 
-    http_rspMsg(req, msg);
+    http_postReply(req, msg);
     free(msg);
     return;
 }
@@ -98,7 +98,7 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req, CODE_INTERNAL_ERROR);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -107,7 +107,7 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req, CODE_INTERNAL_ERROR);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 	cJSON *iItitnerary = cJSON_CreateObject();
@@ -116,7 +116,7 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
         cJSON_Delete(itinerary_Array);
-        http_errorMsg(req, CODE_INTERNAL_ERROR);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -130,11 +130,11 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
     if(!rsp)
     {
         cJSON_Delete(json);
-        http_errorMsg(req, CODE_INTERNAL_ERROR);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
     }
 
     cJSON_Delete(json);
-    http_rspMsg(req, rsp);
+    http_postReply(req, rsp);
     free(rsp);
     return;
 }
@@ -181,7 +181,7 @@ void http_replyItinerary(struct evhttp_request *req)
 
     }
 
-    http_errorMsg(req, CODE_URL_ERR);
+    http_errorReply(req, CODE_URL_ERR);
     return;
 }
 

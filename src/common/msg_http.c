@@ -16,33 +16,10 @@
 #include <event2/keyvalq_struct.h>
 
 #include "log.h"
-#include "http.h"
+#include "msg_http.h"
 #include "port.h"
 
 #define MYHTTPD_SIGNATURE   "http v1"
-
-void simcom_replyHttp(struct evhttp_request *req, const char *data)
-{
-    evhttp_add_header(req->output_headers, "Server", "simcom v1");
-    evhttp_add_header(req->output_headers, "Content-Type", "application/json");
-    evhttp_add_header(req->output_headers, "Connection", "close");
-    struct evbuffer *buf = evbuffer_new();
-    if(data)
-    {
-        evbuffer_add_printf(buf, "%s", data);
-    }
-    evhttp_send_reply(req, HTTP_OK, "OK", buf);
-    evbuffer_free(buf);
-    return;
-}
-
-void simcom_errorHttp(struct evhttp_request *req, int errorType)
-{
-    char errorCode[32] = {0};
-    snprintf(errorCode, 32, "{\"code\":%d}", errorType);
-    simcom_replyHttp(req,errorCode);
-    return;
-}
 
 typedef struct
 {
@@ -67,13 +44,13 @@ static void http_wild2App(struct evhttp_request *req, void *arg)
 
         default:
             {
-                http_errorMsg(connection->req, CODE_SIMCOM_OFFLINE);
+                http_errorReply(connection->req, CODE_SIMCOM_OFFLINE);
                 return;
             }
             break;
     }
 
-    http_rspMsg(connection->req,post_data);
+    http_postReply(connection->req,post_data);
     return;
 }
 
@@ -82,7 +59,7 @@ static void http_close_cb(struct evhttp_connection *evcon __attribute__((unused)
     LOG_INFO("connection closed, if not get response http_server wild crash");
 }
 
-void http_wild2Simcom(struct event_base *base, struct evhttp_request *req, char *url, char *data)
+void http_sendData(struct event_base *base, struct evhttp_request *req, char *url, char *data)
 {
 	struct evhttp_uri *uri = evhttp_uri_parse(url);// parse url to uri, will be free at last
 	int port = evhttp_uri_get_port(uri);// get the port from uri
@@ -93,7 +70,7 @@ void http_wild2Simcom(struct event_base *base, struct evhttp_request *req, char 
     {
         LOG_ERROR("couldn't generate connection");
         evhttp_uri_free(uri);
-        http_errorMsg(req, CODE_INTERNAL_ERROR);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -110,7 +87,7 @@ void http_wild2Simcom(struct event_base *base, struct evhttp_request *req, char 
         LOG_ERROR("couldn't generate request");
         evhttp_uri_free(uri);
         evhttp_connection_free(http_connection->evcon);
-        http_errorMsg(req, CODE_INTERNAL_ERROR);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -123,7 +100,7 @@ void http_wild2Simcom(struct event_base *base, struct evhttp_request *req, char 
     {
         LOG_ERROR("couldn't make request");
         evhttp_connection_free(http_connection->evcon);
-        http_errorMsg(req, CODE_INTERNAL_ERROR);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -132,7 +109,7 @@ void http_wild2Simcom(struct event_base *base, struct evhttp_request *req, char 
 }
 
 
-void http_rspMsg(struct evhttp_request *req, char *data)
+void http_postReply(struct evhttp_request *req, char *data)
 {
     evhttp_add_header(req->output_headers, "Server", MYHTTPD_SIGNATURE);
     evhttp_add_header(req->output_headers, "Content-Type", "application/json");
@@ -147,17 +124,17 @@ void http_rspMsg(struct evhttp_request *req, char *data)
     return;
 }
 
-void http_okMsg(struct evhttp_request *req)
+void http_okReply(struct evhttp_request *req)
 {
-    http_rspMsg(req, NULL);
+    http_postReply(req, NULL);
     return;
 }
 
-void http_errorMsg(struct evhttp_request *req, int errorType)
+void http_errorReply(struct evhttp_request *req, int errorType)
 {
     char errorCode[32] = {0};
     snprintf(errorCode, 32, "{\"code\":%d}", errorType);
-    http_rspMsg(req,errorCode);
+    http_postReply(req,errorCode);
     return;
 }
 
