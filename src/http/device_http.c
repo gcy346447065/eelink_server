@@ -12,7 +12,6 @@
 #include "port.h"
 #include "http.h"
 #include "cJSON.h"
-#include "msg_http.h"
 #include "device_http.h"
 
 #define SIMCOM_URL "http://test.xiaoan110.com"

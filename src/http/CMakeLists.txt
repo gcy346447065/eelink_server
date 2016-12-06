@@ -1,9 +1,6 @@
 SET(SOURCE_FILE
         main.c
 
-        msg_http.c
-        msg_http.h
-
         msg_proc_http.c
         msg_proc_http.h
 

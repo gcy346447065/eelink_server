@@ -11,7 +11,6 @@
 #include "log.h"
 #include "cJSON.h"
 #include "http.h"
-#include "msg_http.h"
 #include "gps_http.h"
 
 static int one_GPS(int timestamp, double latitude, double longitude, char speed, short course, void *userdata)

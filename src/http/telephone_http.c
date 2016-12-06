@@ -13,7 +13,6 @@
 #include "log.h"
 #include "cJSON.h"
 #include "http.h"
-#include "msg_http.h"
 #include "phone_alarm.h"
 #include "telephone_http.h"
 

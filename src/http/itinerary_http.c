@@ -10,7 +10,6 @@
 #include "db.h"
 #include "log.h"
 #include "cJSON.h"
-#include "msg_http.h"
 #include "http.h"
 #include "itinerary_http.h"
 
