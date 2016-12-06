@@ -30,7 +30,7 @@ void http_okMsg(struct evhttp_request *req)
     return;
 }
 
-void http_errorMsg(struct evhttp_request *req, char errorType)
+void http_errorMsg(struct evhttp_request *req, int errorType)
 {
     char errorCode[32] = {0};
     snprintf(errorCode, 32, "{\"code\":%d}", errorType);

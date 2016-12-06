@@ -11,7 +11,7 @@
 
 void http_rspMsg(struct evhttp_request *req, char *data);
 void http_okMsg(struct evhttp_request *req);
-void http_errorMsg(struct evhttp_request *req, char errorType);
+void http_errorMsg(struct evhttp_request *req, int errorType);
 
 enum
 {
@@ -21,7 +21,8 @@ enum
     CODE_RANGE_TOO_LARGE    = 103,
     CODE_URL_ERR            = 104,
     CODE_ERROR_CONTENT      = 105,
-    SIMCOM_NO_RESPONSE      = 106,
+    CODE_SIMCOM_NO_RSP      = 106,
+    CODE_SIMCOM_OFFLINE     = 107,
 };
 #endif
 

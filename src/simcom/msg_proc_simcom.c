@@ -2165,9 +2165,12 @@ static int simcom_deviceReply(const void *msg, SESSION *session)
         LOG_FATAL("internal error: obj null");
         return -1;
     }
-    LOG_INFO("imei(%s) get device rsp send to manager", obj->IMEI);
+    LOG_INFO("imei(%s) get device rsp:%s", obj->IMEI, rsp->data);
 
-    simcom_replyHttp(session->req, rsp->data);
+    if(session->req)
+    {
+        simcom_replyHttp(session->req, rsp->data);
+    }
     session->req = NULL;
     return 0;
 }

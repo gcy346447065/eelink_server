@@ -10,7 +10,7 @@
 
 void simcom_http_handler(struct evhttp_request *req, void *arg __attribute__((unused)));
 void simcom_replyHttp(struct evhttp_request *req, const char *data);
-void simcom_errorHttp(struct evhttp_request *req, char errorType);
+void simcom_errorHttp(struct evhttp_request *req, int errorType);
 
 enum
 {
@@ -22,6 +22,7 @@ enum
     CODE_ERROR_CONTENT      = 205,
     CODE_DEVICE_NOT_RSP     = 206,
     CODE_DEVICE_OFFLINE     = 207,
+    CODE_DEVICE_NO_RESPONSE = 208,
 
 };
 

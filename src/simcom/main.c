@@ -22,6 +22,8 @@
 #include "session_manager.h"
 #include "http_simcom.h"
 
+struct event_base *base = NULL;
+
 static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
     struct event_base *base = arg;
@@ -74,7 +76,7 @@ int main(int argc, char **argv)
 			mosquitto_lib_version(NULL, NULL, NULL),
 			curl_version());
 
-    struct event_base *base = event_base_new();
+    base = event_base_new();
     if (!base)
     {
         return 1; /*XXXerr*/

@@ -106,10 +106,13 @@ int main(int argc, char *argv[])
 
     LOG_INFO("stop http_server: %d", http_port);
 
+    evhttp_free(httpd);
+    evsignal_del(evTerm);
+    evsignal_del(evInt);
+
     event_base_free(base);
     db_destruct();
     zlog_fini();
-    evhttp_free(httpd);
     return 0;
 }
 

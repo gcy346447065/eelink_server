@@ -12,8 +12,27 @@
 #include "cJSON.h"
 #include "object.h"
 #include "protocol.h"
+#include "timer.h"
+#include "msg_simcom.h"
 
-#define MSG_MAX_LEN 1024
+struct NODE
+{
+    char seq;
+    struct evhttp_request *req;
+    NODE *next;
+};
+extern struct event_base *base;
+#define MSG_MAX_LEN 256
+
+static void timer_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
+{
+    SESSION *session = arg;
+    if(session->req)
+    {
+        simcom_errorHttp(session->req, CODE_DEVICE_NO_RESPONSE);
+    }
+    return;
+}
 
 static void simcom_deviceHandler(struct evhttp_request *req)
 {
@@ -109,20 +128,32 @@ static void simcom_deviceHandler(struct evhttp_request *req)
 
     LOG_HEX(msg, sizeof(MSG_DEVICE_REQ));
     pfn(session->bev, msg, msgLen); //simcom_sendMsg
-
-    //TODO:set a timer to response to http if request can't get response.
-
     session->req = req;
     cJSON_Delete(json);
     free(data);
+
+    //set a timer to response to http if request can't get response from device.
+    struct timeval tv = {4, 5000};// 4.005 seconds
+    timer_newOnce(base, &tv, timer_cb, session);
     return;
 }
 
 void simcom_http_handler(struct evhttp_request *req, void *arg __attribute__((unused)))
 {
-    if(strstr(req->uri, "/v1/device"))
+    switch(req->type)
     {
-        simcom_deviceHandler(req);
+        case EVHTTP_REQ_POST:
+            if(strstr(req->uri, "/v1/device"))
+            {
+                simcom_deviceHandler(req);
+            }
+            break;
+
+        case EVHTTP_REQ_PUT:
+        case EVHTTP_REQ_GET:
+        case EVHTTP_REQ_DELETE:
+        default:
+            break;
     }
     return;
 }
@@ -137,18 +168,16 @@ void simcom_replyHttp(struct evhttp_request *req, const char *data)
     {
         evbuffer_add_printf(buf, "%s", data);
     }
-    else
-    {
-        evbuffer_add_printf(buf, "%s", "{\"code\":101}");
-    }
     evhttp_send_reply(req, HTTP_OK, "OK", buf);
     evbuffer_free(buf);
     return;
 }
 
-void simcom_errorHttp(struct evhttp_request *req, char errorType)
+void simcom_errorHttp(struct evhttp_request *req, int errorType)
 {
-    char buf[32] = {0};
-    snprintf(buf, 32, "{\"code\":%d},errorType");
+    char errorCode[32] = {0};
+    snprintf(errorCode, 32, "{\"code\":%d}", errorType);
+    simcom_replyHttp(req,errorCode);
+    return;
 }
 
