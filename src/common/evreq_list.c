@@ -11,13 +11,10 @@
 #include "msg_http.h"
 #include "log.h"
 
-/*      initail reqList         */
-REQLIST *init_reqList(void)
-{
-    return NULL;
-}
+/*      initail reqList as NULL      */
+REQLIST *init_reqList(void){return NULL;}
 
-/*   insert into reqList what req and seq needed, it doesnt matter when reqList is null  */
+/*   insert into reqList what req and seq needed, it doesnt matter if reqList is null, and always return the head*/
 REQLIST *insert_reqList(REQLIST *reqList, struct evhttp_request *req, unsigned char seq)
 {
     REQLIST *ptmp = reqList;
@@ -25,37 +22,32 @@ REQLIST *insert_reqList(REQLIST *reqList, struct evhttp_request *req, unsigned c
     if(!p)
     {
         LOG_ERROR("create req failed");
-        return 1;
+        return NULL;
     }
     p->req = req;
     p->seq = seq;
     p->next = NULL;
-
     if(!reqList)// the first one ,set it as head
     {
+        LOG_INFO("insert reqList head success:%d", seq);
         return reqList = p;
     }
-
     while(ptmp->next != NULL)ptmp = ptmp->next;// move the point to the tail
-
     ptmp->next = p;
-
-    LOG_INFO("insert reqList success");
+    LOG_INFO("insert reqList success:%d", seq);
     return reqList;
 }
 
-/*      delete from reqList where seq is exact  */
+/*      delete from reqList where seq is exact, and always return the head*/
 REQLIST *remove_reqList(REQLIST *reqList, unsigned char seq)
 {
     int i = 0, pos = 0;
-    REQLIST *pTemp,*pLast,*pNext;
-
+    REQLIST *pTemp = NULL,*pLast = NULL,*pNext = NULL;
     if(NULL == reqList)
     {
         LOG_DEBUG("reqList is empty");
-        return;
+        return NULL;
     }
-
     pTemp = reqList;
     while(pTemp != NULL)
     {
@@ -68,13 +60,11 @@ REQLIST *remove_reqList(REQLIST *reqList, unsigned char seq)
         pLast = pTemp;
         pTemp = pTemp->next;
     }
-
     if(i == 0)
     {
         LOG_DEBUG("reqList has no seq = %d ", seq);
         return reqList;
     }
-
     if(pos == 0)
     {
         reqList = reqList->next;//remove head ,here pLast is NULL
@@ -84,24 +74,21 @@ REQLIST *remove_reqList(REQLIST *reqList, unsigned char seq)
         pNext = pTemp->next;
         pLast->next = pNext;
     }
-    LOG_INFO("remove reqList success");
-
     free(pTemp);
+    LOG_DEBUG("remove reqList success:%d", seq);
     return reqList;
 }
 
-/*      delete from reqList where seq is exact  */
+/*      select from reqList where seq is exact  */
 REQLIST *find_reqList(REQLIST *reqList, unsigned char seq)
 {
     int i = 0;
     REQLIST *pTemp = NULL;
-
     if(NULL == reqList)
     {
         LOG_DEBUG("reqList is empty");
         return NULL;
     }
-
     pTemp = reqList;
     while(pTemp != NULL)
     {
@@ -112,47 +99,29 @@ REQLIST *find_reqList(REQLIST *reqList, unsigned char seq)
         }
         pTemp = pTemp->next;
     }
-
     if(i == 0)
     {
         LOG_DEBUG("reqList has no seq = %d ", seq);
         return NULL;
     }
-
-    LOG_INFO("find reqList success");
-
+    LOG_DEBUG("find reqList success:%d", seq);
     return pTemp;
-}
-
-int size_reqList(REQLIST *reqList)
-{
-    int length = 0;
-    REQLIST *ptmp = reqList;
-    while(NULL != ptmp)
-    {
-        length++;
-        ptmp = ptmp->next;
-    }
-
-    return length;
 }
 
 /* distruct reqList and reply the rest to http*/
 REQLIST *distruct_reqList(REQLIST *reqList)
 {
-    REQLIST *pTmp, *pLast;
+    REQLIST *pTmp = NULL, *pLast = NULL;
     pTmp = reqList;
     while(NULL != pTmp)
     {
         pLast = pTmp;
         pTmp = pTmp->next;
+        LOG_INFO("distruct reqlist :%d", pTmp->seq);
         http_errorReply(pLast->req, CODE_DEVICE_OFF);
         free(pLast);
     }
-
-    reqList = NULL;
-
-    LOG_INFO("distruct reqList success");
-    return reqList;
+    LOG_DEBUG("distruct reqList success");
+    return reqList = NULL;
 }
 

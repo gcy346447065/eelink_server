@@ -76,7 +76,7 @@ static void http_getHistoryGPS(struct evhttp_request *req, const char *imeiName,
     cJSON_Delete(json);
 
     LOG_DEBUG("%s",msg);
-    http_errorReply(req, msg);
+    http_postReply(req, msg);
 
     free(msg);
     return;

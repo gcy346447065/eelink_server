@@ -18,6 +18,7 @@ typedef struct
     struct event_base *base;
     struct bufferevent *bev;
     REQLIST *reqList;
+    unsigned char http_seq;
 
     void *obj;
     MSG_SEND pSendMsg;

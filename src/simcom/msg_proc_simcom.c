@@ -2169,12 +2169,12 @@ static int simcom_deviceReply(const void *msg, SESSION *session)
     }
     LOG_INFO("imei(%s) get device rsp:%s", obj->IMEI, rsp->data);
 
-    REQLIST* reqlist = find_reqList(session->reqList, rsp->header.seq);
-    if(reqlist)
+    REQLIST* reqNode = find_reqList(session->reqList, rsp->header.seq);
+    if(reqNode)
     {
-        if(reqlist->req)
+        if(reqNode->req)
         {
-            http_postReply(reqlist->req, rsp->data);
+            http_postReply(reqNode->req, rsp->data);
             session->reqList = remove_reqList(session->reqList, rsp->header.seq);
         }
     }

@@ -32,9 +32,6 @@ static void signal_handler(int sig)
 
 int main(int argc, char *argv[])
 {
-
-	struct evhttp_bound_socket *handle;
-
     int http_port = PORT_HTTP;
     char *httpd_listen = "0.0.0.0"; // locaol adress
     int httpd_timeout = 5;         // in seconds
@@ -72,13 +69,13 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-    struct event *evTerm = evsignal_new(base, SIGTERM, signal_handler, base);
+    struct event *evTerm = evsignal_new(base, SIGTERM, (event_callback_fn)signal_handler, base);
     if (!evTerm || evsignal_add(evTerm, NULL) < 0)
     {
         LOG_ERROR("can't create SIGTERM event");
     }
 
-    struct event *evInt = evsignal_new(base, SIGINT, signal_handler, base);
+    struct event *evInt = evsignal_new(base, SIGINT, (event_callback_fn)signal_handler, base);
     if (!evInt || evsignal_add(evInt, NULL) < 0)
     {
         LOG_ERROR("can't create SIGINT event");
@@ -90,7 +87,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-    if (evhttp_bind_socket(httpd, "0.0.0.0", http_port) != 0)
+    if (evhttp_bind_socket(httpd, httpd_listen, http_port) != 0)
     {
         LOG_ERROR("bind socket failed at port:%d", http_port);
         return 1;

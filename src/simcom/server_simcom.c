@@ -142,6 +142,7 @@ static void accept_conn_cb(struct evconnlistener *listener,
     session->base = base;
     session->bev = bev;
     session->obj = NULL;
+    session->http_seq = 0;
     session->reqList = init_reqList();
     session->pSendMsg = send_msg;
 

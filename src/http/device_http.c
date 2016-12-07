@@ -22,10 +22,26 @@
 
 void http_deviceHandler(struct evhttp_request *req)
 {
-    char post_data[MSGHTTP_MAX_LEN] = {0};
-    evbuffer_copyout(req->input_buffer,post_data,MSGHTTP_MAX_LEN);
-    LOG_INFO("get the request from app:%s", post_data);
-    http_sendData(base,req, SIMCOM_URL SIMCOM_HTTPPORT SIMCOM_URI, post_data);
+    switch(req->type)
+    {
+        case EVHTTP_REQ_POST:
+            {
+                char post_data[MSGHTTP_MAX_LEN] = {0};
+                evbuffer_copyout(req->input_buffer,post_data,MSGHTTP_MAX_LEN);
+                LOG_INFO("get the request from app:%s", post_data);
+                http_sendData(base,req, SIMCOM_URL SIMCOM_HTTPPORT SIMCOM_URI, post_data);
+                return;
+            }
+            break;
+
+        case EVHTTP_REQ_GET:
+        case EVHTTP_REQ_PUT:
+        case EVHTTP_REQ_DELETE:
+            break;
+        default:
+            break;
+    }
+    http_errorReply(req, CODE_URL_ERR);
     return;
 }
 

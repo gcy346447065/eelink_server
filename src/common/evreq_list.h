@@ -22,7 +22,6 @@ REQLIST *insert_reqList(REQLIST *reqList, struct evhttp_request *req, unsigned c
 REQLIST *remove_reqList(REQLIST *reqList, unsigned char seq);
 REQLIST *find_reqList(REQLIST *reqList, unsigned char seq);
 REQLIST *distruct_reqList(REQLIST *reqList);
-int size_reqList(REQLIST *reqList);
 
 #endif/*    SRC_EVREQ_LIST_H_   */
 

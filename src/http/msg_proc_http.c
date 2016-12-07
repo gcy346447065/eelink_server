@@ -4,6 +4,7 @@
  *  Created on: 2016/10/13
  *      Author: lc
  */
+#include <string.h>
 #include "msg_proc_http.h"
 
 #include "gps_http.h"

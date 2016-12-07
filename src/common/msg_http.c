@@ -79,7 +79,7 @@ void http_sendData(struct event_base *base, struct evhttp_request *req, char *ur
     http_connection->req = req;// store the req for reply to app, will be free in http_wild2App
     http_connection->evcon = evcon;// store the connect, will be free in http_wild2App
 
-    evhttp_connection_set_closecb(evcon, http_close_cb,NULL);// http_close_cb will first be called, useless
+    //evhttp_connection_set_closecb(evcon, http_close_cb,NULL);// http_close_cb will first be called, useless
 
 	struct evhttp_request *post = evhttp_request_new(http_wild2App, http_connection);// http_wild2App will be second called
 	if(!post)
