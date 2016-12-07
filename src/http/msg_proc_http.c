@@ -39,7 +39,7 @@ void httpd_handler(struct evhttp_request *req, void *arg)
             MSG_PROC pfn = msgProcs[i].pfn;
             if (pfn)
             {
-                pfn(req, (struct event_base *)arg);
+                pfn(req, arg);
                 return;
             }
         }
