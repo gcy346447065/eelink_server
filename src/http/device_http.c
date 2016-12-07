@@ -26,8 +26,8 @@ void http_deviceHandler(struct evhttp_request *req)
     {
         case EVHTTP_REQ_POST:
             {
-                char post_data[MSGHTTP_MAX_LEN] = {0};
-                evbuffer_copyout(req->input_buffer,post_data,MSGHTTP_MAX_LEN);
+                char post_data[MAX_MSGHTTP_LEN] = {0};
+                evbuffer_copyout(req->input_buffer,post_data,MAX_MSGHTTP_LEN);
                 LOG_INFO("get the request from app:%s", post_data);
                 http_sendData(base,req, SIMCOM_URL SIMCOM_HTTPPORT SIMCOM_URI, post_data);
                 return;

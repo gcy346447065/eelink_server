@@ -4,6 +4,7 @@
  *  Created on: 2016/12/03
  *      Author: lc
  */
+#include <malloc.h>
 #include <string.h>
 
 #include "http_simcom.h"
@@ -22,25 +23,26 @@ typedef struct
     unsigned char seq;
 }REQ_EVENT;
 
-static void timer_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
+static void device_timeout_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
-    REQ_EVENT *reqsession = arg;
-    REQLIST *reqlist = find_reqList(reqsession->session->reqList, reqsession->seq);
+    REQ_EVENT *req_event = arg;
+    REQLIST *reqlist = find_reqList(req_event->session->reqList, req_event->seq);
     if(reqlist)
     {
         if(reqlist->req)
         {
-            http_errorReply(reqlist->req, CODE_DEVICE_NO_RESPONSE);
-            remove_reqList(reqsession->session->reqList, reqsession->seq);
+            http_errorReply(reqlist->req, CODE_DEVICE_NO_RSP);
+            remove_reqList(req_event->session->reqList, req_event->seq);
         }
     }
+    free(req_event);
     return;
 }
 
 static void simcom_deviceHandler(struct evhttp_request *req)
 {
-    char post_data[MSGHTTP_MAX_LEN] = {0};
-    evbuffer_copyout(req->input_buffer,post_data,MSGHTTP_MAX_LEN);
+    char post_data[MAX_MSGHTTP_LEN] = {0};
+    evbuffer_copyout(req->input_buffer,post_data,MAX_MSGHTTP_LEN);
 
     LOG_INFO("get the request from http:%s", post_data);
 
@@ -113,9 +115,11 @@ static void simcom_deviceHandler(struct evhttp_request *req)
         http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
+    cJSON_Delete(json);
 
     int msgLen = sizeof(MSG_DEVICE_REQ) + strlen(data);
-    MSG_DEVICE_REQ *msg = alloc_simcom_msg(CMD_DEVICE, msgLen);
+
+    MSG_DEVICE_REQ *msg = alloc_device_msg(CMD_DEVICE, session->http_seq, msgLen);
     if(!msg)
     {
         LOG_ERROR("no memory");
@@ -124,22 +128,21 @@ static void simcom_deviceHandler(struct evhttp_request *req)
         free(data);
         return;
     }
-    msg->header.seq = session->http_seq;
     msg->action = action->valueint;
     strncpy(msg->data, data, strlen(data));
+    free(data);
 
     LOG_HEX(msg, sizeof(MSG_DEVICE_REQ));
     pfn(session->bev, msg, msgLen); //simcom_sendMsg
-    session->reqList = insert_reqList(session->reqList, req, session->http_seq++);
-    cJSON_Delete(json);
-    free(data);
-    REQ_EVENT *reqsession = (REQ_EVENT *)malloc(sizeof(REQ_EVENT));
-    reqsession->session = session;
-    reqsession->seq = session->http_seq - 1;
+
+    session->reqList = insert_reqList(session->reqList, req, session->http_seq);
 
     //set a timer to response to http if request can't get response from device.
-    struct timeval tv = {10, 5000};// X.005 seconds
-    timer_newOnce(session->base, &tv, timer_cb, reqsession);
+    struct timeval tv = {4, 5000};// X.005 seconds
+    REQ_EVENT *req_event = (REQ_EVENT *)malloc(sizeof(REQ_EVENT));
+    req_event->session = session;
+    req_event->seq = session->http_seq++;
+    timer_newOnce(session->base, &tv, device_timeout_cb, req_event);
 
     return;
 }

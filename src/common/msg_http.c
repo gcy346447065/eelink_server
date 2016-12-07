@@ -31,20 +31,20 @@ static void http_wild2App(struct evhttp_request *req, void *arg)
 {
     HTTP_CONNECTION *connection = arg;
     evhttp_connection_free(connection->evcon);
-    char post_data[MSGHTTP_MAX_LEN] = {0};
+    char post_data[MAX_MSGHTTP_LEN] = {0};
     switch(req->response_code)
     {
         case HTTP_OK:
         case HTTP_OK+1:
             {
-                evbuffer_copyout(req->input_buffer,post_data,MSGHTTP_MAX_LEN);
+                evbuffer_copyout(req->input_buffer,post_data,MAX_MSGHTTP_LEN);
                 LOG_INFO("get the response from simcom:%s", post_data);
                 break;
             }
 
         default:
             {
-                http_errorReply(connection->req, CODE_SIMCOM_OFFLINE);
+                http_errorReply(connection->req, CODE_SIMCOM_OFF);
                 return;
             }
             break;

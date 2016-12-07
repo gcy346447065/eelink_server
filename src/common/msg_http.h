@@ -24,20 +24,13 @@ enum
     CODE_URL_ERR            = 104,
     CODE_ERROR_CONTENT      = 105,
     CODE_SIMCOM_NO_RSP      = 106,
-    CODE_SIMCOM_OFFLINE     = 107,
-
-
-    //CODE_INTERNAL_ERR       = 200,
-    //CODE_IMEI_NOT_FOUND     = 201,
-    //CODE_NO_CONTENT         = 202,
-    //CODE_RANGE_TOO_LARGE    = 203,
-    //CODE_URL_ERR            = 204,
-    //CODE_ERROR_CONTENT      = 205,
-    CODE_DEVICE_NOT_RSP     = 206,
-    CODE_DEVICE_OFF         = 207,
-    CODE_DEVICE_NO_RESPONSE = 208,
+    CODE_SIMCOM_OFF         = 107,
+    CODE_DEVICE_NOT_RSP     = 108,
+    CODE_DEVICE_OFF         = 109,
+    CODE_DEVICE_NO_RSP      = 120,
 };
 
-#define MSGHTTP_MAX_LEN 256
+#define MAX_MSGHTTP_LEN 256
+#define MAX_ERRCODE_LEN
 
 #endif /* SRC_HTTP_H_ */
