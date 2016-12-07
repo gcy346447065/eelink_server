@@ -31,6 +31,6 @@ enum
 };
 
 #define MAX_MSGHTTP_LEN 256
-#define MAX_ERRCODE_LEN
+#define MAX_ERRCODE_LEN 32
 
 #endif /* SRC_HTTP_H_ */

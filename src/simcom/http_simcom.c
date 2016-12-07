@@ -32,7 +32,7 @@ static void device_timeout_cb(evutil_socket_t fd __attribute__((unused)), short 
         if(reqlist->req)
         {
             http_errorReply(reqlist->req, CODE_DEVICE_NO_RSP);
-            remove_reqList(req_event->session->reqList, req_event->seq);
+            req_event->session->reqList = remove_reqList(req_event->session->reqList, req_event->seq);
         }
     }
     free(req_event);
@@ -155,6 +155,7 @@ void simcom_http_handler(struct evhttp_request *req, void *arg __attribute__((un
             if(strstr(req->uri, "/v1/device"))
             {
                 simcom_deviceHandler(req);
+                return;
             }
             break;
 
@@ -164,6 +165,7 @@ void simcom_http_handler(struct evhttp_request *req, void *arg __attribute__((un
         default:
             break;
     }
+    http_errorReply(req, CODE_URL_ERR);
     return;
 }
 

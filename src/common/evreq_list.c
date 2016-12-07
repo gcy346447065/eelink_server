@@ -67,7 +67,7 @@ REQLIST *remove_reqList(REQLIST *reqList, unsigned char seq)
     }
     if(pos == 0)
     {
-        reqList = reqList->next;//remove head ,here pLast is NULL
+        reqList = reqList->next;//remove head
     }
     else
     {
