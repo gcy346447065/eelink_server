@@ -128,7 +128,7 @@ static void http_getLastGPS(struct evhttp_request *req, const char *imeiName)
 }
 
 
-void http_replyGPS(struct evhttp_request *req)
+void http_replyGPS(struct evhttp_request *req, struct event_base *base __attribute__((unused)))
 {
     int rc;
     int start = 0, end = 0;

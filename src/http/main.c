@@ -12,7 +12,6 @@
 #include "macro.h"
 #include "msg_proc_http.h"
 
-struct event_base *base;
 
 static void signal_handler(int sig)
 {
@@ -62,7 +61,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-	base = event_base_new();
+    struct event_base *base = event_base_new();
 	if (!base)
     {
 		LOG_ERROR("event_base_new failed...");
@@ -94,7 +93,7 @@ int main(int argc, char *argv[])
     }
 
     evhttp_set_timeout(httpd, httpd_timeout);
-    evhttp_set_gencb(httpd, httpd_handler, NULL);
+    evhttp_set_gencb(httpd, httpd_handler, base);
 
 
     LOG_INFO("start http_server: %d", http_port);

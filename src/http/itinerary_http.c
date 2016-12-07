@@ -139,7 +139,7 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
     return;
 }
 
-void http_replyItinerary(struct evhttp_request *req)
+void http_replyItinerary(struct evhttp_request *req, struct event_base *base __attribute__((unused)))
 {
     int rc;
     int start = 0, end = 0;

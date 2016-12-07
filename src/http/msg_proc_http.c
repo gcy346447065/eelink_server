@@ -13,7 +13,8 @@
 #include "telephone_http.h"
 
 #define MAX_CMD_LENGTH 32
-typedef void (*MSG_PROC)(struct evhttp_request *req);
+
+typedef void (*MSG_PROC)(struct evhttp_request *req, struct event_base *base);
 typedef struct
 {
 	const char cmd[MAX_CMD_LENGTH];
@@ -29,7 +30,7 @@ static MSG_PROC_MAP msgProcs[] =
 	{"/v1/device",      http_deviceHandler},
 };
 
-void httpd_handler(struct evhttp_request *req, void *arg __attribute__((unused)))
+void httpd_handler(struct evhttp_request *req, void *arg)
 {
     for(size_t i = 0; i < sizeof(msgProcs)/sizeof(msgProcs[0]); i++)
     {
@@ -38,7 +39,7 @@ void httpd_handler(struct evhttp_request *req, void *arg __attribute__((unused))
             MSG_PROC pfn = msgProcs[i].pfn;
             if (pfn)
             {
-                pfn(req);
+                pfn(req, (struct event_base *)arg);
                 return;
             }
         }

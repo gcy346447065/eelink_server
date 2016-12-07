@@ -123,7 +123,7 @@ static void telephone_callTelNumber(struct evhttp_request *req, const char *imei
 }
 
 
-void http_replyTelephone(struct evhttp_request *req)
+void http_replyTelephone(struct evhttp_request *req, struct event_base *base __attribute__((unused)))
 {
     int rc;
     char imei[IMEI_LENGTH + 1] = {0};
@@ -202,7 +202,7 @@ void http_replyTelephone(struct evhttp_request *req)
     return;
 }
 
-void http_replyCall(struct evhttp_request *req)
+void http_replyCall(struct evhttp_request *req, struct event_base *base __attribute__((unused)))
 {
     int rc;
     char telNumber[TELNUMBER_LENGTH + 1] = {0};

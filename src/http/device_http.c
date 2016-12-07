@@ -18,9 +18,7 @@
 #define SIMCOM_HTTPPORT ":8082"
 #define SIMCOM_URI "/v1/device"
 
- extern struct event_base *base;
-
-void http_deviceHandler(struct evhttp_request *req)
+void http_deviceHandler(struct evhttp_request *req, struct event_base *base)
 {
     switch(req->type)
     {

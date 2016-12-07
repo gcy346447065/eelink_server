@@ -9,7 +9,7 @@
 
 #include <evhttp.h>
 
-void http_deviceHandler(struct evhttp_request *req);
+void http_deviceHandler(struct evhttp_request *req, struct event_base *base);
 
 
 #endif/* SRC_DEVICE_HTTP_H_ */
