@@ -25,9 +25,8 @@ enum
     CODE_RANGE_TOO_LARGE    = 105,
     CODE_SIMCOM_NO_RSP      = 106,
     CODE_SIMCOM_OFF         = 107,
-    CODE_DEVICE_NOT_RSP     = 108,
+    CODE_DEVICE_NO_RSP      = 108,
     CODE_DEVICE_OFF         = 109,
-    CODE_DEVICE_NO_RSP      = 120,
 };
 
 #define MAX_MSGHTTP_LEN 256

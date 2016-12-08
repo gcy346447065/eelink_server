@@ -30,7 +30,7 @@ static void device_timeout_cb(evutil_socket_t fd __attribute__((unused)), short 
     struct evhttp_request *req = request_get(req_event->request_table, req_event->seq);
     if(req)
     {
-        http_errorReply(req, CODE_DEVICE_OFF);
+        http_errorReply(req, CODE_DEVICE_NO_RSP);
         request_del(req_event->request_table, req_event->seq);
     }
     free(req_event);
