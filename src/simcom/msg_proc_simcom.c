@@ -30,7 +30,7 @@
 #include "session_manager.h"
 #include "msg_manager.h"
 #include "msg_http.h"
-#include "evreq_list.h"
+#include "request_table.h"
 
 #define EARTH_RADIUS 6378137 //radius of our earth unit :  m
 #define PI 3.141592653

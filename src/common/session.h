@@ -9,7 +9,7 @@
 #include <stddef.h>
 #include <event2/bufferevent.h>
 
-#include "evreq_list.h"
+#include "request_table.h"
 
 typedef void (*MSG_SEND)(struct bufferevent* bev, const void* buf, size_t n);
 

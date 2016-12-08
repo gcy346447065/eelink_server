@@ -35,8 +35,8 @@ SET(SOURCE_FILE
     msg_http.h
     msg_http.c
 
-    evreq_list.h
-    evreq_list.c
+    request_table.h
+    request_table.c
 
     msg_app.h
     msg_app.c
