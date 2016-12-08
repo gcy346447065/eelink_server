@@ -11,117 +11,35 @@
 #include "msg_http.h"
 #include "log.h"
 
-/*      initail reqList as NULL      */
-REQLIST *init_reqList(void){return NULL;}
-
-/*   insert into reqList what req and seq needed, it doesnt matter if reqList is null, and always return the head*/
-REQLIST *insert_reqList(REQLIST *reqList, struct evhttp_request *req, unsigned char seq)
+static void request_freeValue(gpointer value)
 {
-    REQLIST *ptmp = reqList;
-    REQLIST *p = (REQLIST *)malloc(sizeof(REQLIST));
-    if(!p)
-    {
-        LOG_ERROR("create req failed");
-        return NULL;
-    }
-    p->req = req;
-    p->seq = seq;
-    p->next = NULL;
-    if(!reqList)// the first one ,set it as head
-    {
-        LOG_INFO("insert reqList head success:%d", seq);
-        return reqList = p;
-    }
-    while(ptmp->next != NULL)ptmp = ptmp->next;// move the point to the tail
-    ptmp->next = p;
-    LOG_INFO("insert reqList success:%d", seq);
-    return reqList;
+    struct evhttp_request *req = (struct evhttp_request *)value;
 }
 
-/*      delete from reqList where seq is exact, and always return the head*/
-REQLIST *remove_reqList(REQLIST *reqList, unsigned char seq)
+GHashTable *request_initial(void)
 {
-    int i = 0, pos = 0;
-    REQLIST *pTemp = NULL,*pLast = NULL,*pNext = NULL;
-    if(NULL == reqList)
-    {
-        LOG_DEBUG("reqList is empty");
-        return NULL;
-    }
-    pTemp = reqList;
-    while(pTemp != NULL)
-    {
-        if(pTemp->seq == seq)
-        {
-            i = 1;
-            break;
-        }
-        pos++;
-        pLast = pTemp;
-        pTemp = pTemp->next;
-    }
-    if(i == 0)
-    {
-        LOG_DEBUG("reqList has no seq = %d ", seq);
-        return reqList;
-    }
-    if(pos == 0)
-    {
-        reqList = reqList->next;//remove head
-    }
-    else
-    {
-        pNext = pTemp->next;
-        pLast->next = pNext;
-    }
-    free(pTemp);
-    LOG_DEBUG("remove reqList success:%d", seq);
-    return reqList;
+    return g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, request_freeValue);
 }
 
-/*      select from reqList where seq is exact  */
-REQLIST *find_reqList(REQLIST *reqList, unsigned char seq)
+void request_destruct(GHashTable *request_table)
 {
-    int i = 0;
-    REQLIST *pTemp = NULL;
-    if(NULL == reqList)
-    {
-        LOG_DEBUG("reqList is empty");
-        return NULL;
-    }
-    pTemp = reqList;
-    while(pTemp != NULL)
-    {
-        if(pTemp->seq == seq)
-        {
-            i = 1;
-            break;
-        }
-        pTemp = pTemp->next;
-    }
-    if(i == 0)
-    {
-        LOG_DEBUG("reqList has no seq = %d ", seq);
-        return NULL;
-    }
-    LOG_DEBUG("find reqList success:%d", seq);
-    return pTemp;
+    g_hash_table_destroy(request_table);
 }
 
-/* distruct reqList and reply the rest to http*/
-REQLIST *distruct_reqList(REQLIST *reqList)
+int request_add(GHashTable *request_table, struct evhttp_request *req, unsigned char seq)
 {
-    REQLIST *pTmp = NULL, *pLast = NULL;
-    pTmp = reqList;
-    while(NULL != pTmp)
-    {
-        pLast = pTmp;
-        pTmp = pTmp->next;
-        LOG_INFO("distruct reqlist :%d", pTmp->seq);
-        http_errorReply(pLast->req, CODE_DEVICE_OFF);
-        free(pLast);
-    }
-    LOG_DEBUG("distruct reqList success");
-    return reqList = NULL;
+    g_hash_table_insert(request_table, (gconstpointer)seq, req);
+    return 0;
+}
+
+int request_del(GHashTable *request_table, unsigned char seq)
+{
+    g_hash_table_remove(request_table, (gconstpointer)seq);
+    return 0;
+}
+
+struct evhttp_request *request_get(GHashTable *request_table, unsigned char seq)
+{
+    return g_hash_table_lookup(request_table, (gconstpointer)seq);
 }
 

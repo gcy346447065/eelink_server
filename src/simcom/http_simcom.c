@@ -16,24 +16,22 @@
 #include "timer.h"
 #include "msg_simcom.h"
 #include "msg_http.h"
+#include "evreq_list.h"
 
 typedef struct
 {
-    SESSION *session;
+    GHashTable *request_table;
     unsigned char seq;
 }REQ_EVENT;
 
 static void device_timeout_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
     REQ_EVENT *req_event = arg;
-    REQLIST *reqlist = find_reqList(req_event->session->reqList, req_event->seq);
-    if(reqlist)
+    struct evhttp_request *req = request_get(req_event->request_table, req_event->seq);
+    if(req)
     {
-        if(reqlist->req)
-        {
-            http_errorReply(reqlist->req, CODE_DEVICE_NO_RSP);
-            req_event->session->reqList = remove_reqList(req_event->session->reqList, req_event->seq);
-        }
+        http_errorReply(req, CODE_DEVICE_OFF);
+        request_del(req_event->request_table, req_event->seq);
     }
     free(req_event);
     return;
@@ -119,7 +117,7 @@ static void simcom_deviceHandler(struct evhttp_request *req)
 
     int msgLen = sizeof(MSG_DEVICE_REQ) + strlen(data);
 
-    MSG_DEVICE_REQ *msg = alloc_device_msg(CMD_DEVICE, session->http_seq, msgLen);
+    MSG_DEVICE_REQ *msg = alloc_device_msg(CMD_DEVICE, session->request_seq, msgLen);
     if(!msg)
     {
         LOG_ERROR("no memory");
@@ -135,13 +133,15 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     LOG_HEX(msg, sizeof(MSG_DEVICE_REQ));
     pfn(session->bev, msg, msgLen); //simcom_sendMsg
 
-    session->reqList = insert_reqList(session->reqList, req, session->http_seq);
+    request_add(session->request_table, req, session->request_seq);
 
     //set a timer to response to http if request can't get response from device.
     struct timeval tv = {4, 5000};// X.005 seconds
     REQ_EVENT *req_event = (REQ_EVENT *)malloc(sizeof(REQ_EVENT));
-    req_event->session = session;
-    req_event->seq = session->http_seq++;
+
+    req_event->request_table = session->request_table;
+    req_event->seq = session->request_seq++;
+
     timer_newOnce(session->base, &tv, device_timeout_cb, req_event);
 
     return;
