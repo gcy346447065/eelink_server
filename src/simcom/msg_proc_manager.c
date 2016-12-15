@@ -519,7 +519,7 @@ static int manager_getImeiData(const void *msg, SESSION_MANAGER *sessionManager)
     char *data = cJSON_PrintUnformatted(json);
     cJSON_Delete(json);
 
-    short msgLen = sizeof(MANAGER_MSG_IMEI_DATA_ONCE_RSP)+strlen(data) + 1;
+    int msgLen = sizeof(MANAGER_MSG_IMEI_DATA_ONCE_RSP)+strlen(data) + 1;
     LOG_INFO("%d", msgLen);
     MANAGER_MSG_IMEI_DATA_ONCE_RSP *rsp = alloc_managerSimcomRsp(MANAGER_CMD_GET_IMEIDATA, msgLen-sizeof(MANAGER_MSG_IMEI_DATA_ONCE_RSP));
     if(!rsp)
