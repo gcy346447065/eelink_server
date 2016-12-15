@@ -106,7 +106,8 @@ static int _db_initial()
 
         /* creat table imei2objectID if not exists */
         snprintf(query, MAX_QUERY, "create table if not exists imei2Telnumber(imei char(15) not null primary key, \
-                                    Telnumber char(11) not null)");
+        Telnumber char(11) not null,\
+        Callnumber char(11))");
 
         if(mysql_ping(conn))
         {
@@ -574,12 +575,30 @@ static int _db_replaceTelNumber(const char *imeiName, const char *telNumber)
     return 0;
 }
 
-static int _db_getTelNumber(const char *imeiName, char *telNumber)
+static int _db_updateCallNumber(const char *imeiName, const char *CallNumber)
+{
+    char query[MAX_QUERY] = {0};
+
+    snprintf(query,MAX_QUERY,"update imei2Telnumber set Callnumber=\'%s\' where imei=\'%s\'", CallNumber, imeiName);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't insert number into db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+    return 0;
+}
+
+static int _db_getTelNumber(const char *imeiName, char *telNumber, char *callNumber)
 {
 #define MAX_TELNUMBER_LEN 11
     char query[MAX_QUERY] = {0};
 
-    snprintf(query,MAX_QUERY,"select Telnumber from imei2Telnumber where imei = \'%s\'", imeiName);
+    snprintf(query,MAX_QUERY,"select Telnumber,Callnumber from imei2Telnumber where imei = \'%s\'", imeiName);
     if(mysql_ping(conn))
     {
         LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
@@ -602,7 +621,15 @@ static int _db_getTelNumber(const char *imeiName, char *telNumber)
         return 3;
     }
 
-    strncpy(telNumber,row[0],MAX_TELNUMBER_LEN);
+    if(row[0])
+    {
+        strncpy(telNumber,row[0],MAX_TELNUMBER_LEN);
+    }
+
+    if(row[1])
+    {
+        strncpy(callNumber,row[1],MAX_TELNUMBER_LEN);
+    }
 
     return 0;
 }
@@ -1203,10 +1230,19 @@ int db_replaceTelNumber(const char *imeiName, const char *telNumber)
 #endif
 }
 
-int db_getTelNumber(const char *imeiName, char *telNumber)
+int db_updateCallNumber(const char *imeiName, const char *callNumber)
 {
 #ifdef WITH_DB
-    return _db_getTelNumber(imeiName, telNumber);
+    return _db_updateCallNumber(imeiName, callNumber);
+#else
+    return 0;
+#endif
+}
+
+int db_getTelNumber(const char *imeiName, char *telNumber, char *callNumber)
+{
+#ifdef WITH_DB
+    return _db_getTelNumber(imeiName, telNumber, callNumber);
 #else
     return 0;
 #endif

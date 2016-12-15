@@ -45,6 +45,7 @@ static void telephone_replaceTelNumber(struct evhttp_request *req, const char *i
 static void telephone_getTelNumber(struct evhttp_request *req, const char *imeiName)
 {
     char telNumber[TELNUMBER_LENGTH + 1] = {0};
+    char callNumber[TELNUMBER_LENGTH + 1] = {0};
 
     cJSON *json = cJSON_CreateObject();
     if(!json)
@@ -54,7 +55,7 @@ static void telephone_getTelNumber(struct evhttp_request *req, const char *imeiN
         return;
     }
 
-    int rc = db_getTelNumber(imeiName, telNumber);
+    int rc = db_getTelNumber(imeiName, telNumber, callNumber);
     if(rc)
     {
         cJSON_AddNumberToObject(json, "code", 101);
@@ -78,9 +79,10 @@ static void telephone_callTelNumber(struct evhttp_request *req, const char *imei
 {
     char post_data[128] = {0};
     char telNumber[TELNUMBER_LENGTH + 1] = {0};
+    char callNumber[TELNUMBER_LENGTH + 1] = {0};
     char caller[TELNUMBER_LENGTH + 1] = {0};
 
-    if(db_getTelNumber(imeiName,telNumber) != 0)
+    if(db_getTelNumber(imeiName,telNumber, callNumber) != 0)
     {
         http_errorMsg(req);
         return;
@@ -103,6 +105,7 @@ static void telephone_callTelNumber(struct evhttp_request *req, const char *imei
     strncpy(caller, telephone->valuestring, TELNUMBER_LENGTH);
     cJSON_Delete(json);
     LOG_INFO("test call alarm server imei(%s) telNumber(%s) caller(%s)", imeiName, telNumber, caller);
+    db_updateCallNumber(imeiName, caller);
     phone_alarmWithCaller(telNumber, caller);
 
     http_okMsg(req);

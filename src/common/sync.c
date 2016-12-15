@@ -43,7 +43,7 @@ static void sendMsg2Sync(void *data, size_t len)
     {
         LOG_INFO("sync server connection dev null, wait to reconnect");
     }
-    
+
     return;
 }
 
@@ -191,7 +191,8 @@ void sync_newIMEI(const char *imei)
 void sync_callAlarm(const char *imei)
 {
     char telNumber[TELNUMBER_LENGTH + 1] = {0};
-    int rc = db_getTelNumber(imei, telNumber);
+    char callNumber[TELNUMBER_LENGTH + 1] = {0};
+    int rc = db_getTelNumber(imei, telNumber, callNumber);
     if(rc)
     {
         LOG_WARN("No telNumber(%s) in database!",imei);
@@ -202,6 +203,11 @@ void sync_callAlarm(const char *imei)
 
     cJSON_AddNumberToObject(root, TAG_CMD, CMD_SYNC_CALL_ALARM);
     cJSON_AddStringToObject(root, TAG_TELNUMBER, telNumber);
+
+    if(TELNUMBER_LENGTH == strlen(callNumber))
+    {
+        cJSON_AddStringToObject(root, TAG_CALLNUMBER, callNumber);
+    }
 
     char *data = cJSON_PrintUnformatted(root);
 

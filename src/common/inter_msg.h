@@ -22,6 +22,8 @@ enum
 #define TAG_COURSE "COURSE"
 #define TAG_DID "DID"
 #define TAG_TELNUMBER "TELNUMBER"
+#define TAG_CALLNUMBER "CALLNUMBER"
+
 
 #define TAG_CCID "CCID"
 #define TAG_IMSI "IMSI"
