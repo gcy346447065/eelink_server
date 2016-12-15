@@ -44,6 +44,7 @@ int main(int argc, char **argv)
 {
     int simcom_port = PORT_SIMCOM;
     int manager_port = PORT_MANAGER;
+    int http_port = PORT_SIMCOMHTTP;
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -177,9 +178,9 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-    if (evhttp_bind_socket(httpd, "0.0.0.0", 8082) != 0)
+    if (evhttp_bind_socket(httpd, "0.0.0.0", http_port) != 0)
     {
-        LOG_ERROR("bind socket failed at port:%d", 8082);
+        LOG_ERROR("bind socket failed at port:%d", http_port);
         return 1;
     }
 

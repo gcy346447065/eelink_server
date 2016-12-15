@@ -30,16 +30,25 @@ typedef struct
 static void http_wild2App(struct evhttp_request *req, void *arg)
 {
     HTTP_CONNECTION *connection = arg;
+
     evhttp_connection_free(connection->evcon);
-    char post_data[MAX_MSGHTTP_LEN] = {0};
+
+    if(NULL == req)
+    {
+        http_errorReply(connection->req, CODE_SIMCOM_OFF);
+        return;
+    }
+
     switch(req->response_code)
     {
         case HTTP_OK:
         case HTTP_OK+1:
             {
+                char post_data[MAX_MSGHTTP_LEN] = {0};
                 evbuffer_copyout(req->input_buffer,post_data,MAX_MSGHTTP_LEN);
                 LOG_INFO("get the response from simcom:%s", post_data);
-                break;
+                http_postReply(connection->req,post_data);
+                return;
             }
 
         default:
@@ -50,7 +59,6 @@ static void http_wild2App(struct evhttp_request *req, void *arg)
             break;
     }
 
-    http_postReply(connection->req,post_data);
     return;
 }
 
