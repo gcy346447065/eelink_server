@@ -87,25 +87,16 @@ static void simcom_deviceHandler(struct evhttp_request *req)
         return;
     }
 
-    cJSON *param = cJSON_GetObjectItem(json, "param");
-    if(!param)
+    cJSON *cmd = cJSON_GetObjectItem(json, "cmd");
+    if(!cmd)
     {
-        LOG_ERROR("no param in data");
+        LOG_ERROR("no cmd in data");
         cJSON_Delete(json);
         http_errorReply(req, CODE_ERROR_CONTENT);
         return;
     }
 
-    cJSON *action = cJSON_GetObjectItem(json, "action");
-    if(!action)
-    {
-        LOG_ERROR("no action in data");
-        cJSON_Delete(json);
-        http_errorReply(req, CODE_ERROR_CONTENT);
-        return;
-    }
-
-    char *data = cJSON_PrintUnformatted(param);
+    char *data = cJSON_PrintUnformatted(cmd);
     if(!data)
     {
         LOG_ERROR("no memory");
@@ -126,7 +117,6 @@ static void simcom_deviceHandler(struct evhttp_request *req)
         free(data);
         return;
     }
-    msg->action = action->valueint;
     strncpy(msg->data, data, strlen(data));
     free(data);
 
@@ -135,13 +125,13 @@ static void simcom_deviceHandler(struct evhttp_request *req)
 
     request_add(session->request_table, req, session->request_seq);
 
-    //set a timer to response to http if request can't get response from device.
-    struct timeval tv = {4, 5000};// X.005 seconds
     REQ_EVENT *req_event = (REQ_EVENT *)malloc(sizeof(REQ_EVENT));
 
     req_event->request_table = session->request_table;
     req_event->seq = session->request_seq++;
 
+    //set a timer to response to http if request can't get response from device.
+    struct timeval tv = {4, 5000};// X.005 seconds
     timer_newOnce(session->base, &tv, device_timeout_cb, req_event);
 
     return;

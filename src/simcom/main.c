@@ -184,7 +184,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    evhttp_set_timeout(httpd, 4);
+    evhttp_set_timeout(httpd, 5);
     evhttp_set_gencb(httpd, simcom_http_handler, NULL);
 
     //start the event loop
