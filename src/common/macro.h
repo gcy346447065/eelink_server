@@ -14,7 +14,7 @@
 #define OBJECT_ID_LENGTH (24)
 #define MAX_DID_LEN (24)
 #define MAX_PWD_LEN (16)
-#define TELNUMBER_LENGTH (11)
+#define TELNUMBER_LENGTH (12)
 
 #define MAC_MAC_LEN 6
 
