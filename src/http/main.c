@@ -130,13 +130,11 @@ int main(int argc, char *argv[])
      * We just hardcode a single curve which is reasonably decent.
      * See http://www.mail-archive.com/openssl-dev@openssl.org/msg30957.html */
     EC_KEY *ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
-    if (! ecdh)
-      die_most_horribly_from_openssl_error("EC_KEY_new_by_curve_name");
-    if (1 != SSL_CTX_set_tmp_ecdh(ctx, ecdh))
-      die_most_horribly_from_openssl_error("SSL_CTX_set_tmp_ecdh");
+    if (!ecdh)die_most_horribly_from_openssl_error("EC_KEY_new_by_curve_name");
+    if (1 != SSL_CTX_set_tmp_ecdh(ctx, ecdh))die_most_horribly_from_openssl_error("SSL_CTX_set_tmp_ecdh");
     /* Find and set up our server certificate. */
-    const char *certificate_chain = "server-certificate-chain.pem";
-    const char *private_key = "server-private-key.pem";
+    const char *certificate_chain = "./https/1_test.xiaoan110.com_bundle.crt";
+    const char *private_key = "./https/2_test.xiaoan110.com.key";
     http_setup_certs(ctx, certificate_chain, private_key);
     evhttp_set_bevcb (httpd, bevcb, ctx);// This is the magic that lets evhttp use SSL.
 
