@@ -171,11 +171,11 @@ int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
                 break;
 
             case CMD_SYNC_NEW_GPS:
-                msg_saveGPS(root);
+//                msg_saveGPS(root);
                 break;
 
             case CMD_SYNC_NEW_ITINERARY:
-                msg_saveItinerary(root);
+//                msg_saveItinerary(root);
                 break;
 
             case CMD_SYNC_NEW_SIM_INFO:
