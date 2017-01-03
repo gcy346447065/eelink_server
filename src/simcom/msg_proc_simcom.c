@@ -432,7 +432,7 @@ static int simcom_alarm(const void *msg, SESSION *session)
     switch(req->alarmType)
     {
         case ALARM_VIBRATE:
-            db_add_log(obj->IMEI, "move alarm");
+            db_add_log(obj->IMEI, "movealarm");
             sync_callAlarm(obj->IMEI);//send call alarm
             break;
 
@@ -442,6 +442,10 @@ static int simcom_alarm(const void *msg, SESSION *session)
 
         case ALARM_BATTERY30:
             db_add_log(obj->IMEI, "battery30");
+            break;
+
+        case ALARM_BAT_CUT:
+            db_add_log(obj->IMEI, "batterycut");
             break;
     }
 
