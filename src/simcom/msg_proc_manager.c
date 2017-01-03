@@ -841,12 +841,12 @@ static int manager_upgrade(const void *msg, SESSION_MANAGER *sessionManager)
         }
 
         //send fake upgrade start msg
-        unsigned int theLastVersion = getLastVersionWithFileNameAndSizeStored();
-        int theSize = 0;
+        unsigned int theLastVersion = getFirmwarePkgVersion(obj->version);
         if(theLastVersion)
         {
             unsigned int theFakeVersion = theLastVersion + 100;
-            theSize = getLastFileSize();
+
+            int theSize = getFirmwarePkg(obj->version, NULL);
             LOG_INFO("obj->version is %d, theLastVersion is %d, theFakeVersion is %d, theSize is %d", obj->version, theLastVersion, theFakeVersion, theSize);
 
             MSG_UPGRADE_START_REQ *req4simcom = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theFakeVersion, theSize);

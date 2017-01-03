@@ -59,6 +59,7 @@ int db_getLog(void *fun, void *pfn, const char *imeiName);
 int db_updateItinerary(const char *imeiName, long itinerary);
 int db_getItinerary(const char *imeiName);
 int db_getAppPackage(void *action, void *userdata);
+int db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName);
 
 #ifdef __cplusplus
     }

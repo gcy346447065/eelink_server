@@ -1078,6 +1078,49 @@ static int _db_getAppPackage(void *action, void *userdata)
 
 }
 
+
+static int _db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName)
+{
+    int rc = -1;
+    char query[MAX_QUERY] = {0};
+
+    int major = oldVersion>>16 & 0xff;
+    int minor = oldVersion>>8 & 0xff;
+    int micro = oldVersion & 0xff;
+    int maxVersion = (major << 16 | (minor + 1) << 8 | 0);
+
+    LOG_INFO("oldVersion: %d, maxVersion: %d", oldVersion, maxVersion);
+    snprintf(query,MAX_QUERY,
+            "select * from FirmwarePkg where version > %d and version < %d order by version desc limit 1",
+            oldVersion, maxVersion);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+
+    MYSQL_RES *result;
+    MYSQL_ROW row;
+    result = mysql_store_result(conn);
+
+    if(row = mysql_fetch_row(result))
+    {
+        *pLastVersion = atoi(row[0]);
+        strcpy(fileName, row[1]);
+        rc = 0;
+    }
+
+    mysql_free_result(result);
+    return rc;
+}
+
+
 int db_initial(void)
 {
 #ifdef WITH_DB
@@ -1324,6 +1367,15 @@ int db_getAppPackage(void *action, void *userdata)
 {
 #ifdef WITH_DB
     return _db_getAppPackage(action, userdata);
+#else
+    return 0;
+#endif
+}
+
+int db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName)
+{
+#ifdef WITH_DB
+    return _db_getFirmwarePkg(oldVersion, pLastVersion, fileName);
 #else
     return 0;
 #endif

@@ -197,11 +197,18 @@ static int simcom_login(const void *msg, SESSION *session)
     }
 
     //get version, compare the version number; if not, send upgrade start message
-    int theLastVersion = getLastVersionWithFileNameAndSizeStored();
+    int theLastVersion = getFirmwarePkgVersion(obj->version);
+    LOG_INFO("devVersion: %d, theLastVersion: %d", obj->version, theLastVersion);
     int theSize = 0;
     if(theLastVersion)
     {
-        theSize = getLastFileSize();
+        theSize = getFirmwarePkg(obj->version, NULL);
+        if(!theSize)
+        {
+            LOG_ERROR("No appfile in server,obj->version: %d, theLastVersion: %d", obj->version, theLastVersion);
+            return 0;
+        }
+
         LOG_INFO("req->version is %d, theLastVersion is %d, theSize is %d", obj->version, theLastVersion, theSize);
 
         if(ntohl(req->version) < theLastVersion)
@@ -1300,7 +1307,7 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
 
         char data[1024];
         int size;
-        getDataSegmentWithGottenSize(0, data, &size);
+        getDataSliceWithGottenSize(obj->version, 0, data, &size);
 
         MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcomUpgradeDataReq(0, data, size);
         if (!req)
@@ -1349,14 +1356,14 @@ static int simcom_UpgradeData(const void *msg, SESSION *session)
 
     if(ntohl(rsp->size) > 0)
     {
-        unsigned int LastSize = getLastFileSize();
+        unsigned int LastSize = getFirmwarePkg(obj->version, NULL);
         LOG_INFO("rsp->size is %d, LastSize is %d", ntohl(rsp->size), LastSize);
 
         if(ntohl(rsp->size) < LastSize)
         {
             char data[1024];
             int size;
-            getDataSegmentWithGottenSize(ntohl(rsp->size), data, &size);
+            getDataSliceWithGottenSize(obj->version, ntohl(rsp->size), data, &size);
 
             MSG_UPGRADE_DATA_REQ *req = (MSG_UPGRADE_DATA_REQ *)alloc_simcomUpgradeDataReq(ntohl(rsp->size), data, size);
             if (!req)
@@ -1370,7 +1377,7 @@ static int simcom_UpgradeData(const void *msg, SESSION *session)
         {
             LOG_INFO("send upgrade end request");
 
-            int checksum = getLastFileChecksum();
+            int checksum = getLastFileChecksum(obj->version);
 
             MSG_UPGRADE_END_REQ *req4end = (MSG_UPGRADE_END_REQ *)alloc_simcomUpgradeEndReq(checksum, LastSize);
             if (!req4end)
