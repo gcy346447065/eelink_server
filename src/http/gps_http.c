@@ -40,7 +40,7 @@ static void http_getHistoryGPS(struct evhttp_request *req, const char *imeiName,
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -49,7 +49,7 @@ static void http_getHistoryGPS(struct evhttp_request *req, const char *imeiName,
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -61,12 +61,12 @@ static void http_getHistoryGPS(struct evhttp_request *req, const char *imeiName,
     if(rc)
     {
         LOG_WARN("no database gps_%s", imeiName);
-        cJSON_AddNumberToObject(json, "code", 101);
+        cJSON_AddNumberToObject(json, "code", 101);// imei not exists
     }
     else if(num == 0)
     {
         LOG_INFO("%s no data bettween %d and %d", imeiName, starttime, endtime);
-        cJSON_AddNumberToObject(json, "code", 102);
+        cJSON_AddNumberToObject(json, "code", 102);// no content
     }
     else
     {
@@ -76,7 +76,7 @@ static void http_getHistoryGPS(struct evhttp_request *req, const char *imeiName,
     cJSON_Delete(json);
 
     LOG_DEBUG("%s",msg);
-    http_rspMsg(req, msg);
+    http_postReply(req, msg);
 
     free(msg);
     return;
@@ -88,7 +88,7 @@ static void http_getLastGPS(struct evhttp_request *req, const char *imeiName)
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -97,7 +97,7 @@ static void http_getLastGPS(struct evhttp_request *req, const char *imeiName)
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -106,12 +106,12 @@ static void http_getLastGPS(struct evhttp_request *req, const char *imeiName)
     if(rc)
     {
         LOG_WARN("no database gps_%s", imeiName);
-        cJSON_AddNumberToObject(json, "code", 101);
+        cJSON_AddNumberToObject(json, "code", 101);// imei not exists
     }
     else if(num == 0)
     {
         LOG_INFO("there is no data in gps_%s", imeiName);
-        cJSON_AddNumberToObject(json, "code", 102);
+        cJSON_AddNumberToObject(json, "code", 102);// no content
     }
     else
     {
@@ -121,14 +121,14 @@ static void http_getLastGPS(struct evhttp_request *req, const char *imeiName)
     cJSON_Delete(json);
 
     LOG_DEBUG("%s",msg);
-    http_rspMsg(req, msg);
+    http_postReply(req, msg);
 
     free(msg);
     return;
 }
 
 
-void http_replyGPS(struct evhttp_request *req)
+void http_replyGPS(struct evhttp_request *req, struct event_base *base __attribute__((unused)))
 {
     int rc;
     int start = 0, end = 0;
@@ -147,7 +147,7 @@ void http_replyGPS(struct evhttp_request *req)
             rc = sscanf(req->uri, "/v1/history/%15s?start=%d%*s", imei, &start);
             if(rc == 2)
             {
-                end =  start + SECONDS_PER_DAY - (start % SECONDS_PER_DAY);
+                end =  start + 86400 - (start % 86400);
                 http_getHistoryGPS(req, imei, start, end);
                 LOG_FATAL("%s,%d",imei,start);
                 return;
@@ -170,7 +170,7 @@ void http_replyGPS(struct evhttp_request *req)
             break;
     }
 
-    http_errorMsg(req);
+    http_errorReply(req, CODE_INTERNAL_ERROR);
     return;
 }
 

@@ -9,12 +9,16 @@
 #include <stddef.h>
 #include <event2/bufferevent.h>
 
+#include "request_table.h"
+
 typedef void (*MSG_SEND)(struct bufferevent* bev, const void* buf, size_t n);
 
 typedef struct
 {
     struct event_base *base;
     struct bufferevent *bev;
+    GHashTable * request_table;
+    unsigned char request_seq;
 
     void *obj;
     MSG_SEND pSendMsg;

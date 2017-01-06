@@ -31,6 +31,9 @@ SET(SOURCE_FILE
     session_manager.h
     session_manager.c
 
+    http_simcom.c
+    http_simcom.h
+
     version.h
     )
 

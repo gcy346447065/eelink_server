@@ -1,9 +1,6 @@
 SET(SOURCE_FILE
         main.c
 
-        msg_http.c
-        msg_http.h
-
         msg_proc_http.c
         msg_proc_http.h
 
@@ -22,9 +19,6 @@ SET(SOURCE_FILE
         package_http.c
         package_http.h
 
-
-        session_http.c
-        session_http.h
         )
 
 MESSAGE(STATUS "configure Server for http")

@@ -9,7 +9,7 @@
 
 #include <evhttp.h>
 
-void http_replyItinerary(struct evhttp_request *req);
+void http_replyItinerary(struct evhttp_request *req, struct event_base *base __attribute__((unused)));
 
 
 

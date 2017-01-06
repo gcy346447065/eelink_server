@@ -52,6 +52,10 @@ MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER *pMsg)
             msgLen = sizeof(MSG_ALARM_RSP);
             break;
 
+        case CMD_FTPPUT:
+            msgLen = sizeof(MSG_FTPPUT_RSP);
+            break;
+
         default:
             return NULL;
     }
@@ -254,4 +258,18 @@ void *alloc_simcomManagerMsg(int cmd, size_t msgLen)
     return msg;
 }
 
+MSG_HEADER* alloc_device_msg(char cmd, unsigned char seq,size_t length)
+{
+    MSG_HEADER* msg = malloc(length);
+
+    if(msg)
+    {
+        msg->signature = htons(START_FLAG);
+        msg->cmd = cmd;
+        msg->seq = seq;
+        msg->length = htons(length - MSG_HEADER_LEN);
+    }
+
+    return msg;
+}
 

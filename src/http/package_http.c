@@ -30,13 +30,15 @@ typedef struct
     int type;
 }APP_PACKAGE_INFO;
 
-static int save_appPackageInfo(const char *versionName, int versionCode, const char *changeLog, const char *fileName, int type, APP_PACKAGE_INFO *pPackageInfo)
+static int save_appPackageInfo(const char *versionName, int versionCode, const char *changeLog, const char *fileName, int type, void *userdata)
 {
-    strncpy(pPackageInfo->versionName,versionName,MAX_NAME_LEN);
-    strncpy(pPackageInfo->changeLog,changeLog,MAX_LOG_LEN);
-    strncpy(pPackageInfo->fileName,fileName,MAX_NAME_LEN);
-    pPackageInfo->versionCode = versionCode;
-    pPackageInfo->type = type;
+    APP_PACKAGE_INFO *app_packageInfo = userdata;
+
+    strncpy(app_packageInfo->versionName,versionName,MAX_NAME_LEN);
+    strncpy(app_packageInfo->changeLog,changeLog,MAX_LOG_LEN);
+    strncpy(app_packageInfo->fileName,fileName,MAX_NAME_LEN);
+    app_packageInfo->versionCode = versionCode;
+    app_packageInfo->type = type;
     return 0;
 }
 
@@ -47,7 +49,7 @@ static void package_getVersion(struct evhttp_request *req)
     if(db_getAppPackage(save_appPackageInfo, &packageInfo) != 0)
     {
         LOG_ERROR("get app package info error");
-        http_errorMsg(req);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -55,7 +57,7 @@ static void package_getVersion(struct evhttp_request *req)
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -67,7 +69,7 @@ static void package_getVersion(struct evhttp_request *req)
     if(!fp)
     {
         LOG_ERROR("open %s error!", path);
-        http_errorMsg(req);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
     fseek(fp,0L,SEEK_END);
@@ -84,7 +86,7 @@ static void package_getVersion(struct evhttp_request *req)
 
     LOG_DEBUG("%s",msg);
 
-    http_rspMsg(req, msg);
+    http_postReply(req, msg);
     free(msg);
     return;
 }
@@ -110,7 +112,6 @@ static int http_sendPackage(struct evhttp_request * req, const char *filename)
     char readBuf[READ_BUFFER_LEN + 1] = {0};
 
     struct evbuffer *buf = evbuffer_new();
-
     do
     {
         len = fread(readBuf, 1, READ_BUFFER_LEN, fp);
@@ -136,13 +137,13 @@ static void http_getPackage(struct evhttp_request *req)
     if(db_getAppPackage(save_appPackageInfo,&packageInfo) != 0)
     {
         LOG_ERROR("get app package info error");
-        http_errorMsg(req);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
     if(http_sendPackage(req, packageInfo.fileName) != 0)
     {
-        http_errorMsg(req);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
     }
     return;
 }
@@ -168,7 +169,7 @@ void http_replyVersion(struct evhttp_request *req)
             break;
     }
 
-    http_errorMsg(req);
+    http_errorReply(req, CODE_URL_ERR);
     return;
 }
 
@@ -184,7 +185,6 @@ void http_replyPackage(struct evhttp_request *req)
                  return;
             }
             break;
-
         case EVHTTP_REQ_PUT:
         case EVHTTP_REQ_POST:
         case EVHTTP_REQ_DELETE:
@@ -193,7 +193,7 @@ void http_replyPackage(struct evhttp_request *req)
             break;
     }
 
-    http_errorMsg(req);
+    http_errorReply(req, CODE_URL_ERR);
     return;
 }
 

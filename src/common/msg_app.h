@@ -94,5 +94,6 @@ void app_send433Msg2App(int timestamp, int intensity, void * session);
 void app_sendAlarmMsg2App(int type, const char *msg, void *session);
 void app_sendDebugMsg2App(const char *msg, size_t length, void *session);
 void app_sendNotifyMsg2App(int notify, int timestamp, int lock_status, void *session);
+void app_sendFTPPutEndMsg2App(char code, char *fileName, void *session);
 
 #endif /* SRC_MSG_APP_H_ */
