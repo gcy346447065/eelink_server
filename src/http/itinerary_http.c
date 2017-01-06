@@ -158,7 +158,7 @@ void http_replyItinerary(struct evhttp_request *req, struct event_base *base __a
             rc = sscanf(req->uri, "/v1/itinerary/%15s?start=%d%*s", imei, &start);
             if(rc == 2)
             {
-                end =  start + SECONDS_PER_DAY - (start % SECONDS_PER_DAY);
+                end =  start + 86400 - (start % 86400);
                 http_getiItinerary(req, imei, start, end);
                 return;
             }

@@ -155,9 +155,6 @@ void http_replyVersion(struct evhttp_request *req)
     switch(req->type)
     {
         case EVHTTP_REQ_GET:
-        case EVHTTP_REQ_PUT:
-        case EVHTTP_REQ_POST:
-        case EVHTTP_REQ_DELETE:
             {
                 package_getVersion(req);
                 return;
@@ -183,15 +180,11 @@ void http_replyPackage(struct evhttp_request *req)
     switch(req->type)
     {
         case EVHTTP_REQ_GET:
-        case EVHTTP_REQ_PUT:
-        case EVHTTP_REQ_POST:
-        case EVHTTP_REQ_DELETE:
             {
                  http_getPackage(req);
                  return;
             }
             break;
-
         case EVHTTP_REQ_PUT:
         case EVHTTP_REQ_POST:
         case EVHTTP_REQ_DELETE:

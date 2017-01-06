@@ -379,6 +379,33 @@ void app_sendAlarmMsg2App(int type, const char *msg, void *session)
     return;
 }
 
+/* dev2app/<imei>/ftp */
+void app_sendFTPPutEndMsg2App(char code, char *fileName, void *session)
+{
+    OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
+    if (!obj)
+    {
+        LOG_ERROR("obj null, no data to upload");
+        return;
+    }
+    char topic[MAX_TOPIC_LEN];
+    memset(topic, 0, sizeof(topic));
+    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/ftp", obj->IMEI);
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, "code", code);
+    cJSON_AddStringToObject(root, "fileName", fileName);
+    char *json = cJSON_PrintUnformatted(root);
+
+    app_sendMsg2App(topic, json, strlen(json));
+    LOG_INFO("send ftp put end msg to APP, imei(%s), code(%d) file(%s)", obj->IMEI, code, fileName);
+
+    free(json);
+    cJSON_Delete(root);
+
+    return;
+}
+
 /* dev2app/<imei>/debug */
 void app_sendDebugMsg2App(const char *msg, size_t length, void *session)
 {

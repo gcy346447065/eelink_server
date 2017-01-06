@@ -19,7 +19,6 @@
 #include "msg_http.h"
 #include "port.h"
 
-#define MYHTTPD_SIGNATURE   "http v1"
 
 typedef struct
 {

@@ -2198,6 +2198,53 @@ static int simcom_deviceReply(const void *msg, SESSION *session)
     return 0;
 }
 
+static int simcom_ftpPutEnd(const void *msg, SESSION *session)
+{
+    const MSG_FTPPUT_REQ *req = (const MSG_FTPPUT_REQ *)msg;
+    if(!req)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(req->header.length) < sizeof(MSG_FTPPUT_REQ) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("ping message length not enough");
+        return -1;
+    }
+
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = (OBJECT *)session->obj;
+    if(!obj)
+    {
+        LOG_WARN("MC must first login");
+        return -1;
+    }
+    if(req->code == 0)
+    {
+        LOG_INFO("imei(%s) put file(%s) OK", obj->IMEI, req->fileName);
+    }
+    app_sendFTPPutEndMsg2App(req->code, req->fileName, session);
+
+    MSG_FTPPUT_RSP *rsp = alloc_simcom_rspMsg((const MSG_FTPPUT_RSP *)msg);
+    if(rsp)
+    {
+        simcom_sendMsg(rsp, sizeof(MSG_FTPPUT_RSP), session);
+        LOG_INFO("send ftp put end rsp");
+    }
+    else
+    {
+        free(rsp);
+        LOG_ERROR("insufficient memory");
+        return -1;
+    }
+    return 0;
+}
+
 static MSG_PROC_MAP msgProcs[] =
 {
     {CMD_WILD,              simcom_wild},
@@ -2237,7 +2284,8 @@ static MSG_PROC_MAP msgProcs[] =
     {CMD_GET_BATTERY,       simcom_getBattery},
     {CMD_GET_AT,            simcom_getAT},
     {CMD_SET_BATTERY_TYPE,  simcom_batteryType},
-    {CMD_DEVICE,            simcom_deviceReply}
+    {CMD_DEVICE,            simcom_deviceReply},
+    {CMD_FTPPUT,            simcom_ftpPutEnd}
 };
 
 static int handle_one_msg(const void *m, SESSION *ctx)

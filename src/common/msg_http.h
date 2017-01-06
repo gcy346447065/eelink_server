@@ -29,6 +29,8 @@ enum
     CODE_DEVICE_OFF         = 109,
 };
 
+#define MYHTTPD_SIGNATURE   "http v1"
+
 #define MAX_MSGHTTP_LEN 256
 #define MAX_ERRCODE_LEN 32
 

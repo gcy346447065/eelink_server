@@ -52,6 +52,10 @@ MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER *pMsg)
             msgLen = sizeof(MSG_ALARM_RSP);
             break;
 
+        case CMD_FTPPUT:
+            msgLen = sizeof(MSG_FTPPUT_RSP);
+            break;
+
         default:
             return NULL;
     }
