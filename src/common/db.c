@@ -120,6 +120,22 @@ static int _db_initial()
             return 2;
         }
 
+        /* creat table FirmwarePkg if not exists */
+        snprintf(query, MAX_QUERY, "create table if not exists FirmwarePkg(version bigint not null primary key, \
+        fileName varchar(128) not null)");
+
+        if(mysql_ping(conn))
+        {
+            LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+            return 1;
+        }
+
+        if(mysql_query(conn, query))
+        {
+            LOG_ERROR("can't creat table FirmwarePkg(%u, %s)", mysql_errno(conn), mysql_error(conn));
+            return 2;
+        }
+
         /* creat table AppPackage if not exists */
         snprintf(query, MAX_QUERY, "create table if not exists AppPackage(id bigint not null primary key auto_increment, \
         versionName varchar(32) not null, \
@@ -136,7 +152,7 @@ static int _db_initial()
 
         if(mysql_query(conn, query))
         {
-            LOG_ERROR("can't creat table imei2Telnumber(%u, %s)", mysql_errno(conn), mysql_error(conn));
+            LOG_ERROR("can't creat table AppPackage(%u, %s)", mysql_errno(conn), mysql_error(conn));
             return 2;
         }
 
