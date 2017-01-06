@@ -1140,6 +1140,10 @@ static int _db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName)
         strcpy(fileName, row[1]);
         rc = 0;
     }
+    else
+    {
+        rc = -1;
+    }
 
     mysql_free_result(result);
     return rc;
