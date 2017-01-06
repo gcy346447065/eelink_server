@@ -380,7 +380,7 @@ void app_sendAlarmMsg2App(int type, const char *msg, void *session)
 }
 
 /* dev2app/<imei>/ftp */
-void app_sendFTPPutEndMsg2App(char code, char *fileName, void *session)
+void app_sendFTPPutEndMsg2App(int notify, char *fileName, void *session)
 {
     OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
     if (!obj)
@@ -390,11 +390,20 @@ void app_sendFTPPutEndMsg2App(char code, char *fileName, void *session)
     }
     char topic[MAX_TOPIC_LEN];
     memset(topic, 0, sizeof(topic));
-    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/ftp", obj->IMEI);
+    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/notify", obj->IMEI);
+
+    char topic[MAX_TOPIC_LEN];
+    memset(topic, 0, sizeof(topic));
+    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/notify", obj->IMEI);
 
     cJSON *root = cJSON_CreateObject();
-    cJSON_AddNumberToObject(root, "code", code);
-    cJSON_AddStringToObject(root, "fileName", fileName);
+    cJSON_AddNumberToObject(root, "notify", notify);
+
+    cJSON *data = cJSON_CreateObject();
+    cJSON_AddNumberToObject(data, "fileName", fileName);
+
+    cJSON_AddItemToObject(root, "data", data);
+
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
