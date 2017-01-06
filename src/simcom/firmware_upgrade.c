@@ -18,81 +18,78 @@
 #include "macro.h"
 #include "log.h"
 
-static char LastFileName[256];
-static int LastFileSize = 0;
-
-int getLastVersionWithFileNameAndSizeStored(void)
+/*
+*function getFirmwarePkgVersion: get the last app version
+*param:version input
+*return:Lastversion
+*/
+int getFirmwarePkgVersion(int version)
 {
-    DIR *dir_handle;
-    struct dirent *ptr;
-    int a = 0, b = 0, c = 0, NowVersion = 0, LastVersion = 0;
+    int Lastversion = 0;
+    char firmwarePkg[128] = {0};// no use, just Intermediate variable
 
-    dir_handle = opendir("./firmware/");
-    if(!dir_handle)
+    if(0 != db_getFirmwarePkg(version, &Lastversion, firmwarePkg))
     {
+        LOG_INFO("No Firmware Package in Database");
         return 0;
     }
 
-    while(ptr = readdir(dir_handle))
+    return Lastversion;
+}
+
+
+/*
+*function getFirmwarePkgSize: get the last app filesize
+*param:version input, LastFileNamewithPath output no use as NULL
+*return: filesize
+*/
+int getFirmwarePkg(int version, char *LastFileNamewithPath)
+{
+    struct stat buf;
+    int LastVersion = 0;
+    char firmwarePkg[128] = {0};
+
+    if(0 != db_getFirmwarePkg(version, &LastVersion, firmwarePkg))
     {
-        if(ptr->d_type == 8 && sscanf(ptr->d_name, "app_%d.%d.%d", &a, &b, &c) == 3)//d_type == 8 means file
-        {
-            NowVersion = (a << 16 | b << 8 | c);
-            //NowVersion = a *100 + b *10 + c;
-
-            if(NowVersion > LastVersion)
-            {
-                //LOG_INFO("a is %d, b is %d, c is %d", a, b, c);
-
-                LastVersion = NowVersion;
-
-                memset(LastFileName, 0, 256);
-                sprintf(LastFileName, "./firmware/%s", ptr->d_name);
-            }
-        }
+        LOG_INFO("No Firmware Package in Database");
+        return 0;
     }
 
-    if(LastVersion != 0)
+    if(LastFileNamewithPath)
     {
-        LOG_INFO("LastFileName is %s, LastVersion is %d", LastFileName, LastVersion);
-
-        struct stat buf;
-        if(stat(LastFileName, &buf) < 0)
+        snprintf(LastFileNamewithPath, 256, "./firmware/%s", firmwarePkg);
+        if(stat(LastFileNamewithPath, &buf) < 0)
         {
             LOG_ERROR("stat errno is %d", errno);
             return 0;
         }
-
-        LastFileSize = (int)buf.st_size;
-
-        LOG_INFO("LastFileSize is %d", LastFileSize);
-    }
-
-    closedir(dir_handle);
-    return LastVersion;
-}
-
-int getLastFileSize(void)
-{
-    if(LastFileSize > 0)
-    {
-        return LastFileSize;
     }
     else
     {
-        return 0;
+        char FileNamewithPath[256] = {0};
+        snprintf(FileNamewithPath, 256, "./firmware/%s", firmwarePkg);
+        if(stat(FileNamewithPath, &buf) < 0)
+        {
+            LOG_ERROR("stat errno is %d", errno);
+            return 0;
+        }
     }
+
+    return buf.st_size;
 }
 
-int getDataSegmentWithGottenSize(int gottenSize, char *data, int *pSendSize)
+int getDataSliceWithGottenSize(int version, int gottenSize, char *data, int *pSendSize)
 {
-    if(gottenSize < LastFileSize)
+    char LastFileNamewithPath[256] = {0};
+    int filesize = getFirmwarePkg(version, LastFileNamewithPath);
+
+    if(gottenSize < filesize)
     {
-        int delta = LastFileSize - gottenSize;
+        int delta = filesize - gottenSize;
         if(delta >= FIRMWARE_SEGMENT_SIZE)
         {
             //send FIRMWARE_SEGMENT_SIZE
-            int fd = open(LastFileName, O_RDONLY);
+            int fd = open(LastFileNamewithPath, O_RDONLY);
             lseek(fd, gottenSize, SEEK_SET);
             int sendSize = read(fd, data, FIRMWARE_SEGMENT_SIZE);
             close(fd);
@@ -113,7 +110,7 @@ int getDataSegmentWithGottenSize(int gottenSize, char *data, int *pSendSize)
         else
         {
             //send delta
-            int fd = open(LastFileName, O_RDONLY);
+            int fd = open(LastFileNamewithPath, O_RDONLY);
             lseek(fd, gottenSize, SEEK_SET);
             int sendSize = read(fd, data, delta);
             close(fd);
@@ -132,7 +129,7 @@ int getDataSegmentWithGottenSize(int gottenSize, char *data, int *pSendSize)
             }
         }
     }
-    else if(gottenSize == LastFileSize)
+    else if(gottenSize == filesize)
     {
         LOG_INFO("gottenSize == LastFileSize, upgrade ok");
     }
@@ -145,16 +142,20 @@ int getDataSegmentWithGottenSize(int gottenSize, char *data, int *pSendSize)
     return 0;
 }
 
-int getLastFileChecksum(void)
+int getLastFileChecksum(int version)
 {
+    char LastFileNamewithPath[256] = {0};
+    int LastFileSize = getFirmwarePkg(version, LastFileNamewithPath);
+
     unsigned char *data = malloc(LastFileSize);
-    int fd = open(LastFileName, O_RDONLY);
+    int fd = open(LastFileNamewithPath, O_RDONLY);
     int readSize = read(fd, data, LastFileSize);
 
     int checksum = adler32(data, readSize);
 
     LOG_INFO("readSize is %d, LastFileSize is %d, checksum is %d", readSize, LastFileSize, checksum);
-    //LOG_HEX(data, readSize);
 
     return checksum;
 }
+
+

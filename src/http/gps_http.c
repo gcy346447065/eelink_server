@@ -147,7 +147,7 @@ void http_replyGPS(struct evhttp_request *req, struct event_base *base __attribu
             rc = sscanf(req->uri, "/v1/history/%15s?start=%d%*s", imei, &start);
             if(rc == 2)
             {
-                end =  start + 86400 - (start % 86400);
+                end =  start + SECONDS_PER_DAY - (start % SECONDS_PER_DAY);
                 http_getHistoryGPS(req, imei, start, end);
                 LOG_FATAL("%s,%d",imei,start);
                 return;

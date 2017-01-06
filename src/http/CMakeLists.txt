@@ -15,6 +15,10 @@ SET(SOURCE_FILE
 
         telephone_http.c
         telephone_http.h
+
+        package_http.c
+        package_http.h
+
         )
 
 MESSAGE(STATUS "configure Server for http")

@@ -9,6 +9,7 @@
 
 #include "gps_http.h"
 #include "device_http.h"
+#include "package_http.h"
 #include "itinerary_http.h"
 #include "telephone_http.h"
 
@@ -28,6 +29,8 @@ static MSG_PROC_MAP msgProcs[] =
 	{"/v1/telephone",   http_replyTelephone},
 	{"/v1/test",        http_replyCall},
 	{"/v1/device",      http_deviceHandler},
+	{"/v1/package",     http_replyPackage},
+    {"/v1/version",     http_replyVersion},
 };
 
 void httpd_handler(struct evhttp_request *req, void *arg)

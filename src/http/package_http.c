@@ -44,19 +44,12 @@ static int save_appPackageInfo(const char *versionName, int versionCode, const c
 
 static void package_getVersion(struct evhttp_request *req)
 {
-    APP_PACKAGE_INFO *app_packageInfo = (APP_PACKAGE_INFO *)malloc(sizeof(APP_PACKAGE_INFO));
-    if(!app_packageInfo)
-    {
-        LOG_ERROR("failed to alloc memory");
-        http_errorReply(req);
-        return;
-    }
+    APP_PACKAGE_INFO packageInfo;
 
-    if(db_getAppPackage(save_appPackageInfo,app_packageInfo) != 0)
+    if(db_getAppPackage(save_appPackageInfo, &packageInfo) != 0)
     {
         LOG_ERROR("get app package info error");
-        http_errorReply(req);
-        free(app_packageInfo);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -64,14 +57,29 @@ static void package_getVersion(struct evhttp_request *req)
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorReply(req);
-        free(app_packageInfo);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
-    cJSON_AddStringToObject(json, "versionName", app_packageInfo->versionName);
-    cJSON_AddStringToObject(json, "versionCode", app_packageInfo->versionCode);
-    cJSON_AddStringToObject(json, "changelog", app_packageInfo->changeLog);
+    char path[MAX_PATH_LEN] = "./app/";
+
+    strcat(path,packageInfo.fileName);
+
+    FILE *fp = fopen(path,"r");
+    if(!fp)
+    {
+        LOG_ERROR("open %s error!", path);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
+        return;
+    }
+    fseek(fp,0L,SEEK_END);
+    int packageSize=ftell(fp);
+    fclose(fp);
+
+    cJSON_AddStringToObject(json, "versionName", packageInfo.versionName);
+    cJSON_AddNumberToObject(json, "versionCode", packageInfo.versionCode);
+    cJSON_AddStringToObject(json, "changelog", packageInfo.changeLog);
+    cJSON_AddNumberToObject(json, "packageSize", packageSize);
 
     char *msg = cJSON_PrintUnformatted(json);
     cJSON_Delete(json);
@@ -79,42 +87,25 @@ static void package_getVersion(struct evhttp_request *req)
     LOG_DEBUG("%s",msg);
 
     http_postReply(req, msg);
-    free(app_packageInfo);
     free(msg);
     return;
 }
 
-
-static void http_getPackage(struct evhttp_request *req)
+static int http_sendPackage(struct evhttp_request * req, const char *filename)
 {
-    APP_PACKAGE_INFO *app_packageInfo = (APP_PACKAGE_INFO *)malloc(sizeof(APP_PACKAGE_INFO));
-    if(!app_packageInfo)
-    {
-        LOG_ERROR("failed to alloc memory");
-        http_errorReply(req);
-        return;
-    }
-
-    if(db_getAppPackage(save_appPackageInfo,app_packageInfo) != 0)
-    {
-        LOG_ERROR("get app package info error");
-        http_errorReply(req);
-        free(app_packageInfo);
-        return;
-    }
-
-    evhttp_add_header(req->output_headers, "Server", "http v1");
+    evhttp_add_header(req->output_headers, "Server", MYHTTPD_SIGNATURE);
     evhttp_add_header(req->output_headers, "Content-Type", "application/vnd.android.package-archive");
     evhttp_send_reply_start(req, HTTP_OK, "OK");
 
     char path[MAX_PATH_LEN] = "./app/";
 
-    strcat(path,app_packageInfo->fileName);
+    strcat(path,filename);
 
     FILE *fp = fopen(path,"r");
     if(!fp)
     {
         LOG_ERROR("open %s error!", path);
+        return 1;
     }
 
     size_t readLen = 0, len = 0;
@@ -128,22 +119,38 @@ static void http_getPackage(struct evhttp_request *req)
         readLen += len;
         fseek(fp, readLen, SEEK_SET);
     }while(len >= READ_BUFFER_LEN);
+
     fclose(fp);
 
     evhttp_send_reply_chunk(req,buf);
     evbuffer_free(buf);
 
+    evhttp_add_header(req->output_headers, "Connection", "close");
     evhttp_send_reply_end(req);
-    free(app_packageInfo);
+    return 0;
+}
+
+static void http_getPackage(struct evhttp_request *req)
+{
+    APP_PACKAGE_INFO packageInfo;
+
+    if(db_getAppPackage(save_appPackageInfo,&packageInfo) != 0)
+    {
+        LOG_ERROR("get app package info error");
+        http_errorReply(req, CODE_INTERNAL_ERROR);
+        return;
+    }
+
+    if(http_sendPackage(req, packageInfo.fileName) != 0)
+    {
+        http_errorReply(req, CODE_INTERNAL_ERROR);
+    }
     return;
 }
 
 
 void http_replyVersion(struct evhttp_request *req)
 {
-    int rc;
-    char telNumber[TELNUMBER_LENGTH + 1] = {0};
-
     LOG_INFO("%s",req->uri);
     switch(req->type)
     {
@@ -157,21 +164,21 @@ void http_replyVersion(struct evhttp_request *req)
             }
             break;
 
+        case EVHTTP_REQ_PUT:
+        case EVHTTP_REQ_POST:
+        case EVHTTP_REQ_DELETE:
         default:
             LOG_ERROR("unkown http type: %d",req->type);
             break;
     }
 
-    http_errorReply(req);
+    http_errorReply(req, CODE_URL_ERR);
     return;
 }
 
 
 void http_replyPackage(struct evhttp_request *req)
 {
-    int rc;
-    char telNumber[TELNUMBER_LENGTH + 1] = {0};
-
     LOG_INFO("%s",req->uri);
     switch(req->type)
     {
@@ -185,12 +192,15 @@ void http_replyPackage(struct evhttp_request *req)
             }
             break;
 
+        case EVHTTP_REQ_PUT:
+        case EVHTTP_REQ_POST:
+        case EVHTTP_REQ_DELETE:
         default:
             LOG_ERROR("unkown http type: %d",req->type);
             break;
     }
 
-    http_errorReply(req);
+    http_errorReply(req, CODE_URL_ERR);
     return;
 }
 

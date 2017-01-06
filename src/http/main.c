@@ -68,17 +68,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-    struct event *evTerm = evsignal_new(base, SIGTERM, (event_callback_fn)signal_handler, base);
-    if (!evTerm || evsignal_add(evTerm, NULL) < 0)
-    {
-        LOG_ERROR("can't create SIGTERM event");
-    }
-
-    struct event *evInt = evsignal_new(base, SIGINT, (event_callback_fn)signal_handler, base);
-    if (!evInt || evsignal_add(evInt, NULL) < 0)
-    {
-        LOG_ERROR("can't create SIGINT event");
-    }
+    signal(SIGTERM, signal_handler);
+    signal(SIGINT, signal_handler);
 
 	struct evhttp *httpd = evhttp_new(base);
 	if (!httpd) {
