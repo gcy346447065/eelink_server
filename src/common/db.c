@@ -1051,6 +1051,7 @@ static int _db_getAppPackage(void *action, void *userdata)
     GET_APP_PACKAGE_PROC fun = action;
     int itinerary = 0;
     char query[MAX_QUERY] = {0};
+    int rc = 0;
     snprintf(query,MAX_QUERY,"select * from AppPackage order by id desc limit 1");
     if(mysql_ping(conn))
     {
@@ -1072,9 +1073,13 @@ static int _db_getAppPackage(void *action, void *userdata)
     {
         fun(row[1], atoi(row[2]), row[3], row[4], atoi(row[5]), userdata);
     }
+    else
+    {
+        rc = -1;
+    }
 
     mysql_free_result(result);
-    return 0;
+    return rc;
 
 }
 
