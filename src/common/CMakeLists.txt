@@ -46,6 +46,9 @@ SET(SOURCE_FILE
 
     phone_alarm.h
     phone_alarm.c
+
+    msg_http.h
+    msg_http.c
 )
 
 MESSAGE(STATUS "configure common library")

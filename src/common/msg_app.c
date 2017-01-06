@@ -388,9 +388,6 @@ void app_sendFTPPutEndMsg2App(int notify, char *fileName, void *session)
         LOG_ERROR("obj null, no data to upload");
         return;
     }
-    char topic[MAX_TOPIC_LEN];
-    memset(topic, 0, sizeof(topic));
-    snprintf(topic, MAX_TOPIC_LEN, "dev2app/%s/notify", obj->IMEI);
 
     char topic[MAX_TOPIC_LEN];
     memset(topic, 0, sizeof(topic));
@@ -400,14 +397,14 @@ void app_sendFTPPutEndMsg2App(int notify, char *fileName, void *session)
     cJSON_AddNumberToObject(root, "notify", notify);
 
     cJSON *data = cJSON_CreateObject();
-    cJSON_AddNumberToObject(data, "fileName", fileName);
+    cJSON_AddStringToObject(data, "fileName", fileName);
 
     cJSON_AddItemToObject(root, "data", data);
 
     char *json = cJSON_PrintUnformatted(root);
 
     app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send ftp put end msg to APP, imei(%s), code(%d) file(%s)", obj->IMEI, code, fileName);
+    LOG_INFO("send ftp put end msg to APP, imei(%s), code(%d) file(%s)", obj->IMEI, fileName);
 
     free(json);
     cJSON_Delete(root);
