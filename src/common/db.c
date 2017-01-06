@@ -120,6 +120,26 @@ static int _db_initial()
             return 2;
         }
 
+        /* creat table AppPackage if not exists */
+        snprintf(query, MAX_QUERY, "create table if not exists AppPackage(id bigint not null primary key auto_increment, \
+        versionName varchar(32) not null, \
+        versionCode bigint default 0, \
+        changeLog varchar(256), \
+        fileName varchar(32), \
+        type int default 0)");
+
+        if(mysql_ping(conn))
+        {
+            LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+            return 1;
+        }
+
+        if(mysql_query(conn, query))
+        {
+            LOG_ERROR("can't creat table imei2Telnumber(%u, %s)", mysql_errno(conn), mysql_error(conn));
+            return 2;
+        }
+
         /* creat table log if not exists */
         snprintf(query, MAX_QUERY, "create table if not exists log(time timestamp default CURRENT_TIMESTAMP, \
                                     imei char(15) not null,  \
