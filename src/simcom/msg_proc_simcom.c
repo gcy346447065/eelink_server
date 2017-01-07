@@ -181,7 +181,6 @@ static int simcom_login(const void *msg, SESSION *session)
     }
     else
     {
-        free(rsp);
         LOG_ERROR("insufficient memory");
         return -1;
     }
@@ -471,7 +470,6 @@ static int simcom_alarm(const void *msg, SESSION *session)
     }
     else
     {
-        free(rsp);
         LOG_ERROR("insufficient memory");
         return -1;
     }
@@ -519,7 +517,6 @@ static int simcom_sms(const void *msg , SESSION *session)
     }
     else
     {
-        free(rsp);
         LOG_ERROR("insufficient memory");
         return -1;
     }
@@ -1042,7 +1039,6 @@ static int simcom_itinerary(const void *msg, SESSION *session)
     }
     else
     {
-        free(rsp);
         LOG_ERROR("insufficient memory");
         return -1;
     }
@@ -1315,6 +1311,7 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
         if (!req)
         {
             LOG_FATAL("insufficient memory");
+            return -1;
         }
 
         simcom_sendMsg(req, sizeof(MSG_UPGRADE_DATA_REQ) + size, session);
@@ -1385,6 +1382,7 @@ static int simcom_UpgradeData(const void *msg, SESSION *session)
             if (!req4end)
             {
                 LOG_FATAL("insufficient memory");
+                return -1;
             }
 
             simcom_sendMsg(req4end, sizeof(MSG_UPGRADE_END_REQ), session);
@@ -1498,7 +1496,6 @@ static int simcom_SimInfo(const void *msg, SESSION *session)
     }
     else
     {
-        free(rsp);
         LOG_ERROR("insufficient memory");
         return -1;
     }
@@ -2243,7 +2240,6 @@ static int simcom_ftpPutEnd(const void *msg, SESSION *session)
     }
     else
     {
-        free(rsp);
         LOG_ERROR("insufficient memory");
         return -1;
     }

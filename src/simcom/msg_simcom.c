@@ -61,11 +61,13 @@ MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER *pMsg)
     }
 
     MSG_HEADER* msg = malloc(msgLen);
-
-    msg->signature = htons(START_FLAG);
-    msg->cmd = pMsg->cmd;
-    msg->seq = pMsg->seq;
-    msg->length = htons(msgLen - MSG_HEADER_LEN);
+    if(msg)
+    {
+        msg->signature = htons(START_FLAG);
+        msg->cmd = pMsg->cmd;
+        msg->seq = pMsg->seq;
+        msg->length = htons(msgLen - MSG_HEADER_LEN);
+    }
 
     return msg;
 }
@@ -237,11 +239,13 @@ void *alloc_simcomManagerReq(int cmd)
     }
 
     MSG_HEADER *msg = malloc(msgLen);
-
-    msg->signature = htons(START_FLAG);
-    msg->cmd = cmd;
-    msg->seq = seq++;
-    msg->length = htons(msgLen - MSG_HEADER_LEN);
+    if(msg)
+    {
+        msg->signature = htons(START_FLAG);
+        msg->cmd = cmd;
+        msg->seq = seq++;
+        msg->length = htons(msgLen - MSG_HEADER_LEN);
+    }
 
     return msg;
 }
