@@ -402,13 +402,12 @@ void app_sendFTPPutEndMsg2App(int notify, char *fileName, void *session)
     cJSON_AddItemToObject(root, "data", data);
 
     char *json = cJSON_PrintUnformatted(root);
-
-    app_sendMsg2App(topic, json, strlen(json));
-    LOG_INFO("send ftp put end msg to APP, imei(%s), code(%d) file(%s)", obj->IMEI, fileName);
-
-    free(json);
     cJSON_Delete(root);
 
+    LOG_INFO("send ftp put end msg to APP, imei(%s), file(%s)", obj->IMEI, fileName);
+
+    app_sendMsg2App(topic, json, strlen(json));
+    free(json);
     return;
 }
 

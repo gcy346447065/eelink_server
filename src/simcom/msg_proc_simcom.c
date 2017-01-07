@@ -2235,7 +2235,7 @@ static int simcom_ftpPutEnd(const void *msg, SESSION *session)
 
     app_sendFTPPutEndMsg2App(NOTIFY_FTPPUT, req->fileName, session);
 
-    MSG_FTPPUT_RSP *rsp = alloc_simcom_rspMsg((const MSG_FTPPUT_RSP *)msg);
+    MSG_FTPPUT_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
     if(rsp)
     {
         simcom_sendMsg(rsp, sizeof(MSG_FTPPUT_RSP), session);
