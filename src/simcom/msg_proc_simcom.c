@@ -2224,13 +2224,13 @@ static int simcom_ftpPutEnd(const void *msg, SESSION *session)
     if(req->code == 0)
     {
         LOG_INFO("imei(%s) put file(%s) OK", obj->IMEI, req->fileName);
+        app_sendFTPPutEndMsg2App(NOTIFY_FTPPUT, req->fileName, session);
     }
     else
     {
         LOG_ERROR("imei(%s) put file(%s) error: %d", obj->IMEI, req->fileName, req->code);
     }
 
-    app_sendFTPPutEndMsg2App(NOTIFY_FTPPUT, req->fileName, session);
 
     MSG_FTPPUT_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
     if(rsp)
