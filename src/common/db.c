@@ -106,7 +106,8 @@ static int _db_initial()
 
         /* creat table imei2objectID if not exists */
         snprintf(query, MAX_QUERY, "create table if not exists imei2Telnumber(imei char(15) not null primary key, \
-                                    Telnumber char(11) not null)");
+        Telnumber char(11) not null, \
+        CallNumber varchar(12))");
 
         if(mysql_ping(conn))
         {
