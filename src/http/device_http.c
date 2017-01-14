@@ -14,7 +14,7 @@
 #include "cJSON.h"
 #include "device_http.h"
 
-#define SIMCOM_URL "http://test.xiaoan110.com"
+#define SIMCOM_URL "http://localhost"
 #define SIMCOM_HTTPPORT ":8082"
 #define SIMCOM_URI "/v1/device"
 
