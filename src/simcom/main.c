@@ -21,6 +21,7 @@
 #include "session.h"
 #include "session_manager.h"
 #include "http_simcom.h"
+#include "redis.h"
 
 static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
@@ -115,12 +116,12 @@ int main(int argc, char **argv)
 
     mqtt_initial(&mqtt_arg);
 
-//    rc = yunba_connect();
-//    if (rc)
-//    {
-//    	LOG_FATAL("connect to yunba failed");
-//    	return -1;
-//    }
+    rc = redis_initial();
+    if (rc)
+    {
+    	LOG_ERROR("connect to redis failed");
+    	return -1;
+    }
 
     rc = curl_global_init(CURL_GLOBAL_DEFAULT);
     if (rc != CURLE_OK)

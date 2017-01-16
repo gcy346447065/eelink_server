@@ -7,6 +7,7 @@
 #include "session.h"
 #include "log.h"
 #include "object.h"
+#include "redis.h"
 
 static GHashTable *session_table = NULL;
 
@@ -35,6 +36,7 @@ int session_add(SESSION *session)
 
     g_hash_table_insert(session_table, session->bev, session);
     LOG_INFO("session(%s) added", t_obj->IMEI);
+    redis_AddDevice(t_obj->IMEI);
     return 0;
 }
 
@@ -60,6 +62,7 @@ int session_del(SESSION *session)
     }
     g_hash_table_remove(session_table, (gconstpointer)(session->bev));
     LOG_INFO("session(%s) deleted", t_obj->IMEI);
+    redis_DelDevice(t_obj->IMEI);
     return 0;
 }
 
