@@ -30,7 +30,7 @@ int redis_initial(void)
 }
 
 /*
-* func:add device server from redis
+* func:add device server from redis, if exists, this action will cover it
 * param: imei [IN]
 */
 int redis_AddDevice(const char *imei)
