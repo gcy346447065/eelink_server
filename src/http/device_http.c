@@ -20,6 +20,7 @@
 static void http_deviceTransfer(struct evhttp_request *req, struct event_base *base)
 {
     char url[64] = {0};
+    char hostNamewithPort[64] = {0};
     char IMEI[15 + 1] = {0};
     char post_data[MAX_MSGHTTP_LEN] = {0};
 
@@ -46,7 +47,7 @@ static void http_deviceTransfer(struct evhttp_request *req, struct event_base *b
     strncpy(IMEI, imei->valuestring, 15);
     cJSON_Delete(root);
 
-    int rc = redis_getDeviceServer(IMEI, url);
+    int rc = redis_getDeviceServer(IMEI, hostNamewithPort);
     if(rc)
     {
         LOG_INFO("device(%s) offline", IMEI);
@@ -54,7 +55,7 @@ static void http_deviceTransfer(struct evhttp_request *req, struct event_base *b
     }
     else
     {
-        strcat(url, DEVICE_URI);
+        snprintf(url, 64, "http://%s%s", hostNamewithPort, DEVICE_URI);
         LOG_INFO("get url: %s", url);
         http_sendData(base,req, url, post_data);
     }
