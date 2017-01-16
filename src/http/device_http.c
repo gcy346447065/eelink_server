@@ -19,9 +19,9 @@
 
 static void http_deviceTransfer(struct evhttp_request *req, struct event_base *base)
 {
-    char url[64] = {0};
-    char hostNamewithPort[64] = {0};
-    char IMEI[15 + 1] = {0};
+    char url[MAX_URL_LEN] = {0};
+    char hostNamewithPort[MAX_URL_LEN] = {0};
+    char IMEI[MAX_IMEI_LEN + 1] = {0};
     char post_data[MAX_MSGHTTP_LEN] = {0};
 
     evbuffer_copyout(req->input_buffer,post_data,MAX_MSGHTTP_LEN);
@@ -44,7 +44,7 @@ static void http_deviceTransfer(struct evhttp_request *req, struct event_base *b
         return;
     }
 
-    strncpy(IMEI, imei->valuestring, 15);
+    strncpy(IMEI, imei->valuestring, MAX_IMEI_LEN);
     cJSON_Delete(root);
 
     int rc = redis_getDeviceServer(IMEI, hostNamewithPort);
@@ -55,7 +55,7 @@ static void http_deviceTransfer(struct evhttp_request *req, struct event_base *b
     }
     else
     {
-        snprintf(url, 64, "http://%s%s", hostNamewithPort, DEVICE_URI);
+        snprintf(url, MAX_URL_LEN, "http://%s%s", hostNamewithPort, DEVICE_URI);
         LOG_INFO("get url: %s", url);
         http_sendData(base,req, url, post_data);
     }

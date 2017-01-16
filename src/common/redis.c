@@ -8,6 +8,10 @@
 
 static redisContext *c = NULL;
 
+/*
+* func:connect redis server
+* return: if success return SUCCESS, else return -1
+*/
 int redis_initial(void)
 {
     struct timeval timeout = { 1, 500000 }; // 1.5 seconds
@@ -25,6 +29,10 @@ int redis_initial(void)
     return 0;
 }
 
+/*
+* func:add device server from redis
+* param: imei [IN]
+*/
 int redis_AddDevice(const char *imei)
 {
     redisReply *reply;
@@ -40,6 +48,10 @@ int redis_AddDevice(const char *imei)
     return 0;
 }
 
+/*
+* func:delete device server from redis
+* param: imei [IN]
+*/
 int redis_DelDevice(const char *imei)
 {
     redisReply *reply;
@@ -55,6 +67,11 @@ int redis_DelDevice(const char *imei)
     return 0;
 }
 
+/*
+* func:get device server from redis
+* param: imei [IN], hostNamewithPort [OUT]
+* return: if exist return SUCCESS, else return -1
+*/
 int redis_getDeviceServer(const char *imei, char *hostNamewithPort)
 {
     redisReply *reply;
