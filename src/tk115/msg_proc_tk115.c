@@ -29,7 +29,7 @@ int msg_send(void *msg, size_t len, SESSION *ctx)
     {
         return -1;
     }
-    
+
     MSG_SEND pfn = ctx->pSendMsg;
     if (!pfn)
     {
@@ -151,7 +151,7 @@ int tk115_gps(const void *msg, SESSION *ctx)
 		app_sendGpsMsg2App(ctx);
 		return 0;
 	}
-	
+
 	//problem about double equal
 	if (obj->lat == t_lat
 		&& obj->lon == t_lon
@@ -250,7 +250,7 @@ int tk115_alarm(const void *msg, SESSION *ctx)
     jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, 0);
 
     //add alarm log in db
-    db_add_log(obj->IMEI, "alarm");
+    db_add_log(obj->IMEI, DEVICE_ALARM_MOVE);
 
 	return 0;
 }

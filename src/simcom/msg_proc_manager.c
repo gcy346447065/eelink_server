@@ -49,44 +49,6 @@ static int manager_sendMsg(void *msg, size_t len, SESSION_MANAGER *sessionManage
     return 0;
 }
 
-int manager_sendImeiData(const void *msg, SESSION_MANAGER *sessionManager, const char *imei, SESSION *deviceSession, int timestamp, float lon, float lat, char speed, short course)
-{
-    char online_offline;
-    if(deviceSession == NULL)
-    {
-        online_offline = 2; //offline
-    }
-    else
-    {
-        online_offline = 1; //online
-    }
-
-    LOG_INFO("manager_sendImeiData, imei(%s)", imei);
-
-    MANAGER_MSG_IMEI_DATA_RSP *rsp = (MANAGER_MSG_IMEI_DATA_RSP *)alloc_manager_rspMsg((const MANAGER_MSG_HEADER *)msg);
-    if(rsp)
-    {
-        memcpy(rsp->imei_data.IMEI, imei, MANAGER_MAX_IMEI_LENGTH);
-        rsp->imei_data.online_offline = online_offline;
-        rsp->imei_data.gps.timestamp = timestamp;
-        rsp->imei_data.gps.longitude = lon;
-        rsp->imei_data.gps.latitude = lat;
-        rsp->imei_data.gps.speed = speed;
-        rsp->imei_data.gps.course = course;
-
-        manager_sendMsg(rsp, sizeof(MANAGER_MSG_IMEI_DATA_RSP), sessionManager);
-        LOG_INFO("send imei data rsp");
-    }
-    else
-    {
-        LOG_ERROR("insufficient memory");
-        free_manager_msg(rsp);
-        return -1;
-    }
-
-    return 0;
-}
-
 static int manager_login(const void *msg, SESSION_MANAGER *sessionManager)
 {
     const MANAGER_MSG_LOGIN_REQ *req = (const MANAGER_MSG_LOGIN_REQ *)msg;
@@ -164,71 +126,6 @@ static int manager_imeiData(const void *msg, SESSION_MANAGER *sessionManager)
         LOG_ERROR("insufficient memory");
         return -1;
     }
-
-    return 0;
-}
-
-static int manager_oneDaily(void *array, char *time, char *event)
-{
-    cJSON *obj = cJSON_CreateObject();
-    cJSON_AddStringToObject(obj, "time", time);
-    cJSON_AddStringToObject(obj, "event", event);
-    cJSON_AddItemToArray((cJSON *)array, obj);
-
-    return 0;
-}
-
-static int manager_getDaily(const void *msg, SESSION_MANAGER *sessionManager)
-{
-    const MANAGER_MSG_IMEI_DAILY_REQ *req = (const MANAGER_MSG_IMEI_DAILY_REQ *)msg;
-    if(ntohs(req->header.length) != sizeof(MANAGER_MSG_IMEI_DAILY_REQ) - MANAGER_MSG_HEADER_LEN)
-    {
-        LOG_ERROR("get daily message length not enough");
-        return -1;
-    }
-
-    char imei[IMEI_LENGTH + 1] = {0};
-    memcpy(imei, req->IMEI, IMEI_LENGTH);
-
-    LOG_INFO("get daily req, imei(%s)", imei);
-
-    cJSON *json = cJSON_CreateObject();
-    if(!json)
-    {
-        LOG_ERROR("insufficient memory");
-        return -1;
-    }
-
-    cJSON *array = cJSON_CreateArray();
-    if(!array)
-    {
-        LOG_ERROR("insufficient memory");
-        cJSON_Delete(json);
-        return -1;
-    }
-
-    db_getLog(array, manager_oneDaily, imei);
-
-    cJSON_AddItemToObject(json, "log", array);
-
-    char *data = cJSON_PrintUnformatted(json);
-    cJSON_Delete(json);
-
-    short msgLen = sizeof(MANAGER_MSG_GET_LOG_RSP)+strlen(data) + 1;
-    MANAGER_MSG_GET_LOG_RSP *rsp = alloc_managerSimcomRsp(MANAGER_CMD_GET_IMEIDAILY, msgLen-sizeof(MANAGER_MSG_GET_LOG_RSP));
-    if(!rsp)
-    {
-        LOG_ERROR("insufficient memory");
-        free(data);
-        return -1;
-    }
-
-    strncpy(rsp->data,data,strlen(data));
-    rsp->data[strlen(data)] = 0;
-    free(data);
-
-    LOG_HEX(rsp, msgLen);
-    manager_sendMsg(rsp, msgLen, sessionManager);
 
     return 0;
 }
@@ -469,76 +366,6 @@ static int manager_getAT(const void *msg, SESSION_MANAGER *sessionManager)
 
     return 0;
 }
-
-static int manager_oneData(void *array, const char*imei, const char on_offline, int version, int timestamp, float lat, float lon, char speed, short course, char voltage)
-{
-    cJSON *obj = cJSON_CreateObject();
-    cJSON_AddStringToObject(obj, "imei", imei);
-    cJSON_AddNumberToObject(obj, "staus", on_offline);
-    cJSON_AddNumberToObject(obj, "version", version);
-    cJSON_AddNumberToObject(obj, "timestamp", timestamp);
-    cJSON_AddNumberToObject(obj, "lat", lat);
-    cJSON_AddNumberToObject(obj, "lon", lon);
-    cJSON_AddNumberToObject(obj, "speed", speed);
-    cJSON_AddNumberToObject(obj, "course", course);
-    cJSON_AddNumberToObject(obj, "voltage", voltage);
-    cJSON_AddItemToArray((cJSON *)array, obj);
-    return 0;
-}
-
-static int manager_getImeiData(const void *msg, SESSION_MANAGER *sessionManager)
-{
-    const MANAGER_MSG_IMEI_DATA_ONCE_REQ *req = (const MANAGER_MSG_IMEI_DATA_ONCE_REQ *)msg;
-    if(ntohs(req->length) != sizeof(MANAGER_MSG_IMEI_DATA_ONCE_REQ) - MANAGER_MSG_HEADER_LEN)
-    {
-        LOG_ERROR("get daily message length not enough");
-        return -1;
-    }
-
-    LOG_INFO("get imei data req");
-
-    cJSON *json = cJSON_CreateObject();
-    if(!json)
-    {
-        LOG_ERROR("insufficient memory");
-        return -1;
-    }
-
-    cJSON *array = cJSON_CreateArray();
-    if(!array)
-    {
-        LOG_ERROR("insufficient memory");
-        cJSON_Delete(json);
-        return -1;
-    }
-
-    obj_sendData2Manager(array, manager_oneData);
-
-    cJSON_AddItemToObject(json, "data", array);
-
-    char *data = cJSON_PrintUnformatted(json);
-    cJSON_Delete(json);
-
-    int msgLen = sizeof(MANAGER_MSG_IMEI_DATA_ONCE_RSP)+strlen(data) + 1;
-    LOG_INFO("%d", msgLen);
-    MANAGER_MSG_IMEI_DATA_ONCE_RSP *rsp = alloc_managerSimcomRsp(MANAGER_CMD_GET_IMEIDATA, msgLen-sizeof(MANAGER_MSG_IMEI_DATA_ONCE_RSP));
-    if(!rsp)
-    {
-        LOG_ERROR("insufficient memory");
-        free(data);
-        return -1;
-    }
-
-    strncpy(rsp->data,data,strlen(data));
-    rsp->data[strlen(data)] = 0;
-    free(data);
-
-    LOG_HEX(rsp, msgLen);
-    manager_sendMsg(rsp, msgLen, sessionManager);
-
-    return 0;
-}
-
 
 static int manager_getGSM(const void *msg, SESSION_MANAGER *sessionManager)
 {
@@ -885,8 +712,6 @@ static MANAGER_MSG_PROC_MAP msgProcs[] =
     {MANAGER_CMD_REBOOT,            manager_reboot},
     {MANAGER_CMD_UPGRADE,           manager_upgrade},
     {MANAGER_CMD_GET_AT,            manager_getAT},
-    {MANAGER_CMD_GET_IMEIDATA,      manager_getImeiData},
-    {MANAGER_CMD_GET_IMEIDAILY,     manager_getDaily},
     {MANAGER_CMD_SET_SERVER,        manager_setserver},
 };
 

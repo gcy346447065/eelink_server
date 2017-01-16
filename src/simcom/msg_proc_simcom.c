@@ -186,13 +186,12 @@ static int simcom_login(const void *msg, SESSION *session)
     }
 
     //add login log in db
-    db_add_log(obj->IMEI, "login");
+    db_add_log(obj->IMEI, DEVICE_LOGIN);
 
     int num = 0;
-    if(!db_isTableCreated(obj->IMEI, &num) && 3 > num)
+    if(!db_isTableCreated(obj->IMEI, &num) && 2 > num)
     {
         LOG_INFO("db_isTableCreated:%d", num);
-        //db_createCGI(obj->IMEI);
         db_createGPS(obj->IMEI);
         db_createiItinerary(obj->IMEI);
     }
@@ -440,20 +439,20 @@ static int simcom_alarm(const void *msg, SESSION *session)
     switch(req->alarmType)
     {
         case ALARM_VIBRATE:
-            db_add_log(obj->IMEI, "movealarm");
+            db_add_log(obj->IMEI, DEVICE_ALARM_MOVE);
             sync_callAlarm(obj->IMEI);//send call alarm
             break;
 
         case ALARM_BATTERY50:
-            db_add_log(obj->IMEI, "battery50");
+            db_add_log(obj->IMEI, DEVICE_ALARM_MOVE);
             break;
 
         case ALARM_BATTERY30:
-            db_add_log(obj->IMEI, "battery30");
+            db_add_log(obj->IMEI, DEVICE_ALARM_MOVE);
             break;
 
         case ALARM_BAT_CUT:
-            db_add_log(obj->IMEI, "batterycut");
+            db_add_log(obj->IMEI, DEVICE_ALARM_CUTPOWER);
             break;
     }
 
@@ -1122,7 +1121,7 @@ static int simcom_DefendOn(const void *msg, SESSION *session)
 
     if(rsp->result == 0)
     {
-        db_add_log(strIMEI,"Defend on");
+        db_add_log(strIMEI, DEVICE_DEFEND_ON);
         app_sendCmdRsp2App(APP_CMD_FENCE_ON, CODE_SUCCESS, strIMEI);
     }
     else
@@ -1165,7 +1164,7 @@ static int simcom_DefendOff(const void *msg, SESSION *session)
 
     if(rsp->result == 0)
     {
-        db_add_log(strIMEI,"Defend off");
+        db_add_log(strIMEI, DEVICE_DEFEND_OFF);
         app_sendCmdRsp2App(APP_CMD_FENCE_OFF, CODE_SUCCESS, strIMEI);
     }
     else
@@ -1248,7 +1247,7 @@ static int simcom_DefendNotify(const void *msg, SESSION *session)
     LOG_INFO("imei(%s) DefendNotify status(%d)", obj->IMEI, rsp->status);
 
     //add autolock log in db
-    db_add_log(obj->IMEI, "autolock");
+    db_add_log(obj->IMEI,  DEVICE_AUTOLOCK);
 
     if(rsp->status == 0 || rsp->status == 1)
     {

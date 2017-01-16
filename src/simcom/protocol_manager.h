@@ -24,8 +24,6 @@ enum
     MANAGER_CMD_REBOOT          =  9,
     MANAGER_CMD_UPGRADE         = 10,
     MANAGER_CMD_GET_AT          = 11,
-    MANAGER_CMD_GET_IMEIDATA    = 12,
-    MANAGER_CMD_GET_IMEIDAILY   = 13,
     MANAGER_CMD_SET_SERVER      = 14,
 };
 
