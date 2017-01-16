@@ -60,6 +60,15 @@ int db_getAppPackage(void *action, void *userdata);
 int db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName);
 
 enum{
+    DEVICE_LOGIN,
+    DEVICE_ALARM_MOVE,
+    DEVICE_ALARM_LOWPOWER,
+    DEVICE_ALARM_CUTPOWER,
+    DEVICE_DEFEND_ON,
+    DEVICE_DEFEND_OFF,
+    DEVICE_AUTOLOCK,
+    DEVICE_TIMEOUT,
+    DEVICE_LOGOUT
 };
 
 #ifdef __cplusplus

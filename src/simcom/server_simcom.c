@@ -82,7 +82,7 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
         LOG_INFO("imei(%s), simcom connection timeout!", obj->IMEI);
 
         //add timeout log in db
-        db_add_log(obj->IMEI, "timeout");
+        db_add_log(obj->IMEI, DEVICE_TIMEOUT);
         request_destruct(session->request_table);
         session_del(session);
         evutil_socket_t socket = bufferevent_getfd(bev);
@@ -104,7 +104,7 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
         LOG_INFO("imei(%s), closing the simcom connection", obj->IMEI);
 
         //add logout log in db
-        db_add_log(obj->IMEI, "logout");
+        db_add_log(obj->IMEI, DEVICE_LOGOUT);
         request_destruct(session->request_table);
         session_del(session);
         evutil_socket_t socket = bufferevent_getfd(bev);
