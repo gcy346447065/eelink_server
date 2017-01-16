@@ -112,6 +112,8 @@ static int manager_imeiData(const void *msg, SESSION_MANAGER *sessionManager)
             rsp->imei_data.gps.latitude = obj->lat;
             rsp->imei_data.gps.speed = obj->speed;
             rsp->imei_data.gps.course = obj->course;
+            rsp->imei_data.voltage = obj->voltage;
+            rsp->imei_data.gsm = obj->gsm;
         }
         else
         {
