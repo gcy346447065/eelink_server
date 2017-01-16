@@ -404,7 +404,7 @@ void app_sendFTPPutEndMsg2App(int notify, char *fileName, void *session)
     char *json = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
 
-    LOG_INFO("send ftp put end msg to APP, imei(%s), file(%s)", obj->IMEI, fileName);
+    LOG_INFO("send FTPPutEndMsg to APP imei(%s) file(%s)", obj->IMEI, fileName);
 
     app_sendMsg2App(topic, json, strlen(json));
     free(json);
