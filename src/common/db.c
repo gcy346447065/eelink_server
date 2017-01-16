@@ -160,7 +160,7 @@ static int _db_initial()
         /* creat table log if not exists */
         snprintf(query, MAX_QUERY, "create table if not exists log(time timestamp default CURRENT_TIMESTAMP, \
                                     imei char(15) not null,  \
-                                    event char(16) not null, \
+                                    event tinyint not null, \
                                     primary key(time, imei))");
 
         if(mysql_ping(conn))
@@ -985,10 +985,10 @@ static int _db_add_ObjectID(const char *imei, const char *objectID)
     return 0;
 }
 
-static int _db_add_log(const char *imei, const char *event)
+static int _db_add_log(const char *imei, int event)
 {
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into log(imei, event) values(\'%s\', \'%s\')", imei, event);
+    snprintf(query, MAX_QUERY, "insert into log(imei, event) values(\'%s\', %d)", imei, event);
 
     if(mysql_ping(conn))
     {
@@ -998,7 +998,7 @@ static int _db_add_log(const char *imei, const char *event)
 
     if(mysql_query(conn, query))
     {
-        LOG_ERROR("can't add imei(%s), event(%s) into log(%u, %s)", imei, event, mysql_errno(conn), mysql_error(conn));
+        LOG_ERROR("can't add imei(%s), event(%d) into log(%u, %s)", imei, event, mysql_errno(conn), mysql_error(conn));
         return 2;
     }
     return 0;
@@ -1373,19 +1373,10 @@ int db_add_ObjectID(const char *imei, const char *objectID)
 #endif
 }
 
-int db_add_log(const char *imei, const char *event)
+int db_add_log(const char *imei, int event)
 {
 #ifdef WITH_DB
     return _db_add_log(imei, event);
-#else
-    return 0;
-#endif
-}
-
-int db_getLog(void *userdata, void *pfn, const char *imeiName)
-{
-#ifdef WITH_DB
-    return _db_getLog(userdata, pfn, imeiName);
 #else
     return 0;
 #endif

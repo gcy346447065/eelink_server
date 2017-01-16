@@ -189,10 +189,9 @@ static int simcom_login(const void *msg, SESSION *session)
     db_add_log(obj->IMEI, "login");
 
     int num = 0;
-    if(!db_isTableCreated(obj->IMEI, &num) && 3 > num)
+    if(!db_isTableCreated(obj->IMEI, &num) && 2 > num)
     {
         LOG_INFO("db_isTableCreated:%d", num);
-        //db_createCGI(obj->IMEI);
         db_createGPS(obj->IMEI);
         db_createiItinerary(obj->IMEI);
     }

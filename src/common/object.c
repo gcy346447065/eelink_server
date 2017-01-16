@@ -116,30 +116,6 @@ void obj_freeValue(gpointer value)
     g_free(obj);
 }
 
-//it is a callback for sending imei data to manager
-static void obj_oneData2manager(gpointer key, gpointer value, gpointer user_data)
-{
-    key = key;
-    OBJECT *obj = (OBJECT *)value;
-    MANAGER_SEND_DATA *pstManagerSend = (MANAGER_SEND_DATA *)user_data;
-
-    pstManagerSend->proc(pstManagerSend->msg, obj->IMEI, obj->session ? 1 : 2, obj->version, obj->timestamp, obj->lat, obj->lon, obj->speed, obj->course, obj->voltage);
-    return;
-}
-
-void obj_sendData2Manager(const void *msg, MANAGER_SEND_PROC func)
-{
-    MANAGER_SEND_DATA *pstManagerSend = malloc(sizeof(MANAGER_SEND_DATA));
-
-    pstManagerSend->msg = msg;
-    pstManagerSend->proc = func;
-
-    g_hash_table_foreach(object_table, obj_oneData2manager, pstManagerSend);
-
-    free(pstManagerSend);
-    return;
-}
-
 void obj_table_initial(void (*mqtt_sub)(const char *), int ObjectType)
 {
     /* create hash table */

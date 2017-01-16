@@ -41,10 +41,6 @@ MANAGER_MSG_HEADER *alloc_manager_rspMsg(const MANAGER_MSG_HEADER *pMsg)
             msgLen = sizeof(MANAGER_MSG_IMEI_DATA_RSP);
             break;
 
-        case MANAGER_CMD_GET_IMEIDATA:
-            msgLen = sizeof(MANAGER_MSG_IMEI_DATA_RSP);
-            break;
-
         default:
             return NULL;
     }

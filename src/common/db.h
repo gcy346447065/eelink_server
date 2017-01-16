@@ -24,7 +24,6 @@
 #define MAX_QUERY 400
 
 typedef int (*GET_APP_PACKAGE_PROC)(const char *versionName, int versionCode, const char *changeLog, const char *fileName, int type, void *userdata);
-typedef void (*MSG_SEND_LOG)(void *,char *, char *);
 typedef int (*ONEITINERARY_PROC)(int starttime, double startlat, double startlon, int endtime, double endlat, double endlon, int itinerary, void *userdata);
 typedef int (*ONEGPS_PROC)(int timestamp, double latitude, double longitude, char speed, short course, void *userdata);
 
@@ -54,12 +53,14 @@ int db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*));
 
 int db_doWithObjectID(int (*func1)(const char*, const char*));
 int db_add_ObjectID(const char *imei, const char *objectID);
-int db_add_log(const char *imei, const char *event);
-int db_getLog(void *fun, void *pfn, const char *imeiName);
+int db_add_log(const char *imei, int event);
 int db_updateItinerary(const char *imeiName, long itinerary);
 int db_getItinerary(const char *imeiName);
 int db_getAppPackage(void *action, void *userdata);
 int db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName);
+
+enum{
+};
 
 #ifdef __cplusplus
     }
