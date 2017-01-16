@@ -10,9 +10,9 @@
 #include <time.h>
 #include <glib.h>
 
+#include "object.h"
 #include "db.h"
 #include "log.h"
-#include "object.h"
 
 /* global hash table */
 static GHashTable *object_table = NULL;

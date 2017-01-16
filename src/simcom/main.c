@@ -4,6 +4,8 @@
 #include <signal.h>
 #include <openssl/ssl.h>
 #include <event2/listener.h>
+#include <evhttp.h>
+#include <timer.h>
 
 #include "log.h"
 #include "version.h"
@@ -18,6 +20,7 @@
 #include "sync.h"
 #include "session.h"
 #include "session_manager.h"
+#include "http_simcom.h"
 
 static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
@@ -37,11 +40,11 @@ static void ItieraryJudge_cb(evutil_socket_t fd __attribute__((unused)), short w
     return;
 }
 
-
 int main(int argc, char **argv)
 {
     int simcom_port = PORT_SIMCOM;
     int manager_port = PORT_MANAGER;
+    int http_port = PORT_SIMCOMHTTP;
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -168,6 +171,21 @@ int main(int argc, char **argv)
     {
         LOG_ERROR("connect to sync server failed, try later");
     }
+
+	struct evhttp *httpd = evhttp_new(base);
+	if (!httpd) {
+		LOG_ERROR("couldn't create evhttp. Exiting.");
+		return 1;
+	}
+
+    if (evhttp_bind_socket(httpd, "0.0.0.0", http_port) != 0)
+    {
+        LOG_ERROR("bind socket failed at port:%d", http_port);
+        return 1;
+    }
+
+    evhttp_set_timeout(httpd, 5);
+    evhttp_set_gencb(httpd, simcom_http_handler, NULL);
 
     //start the event loop
     LOG_INFO("start the event loop");

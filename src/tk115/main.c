@@ -9,7 +9,6 @@
 #include "version.h"
 #include "object.h"
 #include "server_tk115.h"
-#include "object.h"
 #include "mqtt.h"
 #include "db.h"
 #include "msg_proc_app.h"

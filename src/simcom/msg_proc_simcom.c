@@ -29,6 +29,8 @@
 #include "firmware_upgrade.h"
 #include "session_manager.h"
 #include "msg_manager.h"
+#include "msg_http.h"
+#include "request_table.h"
 
 #define EARTH_RADIUS 6378137 //radius of our earth unit :  m
 #define PI 3.141592653
@@ -179,7 +181,6 @@ static int simcom_login(const void *msg, SESSION *session)
     }
     else
     {
-        free(rsp);
         LOG_ERROR("insufficient memory");
         return -1;
     }
@@ -469,7 +470,6 @@ static int simcom_alarm(const void *msg, SESSION *session)
     }
     else
     {
-        free(rsp);
         LOG_ERROR("insufficient memory");
         return -1;
     }
@@ -517,7 +517,6 @@ static int simcom_sms(const void *msg , SESSION *session)
     }
     else
     {
-        free(rsp);
         LOG_ERROR("insufficient memory");
         return -1;
     }
@@ -1040,7 +1039,6 @@ static int simcom_itinerary(const void *msg, SESSION *session)
     }
     else
     {
-        free(rsp);
         LOG_ERROR("insufficient memory");
         return -1;
     }
@@ -1313,6 +1311,7 @@ static int simcom_UpgradeStart(const void *msg, SESSION *session)
         if (!req)
         {
             LOG_FATAL("insufficient memory");
+            return -1;
         }
 
         simcom_sendMsg(req, sizeof(MSG_UPGRADE_DATA_REQ) + size, session);
@@ -1383,6 +1382,7 @@ static int simcom_UpgradeData(const void *msg, SESSION *session)
             if (!req4end)
             {
                 LOG_FATAL("insufficient memory");
+                return -1;
             }
 
             simcom_sendMsg(req4end, sizeof(MSG_UPGRADE_END_REQ), session);
@@ -1496,7 +1496,6 @@ static int simcom_SimInfo(const void *msg, SESSION *session)
     }
     else
     {
-        free(rsp);
         LOG_ERROR("insufficient memory");
         return -1;
     }
@@ -2160,6 +2159,91 @@ static int simcom_setServerRsp(const void *msg, SESSION *session)
     return 0;
 }
 
+static int simcom_deviceReply(const void *msg, SESSION *session)
+{
+    const MSG_DEVICE_RSP *rsp = (const MSG_DEVICE_RSP *)msg;
+    if(!rsp)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(rsp->header.length) < sizeof(MSG_DEVICE_RSP) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("get battery message length not enough");
+        return -1;
+    }
+
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+    OBJECT *obj = session->obj;
+    if(!obj)
+    {
+        LOG_FATAL("internal error: obj null");
+        return -1;
+    }
+    LOG_INFO("imei(%s) get device rsp:%s", obj->IMEI, rsp->data);
+
+    struct evhttp_request *req = request_get(session->request_table, rsp->header.seq);
+    if(req)
+    {
+        http_postReply(req, rsp->data);
+        request_del(session->request_table, rsp->header.seq);
+    }
+    return 0;
+}
+
+static int simcom_ftpPutEnd(const void *msg, SESSION *session)
+{
+    const MSG_FTPPUT_REQ *req = (const MSG_FTPPUT_REQ *)msg;
+    if(!req)
+    {
+        LOG_ERROR("msg handle empty");
+        return -1;
+    }
+    if(ntohs(req->header.length) < sizeof(MSG_FTPPUT_REQ) - MSG_HEADER_LEN)
+    {
+        LOG_ERROR("ping message length not enough");
+        return -1;
+    }
+
+    if(!session)
+    {
+        LOG_FATAL("session ptr null");
+        return -1;
+    }
+
+    OBJECT *obj = (OBJECT *)session->obj;
+    if(!obj)
+    {
+        LOG_WARN("MC must first login");
+        return -1;
+    }
+    if(req->code == 0)
+    {
+        LOG_INFO("imei(%s) put file(%s) OK", obj->IMEI, req->fileName);
+        app_sendFTPPutEndMsg2App(NOTIFY_FTPPUT, req->fileName, session);
+    }
+    else
+    {
+        LOG_ERROR("imei(%s) put file(%s) error: %d", obj->IMEI, req->fileName, req->code);
+    }
+
+    MSG_FTPPUT_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
+    if(rsp)
+    {
+        simcom_sendMsg(rsp, sizeof(MSG_FTPPUT_RSP), session);
+        LOG_INFO("send ftp put end rsp");
+    }
+    else
+    {
+        LOG_ERROR("insufficient memory");
+        return -1;
+    }
+    return 0;
+}
 
 static MSG_PROC_MAP msgProcs[] =
 {
@@ -2200,6 +2284,8 @@ static MSG_PROC_MAP msgProcs[] =
     {CMD_GET_BATTERY,       simcom_getBattery},
     {CMD_GET_AT,            simcom_getAT},
     {CMD_SET_BATTERY_TYPE,  simcom_batteryType},
+    {CMD_DEVICE,            simcom_deviceReply},
+    {CMD_FTPPUT,            simcom_ftpPutEnd}
 };
 
 static int handle_one_msg(const void *m, SESSION *ctx)

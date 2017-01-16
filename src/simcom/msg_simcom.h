@@ -14,6 +14,7 @@
 
 MSG_HEADER* alloc_simcom_msg(char cmd, size_t length);
 MSG_HEADER* alloc_simcom_rspMsg(const MSG_HEADER* pMsg);
+MSG_HEADER* alloc_device_msg(char cmd, unsigned char seq,size_t length);
 
 void free_simcom_msg(void* msg);
 

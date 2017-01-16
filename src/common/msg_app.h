@@ -27,6 +27,7 @@ enum CMD
     APP_CMD_BATTERY             = 12,
     APP_CMD_STATUS_GET          = 13,
     APP_CMD_SET_BATTERY_TYPE    = 14,
+    APP_CMD_FTPPUT_END          = 15,
 };
 
 enum CODE
@@ -51,7 +52,8 @@ enum NOTIFY
 {
     NOTIFY_AUTOLOCK     = 1,
     NOTIFY_STATUS       = 2,
-    NOTIFY_BATTERY      = 3
+    NOTIFY_BATTERY      = 3,
+    NOTIFY_FTPPUT       = 4,
 };
 
 //Message definition
@@ -94,5 +96,6 @@ void app_send433Msg2App(int timestamp, int intensity, void * session);
 void app_sendAlarmMsg2App(int type, const char *msg, void *session);
 void app_sendDebugMsg2App(const char *msg, size_t length, void *session);
 void app_sendNotifyMsg2App(int notify, int timestamp, int lock_status, void *session);
+void app_sendFTPPutEndMsg2App(int notify, char *fileName, void *session);
 
 #endif /* SRC_MSG_APP_H_ */

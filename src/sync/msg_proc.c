@@ -1,7 +1,7 @@
 //
 // Created by jk on 15-10-30.
 //
-
+#include <string.h>
 #include "msg_proc.h"
 #include "cJSON.h"
 #include "log.h"

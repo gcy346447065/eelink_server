@@ -12,6 +12,7 @@
 #include "macro.h"
 #include "msg_proc_http.h"
 
+
 static void signal_handler(int sig)
 {
     switch (sig)
@@ -32,7 +33,7 @@ int main(int argc, char *argv[])
 {
     int http_port = PORT_HTTP;
     char *httpd_listen = "0.0.0.0"; // locaol adress
-    int httpd_timeout = 30;         // in seconds
+    int httpd_timeout = 5;         // in seconds
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -60,7 +61,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-	struct event_base *base = event_base_new();
+    struct event_base *base = event_base_new();
 	if (!base)
     {
 		LOG_ERROR("event_base_new failed...");
@@ -83,7 +84,7 @@ int main(int argc, char *argv[])
     }
 
     evhttp_set_timeout(httpd, httpd_timeout);
-    evhttp_set_gencb(httpd, httpd_handler, NULL);
+    evhttp_set_gencb(httpd, httpd_handler, base);
 
 
     LOG_INFO("start http_server: %d", http_port);
@@ -92,10 +93,11 @@ int main(int argc, char *argv[])
 
     LOG_INFO("stop http_server: %d", http_port);
 
+    evhttp_free(httpd);
+
     event_base_free(base);
     db_destruct();
     zlog_fini();
-    evhttp_free(httpd);
     return 0;
 }
 

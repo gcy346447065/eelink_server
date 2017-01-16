@@ -19,10 +19,10 @@ SET(SOURCE_FILE
 
     conf.c
     conf.h
-    
+
     session.h
     session.c
-    
+
     mqtt.h
     mqtt.c
 
@@ -32,6 +32,12 @@ SET(SOURCE_FILE
     sync.h
     sync.c
 
+    msg_http.h
+    msg_http.c
+
+    request_table.h
+    request_table.c
+
     msg_app.h
     msg_app.c
 
@@ -40,10 +46,13 @@ SET(SOURCE_FILE
 
     phone_alarm.h
     phone_alarm.c
+
+    msg_http.h
+    msg_http.c
 )
 
 MESSAGE(STATUS "configure common library")
 link_directories(/usr/lib64/mysql)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 add_library(electromble SHARED ${SOURCE_FILE})
-TARGET_LINK_LIBRARIES(electromble alidayu m event zlog curl mosquitto paho-mqtt3c mysqlclient json)
+TARGET_LINK_LIBRARIES(electromble alidayu m event zlog curl mosquitto mysqlclient json)

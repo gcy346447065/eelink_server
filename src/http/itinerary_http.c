@@ -47,7 +47,7 @@ static void http_getiItinerary(struct evhttp_request *req, const char *imeiName,
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -56,7 +56,7 @@ static void http_getiItinerary(struct evhttp_request *req, const char *imeiName,
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -85,7 +85,7 @@ static void http_getiItinerary(struct evhttp_request *req, const char *imeiName,
 
     LOG_DEBUG("%s",msg);
 
-    http_rspMsg(req, msg);
+    http_postReply(req, msg);
     free(msg);
     return;
 }
@@ -98,7 +98,7 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
     if(!json)
     {
         LOG_FATAL("failed to alloc memory");
-        http_errorMsg(req);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -107,7 +107,7 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
     {
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
-        http_errorMsg(req);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 	cJSON *iItitnerary = cJSON_CreateObject();
@@ -116,7 +116,7 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
         LOG_FATAL("failed to alloc memory");
         cJSON_Delete(json);
         cJSON_Delete(itinerary_Array);
-        http_errorMsg(req);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
         return;
     }
 
@@ -127,14 +127,19 @@ static void http_getItinerary(struct evhttp_request *req, const char *imeiName)
     cJSON_AddItemToObject(json, "itinerary", itinerary_Array);
 
     char *rsp = cJSON_PrintUnformatted(json);
-    cJSON_Delete(json);
+    if(!rsp)
+    {
+        cJSON_Delete(json);
+        http_errorReply(req, CODE_INTERNAL_ERROR);
+    }
 
-    http_rspMsg(req, rsp);
+    cJSON_Delete(json);
+    http_postReply(req, rsp);
     free(rsp);
     return;
 }
 
-void http_replyItinerary(struct evhttp_request *req)
+void http_replyItinerary(struct evhttp_request *req, struct event_base *base __attribute__((unused)))
 {
     int rc;
     int start = 0, end = 0;
@@ -153,7 +158,7 @@ void http_replyItinerary(struct evhttp_request *req)
             rc = sscanf(req->uri, "/v1/itinerary/%15s?start=%d%*s", imei, &start);
             if(rc == 2)
             {
-                end =  start + SECONDS_PER_DAY - (start % SECONDS_PER_DAY);
+                end =  start + 86400 - (start % 86400);
                 http_getiItinerary(req, imei, start, end);
                 return;
             }
@@ -164,6 +169,7 @@ void http_replyItinerary(struct evhttp_request *req)
                 return;
             }
             break;
+
         case EVHTTP_REQ_PUT:
         case EVHTTP_REQ_POST:
         case EVHTTP_REQ_DELETE:
@@ -175,7 +181,7 @@ void http_replyItinerary(struct evhttp_request *req)
 
     }
 
-    http_errorMsg(req);
+    http_errorReply(req, CODE_URL_ERR);
     return;
 }
 
