@@ -14,14 +14,13 @@
 #include "cJSON.h"
 #include "device_http.h"
 #include "redis.h"
-#include "protocol.h"
 
 #define DEVICE_URI "/v1/device"
 
 static void http_deviceTransfer(struct evhttp_request *req, struct event_base *base)
 {
     char url[64] = {0};
-    char IMEI[MAX_IMEI_LENGTH + 1] = {0};
+    char IMEI[15 + 1] = {0};
     char post_data[MAX_MSGHTTP_LEN] = {0};
 
     evbuffer_copyout(req->input_buffer,post_data,MAX_MSGHTTP_LEN);
@@ -44,7 +43,7 @@ static void http_deviceTransfer(struct evhttp_request *req, struct event_base *b
         return;
     }
 
-    strncpy(IMEI, imei->valuestring, MAX_IMEI_LENGTH);
+    strncpy(IMEI, imei->valuestring, 15);
     cJSON_Delete(root);
 
     int rc = redis_getDeviceServer(IMEI, url);
