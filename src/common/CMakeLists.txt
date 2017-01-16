@@ -49,6 +49,9 @@ SET(SOURCE_FILE
 
     msg_http.h
     msg_http.c
+
+    redis.c
+    redis.h
 )
 
 MESSAGE(STATUS "configure common library")
