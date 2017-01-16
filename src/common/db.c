@@ -1004,34 +1004,6 @@ static int _db_add_log(const char *imei, int event)
     return 0;
 }
 
-static int _db_getLog(void *userdata, void *pfn, const char *imeiName)
-{
-    MSG_SEND_LOG fun = pfn;
-    char query[MAX_QUERY] = {0};
-    snprintf(query,MAX_QUERY,"select * from log where imei = \'%s\' order by time desc limit 360", imeiName);
-    if(mysql_ping(conn))
-    {
-        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
-        return NULL;
-    }
-
-    if(mysql_query(conn, query))
-    {
-        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
-        return NULL;
-    }
-
-    MYSQL_RES *result;
-    MYSQL_ROW row;
-    result = mysql_store_result(conn);
-    while(row = mysql_fetch_row(result))
-    {
-        fun(userdata, row[0], row[2]);//TODO:send the daily to manager row[0]:time,row[2]:event
-    }
-    mysql_free_result(result);
-    return 0;
-}
-
 static int _db_updateItinerary(const char *imeiName, long itinerary)
 {
     char query[MAX_QUERY] = {0};
