@@ -14,6 +14,7 @@
 #include "cJSON.h"
 #include "device_http.h"
 #include "redis.h"
+#include "protocol.h"
 
 #define DEVICE_URI "/v1/device"
 
@@ -46,10 +47,10 @@ static void http_deviceTransfer(struct evhttp_request *req, struct event_base *b
     strncpy(IMEI, imei->valuestring, MAX_IMEI_LENGTH);
     cJSON_Delete(root);
 
-    int rc = redis_getDeviceServer(imei->valuestring, url);
+    int rc = redis_getDeviceServer(IMEI, url);
     if(rc)
     {
-        LOG_INFO("DEVICE 865067022405313 OFF");
+        LOG_INFO("device(%s) offline", IMEI);
         http_errorReply(req, CODE_DEVICE_OFF);
     }
     else
