@@ -17,26 +17,56 @@
 
 #define DEVICE_URI "/v1/device"
 
+static void http_deviceTransfer(struct evhttp_request *req, struct event_base *base)
+{
+    char url[64] = {0};
+    char IMEI[MAX_IMEI_LENGTH + 1] = {0};
+    char post_data[MAX_MSGHTTP_LEN] = {0};
+
+    evbuffer_copyout(req->input_buffer,post_data,MAX_MSGHTTP_LEN);
+    LOG_INFO("get the request from app:%s", post_data);
+
+    cJSON *root = cJSON_Parse(post_data);
+    if(!root)
+    {
+        LOG_ERROR("content is not json type");
+        http_errorReply(req, CODE_ERROR_CONTENT);
+        return;
+    }
+
+    cJSON *imei = cJSON_GetObjectItem(root, "imei");
+    if(!imei)
+    {
+        LOG_ERROR("no imei");
+        cJSON_Delete(root);
+        http_errorReply(req, CODE_ERROR_CONTENT);
+        return;
+    }
+
+    strncpy(IMEI, imei->valuestring, MAX_IMEI_LENGTH);
+    cJSON_Delete(root);
+
+    int rc = redis_getDeviceServer(imei->valuestring, url);
+    if(rc)
+    {
+        LOG_INFO("DEVICE 865067022405313 OFF");
+        http_errorReply(req, CODE_DEVICE_OFF);
+    }
+    else
+    {
+        strcat(url, DEVICE_URI);
+        LOG_INFO("get url: %s", url);
+        http_sendData(base,req, url, post_data);
+    }
+}
+
 void http_deviceHandler(struct evhttp_request *req, struct event_base *base)
 {
     switch(req->type)
     {
         case EVHTTP_REQ_POST:
             {
-                char url[64] = {0};
-                char hostname[64] = {0};
-                char post_data[MAX_MSGHTTP_LEN] = {0};
-                snprintf(url, 64, "http://%s:%d%s", HOST_SIMCOM, PORT_SIMCOMHTTP, DEVICE_URI);
-                evbuffer_copyout(req->input_buffer,post_data,MAX_MSGHTTP_LEN);
-                int rc = redis_getDeviceServer("865067022405313", hostname);
-                if(rc)
-                {
-                    LOG_INFO("DEVICE 865067022405313 OFF");
-                    http_errorReply(req, CODE_DEVICE_OFF);
-                }
-                LOG_INFO("get server: %s", hostname);
-                LOG_INFO("get the request from app:%s", post_data);
-                http_sendData(base,req, url, post_data);
+                http_deviceTransfer(req, base);
                 return;
             }
             break;
