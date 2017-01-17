@@ -49,10 +49,13 @@ SET(SOURCE_FILE
 
     msg_http.h
     msg_http.c
+
+    redis.c
+    redis.h
 )
 
 MESSAGE(STATUS "configure common library")
 link_directories(/usr/lib64/mysql)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 add_library(electromble SHARED ${SOURCE_FILE})
-TARGET_LINK_LIBRARIES(electromble alidayu m event zlog curl mosquitto mysqlclient json)
+TARGET_LINK_LIBRARIES(electromble alidayu m event zlog curl mosquitto mysqlclient json hiredis)

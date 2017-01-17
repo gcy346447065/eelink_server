@@ -13,10 +13,53 @@
 #include "msg_http.h"
 #include "cJSON.h"
 #include "device_http.h"
+#include "redis.h"
 
-#define SIMCOM_URL "http://localhost"
-#define SIMCOM_HTTPPORT ":8082"
-#define SIMCOM_URI "/v1/device"
+#define DEVICE_URI "/v1/device"
+
+static void http_deviceTransfer(struct evhttp_request *req, struct event_base *base)
+{
+    char url[MAX_URL_LEN] = {0};
+    char hostNamewithPort[MAX_URL_LEN] = {0};
+    char IMEI[MAX_IMEI_LEN + 1] = {0};
+    char post_data[MAX_MSGHTTP_LEN] = {0};
+
+    evbuffer_copyout(req->input_buffer,post_data,MAX_MSGHTTP_LEN);
+    LOG_INFO("get the request from app:%s", post_data);
+
+    cJSON *root = cJSON_Parse(post_data);
+    if(!root)
+    {
+        LOG_ERROR("content is not json type");
+        http_errorReply(req, CODE_ERROR_CONTENT);
+        return;
+    }
+
+    cJSON *imei = cJSON_GetObjectItem(root, "imei");
+    if(!imei)
+    {
+        LOG_ERROR("no imei");
+        cJSON_Delete(root);
+        http_errorReply(req, CODE_ERROR_CONTENT);
+        return;
+    }
+
+    strncpy(IMEI, imei->valuestring, MAX_IMEI_LEN);
+    cJSON_Delete(root);
+
+    int rc = redis_getDeviceServer(IMEI, hostNamewithPort);
+    if(rc)
+    {
+        LOG_INFO("device(%s) offline", IMEI);
+        http_errorReply(req, CODE_DEVICE_OFF);
+    }
+    else
+    {
+        snprintf(url, MAX_URL_LEN, "http://%s%s", hostNamewithPort, DEVICE_URI);
+        LOG_INFO("get url: %s", url);
+        http_sendData(base,req, url, post_data);
+    }
+}
 
 void http_deviceHandler(struct evhttp_request *req, struct event_base *base)
 {
@@ -24,10 +67,7 @@ void http_deviceHandler(struct evhttp_request *req, struct event_base *base)
     {
         case EVHTTP_REQ_POST:
             {
-                char post_data[MAX_MSGHTTP_LEN] = {0};
-                evbuffer_copyout(req->input_buffer,post_data,MAX_MSGHTTP_LEN);
-                LOG_INFO("get the request from app:%s", post_data);
-                http_sendData(base,req, SIMCOM_URL SIMCOM_HTTPPORT SIMCOM_URI, post_data);
+                http_deviceTransfer(req, base);
                 return;
             }
             break;

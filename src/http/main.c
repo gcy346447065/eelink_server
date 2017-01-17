@@ -11,6 +11,7 @@
 #include "port.h"
 #include "macro.h"
 #include "msg_proc_http.h"
+#include "redis.h"
 
 
 static void signal_handler(int sig)
@@ -58,6 +59,13 @@ int main(int argc, char *argv[])
     if(rc)
     {
         LOG_FATAL("connect to mysql failed");
+        return -1;
+    }
+
+    rc = redis_initial();
+    if(rc)
+    {
+        LOG_FATAL("connect to redis failed");
         return -1;
     }
 

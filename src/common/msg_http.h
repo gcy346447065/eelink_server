@@ -31,7 +31,9 @@ enum
 
 #define MYHTTPD_SIGNATURE   "http v1"
 
-#define MAX_MSGHTTP_LEN 256
-#define MAX_ERRCODE_LEN 32
+#define MAX_MSGHTTP_LEN (256)
+#define MAX_ERRCODE_LEN (32)
+#define MAX_URL_LEN     (64)
+#define MAX_IMEI_LEN    (15)
 
 #endif /* SRC_HTTP_H_ */
