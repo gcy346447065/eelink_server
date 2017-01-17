@@ -72,6 +72,8 @@ typedef struct
     char online_offline; // 1 for online; 2 for offline
     int version;
     MANAGER_GPS gps;
+    char voltage;
+    char gsm;
 }__attribute__((__packed__)) MANAGER_IMEI_DATA;
 
 typedef struct
