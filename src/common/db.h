@@ -68,7 +68,8 @@ enum{
     DEVICE_DEFEND_OFF,
     DEVICE_AUTOLOCK,
     DEVICE_TIMEOUT,
-    DEVICE_LOGOUT
+    DEVICE_LOGOUT,
+    DEVICE_ALARM_SIWTCHOPEN,
 };
 
 #ifdef __cplusplus

@@ -304,12 +304,13 @@ typedef struct
  */
 enum ALARM_TYPE
 {
-    ALARM_FENCE_OUT = 1,
-    ALARM_FENCE_IN  = 2,
-    ALARM_VIBRATE   = 3,
-    ALARM_BATTERY50 = 4,
-    ALARM_BATTERY30 = 5,
-    ALARM_BAT_CUT   = 6,
+    ALARM_FENCE_OUT     = 1,
+    ALARM_FENCE_IN      = 2,
+    ALARM_VIBRATE       = 3,
+    ALARM_BATTERY50     = 4,
+    ALARM_BATTERY30     = 5,
+    ALARM_BAT_CUT       = 6,
+    ALARM_SWITCH_OPEN   = 7,
 };
 
 typedef struct

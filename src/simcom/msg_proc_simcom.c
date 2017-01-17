@@ -454,6 +454,10 @@ static int simcom_alarm(const void *msg, SESSION *session)
         case ALARM_BAT_CUT:
             db_add_log(obj->IMEI, DEVICE_ALARM_CUTPOWER);
             break;
+
+        case ALARM_SWITCH_OPEN:
+            db_add_log(obj->IMEI, DEVICE_ALARM_SIWTCHOPEN);
+            break;
     }
 
     LOG_INFO("imei(%s) send alarm(%d)", obj->IMEI, req->alarmType);

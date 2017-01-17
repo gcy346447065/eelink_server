@@ -79,6 +79,12 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
                         cJSON_AddStringToObject(ios, "sound", "default");
                         break;
 
+                    case 7:
+                        cJSON_AddStringToObject(android, "alert", "告警：您的电动车被非法启动");
+                        cJSON_AddStringToObject(ios, "alert", "告警：您的电动车被非法启动");
+                        cJSON_AddStringToObject(ios, "sound", "default");
+                        break;
+
                     default:
                         break;
                 }
