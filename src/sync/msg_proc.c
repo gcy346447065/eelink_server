@@ -106,7 +106,16 @@ static void msg_callAlarm(cJSON* json)
         return;
     }
 
-    phone_alarm(telNumber->valuestring);
+    cJSON* callNumber = cJSON_GetObjectItem(json, TAG_CALLNUMBER);
+    if (!callNumber)
+    {
+        phone_alarm(telNumber->valuestring);
+    }
+    else
+    {
+        phone_alarmWithCaller(telNumber->valuestring, callNumber->valuestring);
+    }
+
 
     return;
 }

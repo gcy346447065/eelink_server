@@ -31,6 +31,7 @@
 #include "msg_manager.h"
 #include "msg_http.h"
 #include "request_table.h"
+#include "phone_alarm.h"
 
 #define EARTH_RADIUS 6378137 //radius of our earth unit :  m
 #define PI 3.141592653
@@ -430,8 +431,6 @@ static int simcom_alarm(const void *msg, SESSION *session)
     //send to APP by MQTT
     //app_sendAlarmMsg2App(req->alarmType, NULL, session);
 
-    //send to ios APP by yunba
-    //yunba_publish(obj->IMEI, YUNBA_CMD_ALARM, 0);
 
     //send alarm by jiguang push
     jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
@@ -439,8 +438,31 @@ static int simcom_alarm(const void *msg, SESSION *session)
     switch(req->alarmType)
     {
         case ALARM_VIBRATE:
-            db_add_log(obj->IMEI, DEVICE_ALARM_MOVE);
-            sync_callAlarm(obj->IMEI);//send call alarm
+            {
+                char telNumber[TELNUMBER_LENGTH + 1] = {0};
+                char callNumber[TELNUMBER_LENGTH + 1] = {0};
+
+                int rc = db_getTelNumber(obj->IMEI, telNumber, callNumber);
+                if(rc)
+                {
+                    LOG_WARN("No telNumber(%s) in database!",obj->IMEI);
+                    return;
+                }
+
+                if (strlen(callNumber) == 0)
+                {
+                    LOG_INFO("%s", telNumber);
+                    phone_alarm(telNumber);
+                }
+                else
+                {
+                    LOG_INFO("%s:%s", telNumber, callNumber);
+                    phone_alarmWithCaller(telNumber, callNumber);
+                }
+
+                db_add_log(obj->IMEI, DEVICE_ALARM_MOVE);
+
+            }
             break;
 
         case ALARM_BATTERY50:

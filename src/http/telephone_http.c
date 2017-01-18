@@ -16,6 +16,22 @@
 #include "phone_alarm.h"
 #include "telephone_http.h"
 
+#define MAX_CLLAER_COUNT 10
+static char callerNumber[][TELNUMBER_LENGTH + 1] =
+{
+    "01053912804",
+    "057126883072",
+    "051482043270",
+    "01053912805",
+    "051482043271",
+    "057126883073",
+    "051482043272",
+    "01053912806",
+    "051482043273",
+    "057126883074",
+    "051482043274",
+};
+
 static void telephone_deleteTelNumber(struct evhttp_request *req, const char *imeiName)
 {
     int rc = db_deleteTelNumber(imeiName);
@@ -45,6 +61,7 @@ static void telephone_replaceTelNumber(struct evhttp_request *req, const char *i
 static void telephone_getTelNumber(struct evhttp_request *req, const char *imeiName)
 {
     char telNumber[TELNUMBER_LENGTH + 1] = {0};
+    char callNumber[TELNUMBER_LENGTH + 1] = {0};
 
     cJSON *json = cJSON_CreateObject();
     if(!json)
@@ -54,7 +71,7 @@ static void telephone_getTelNumber(struct evhttp_request *req, const char *imeiN
         return;
     }
 
-    int rc = db_getTelNumber(imeiName, telNumber);
+    int rc = db_getTelNumber(imeiName, telNumber, callNumber);
     if(rc)
     {
         cJSON_AddNumberToObject(json, "code", 101);
@@ -83,9 +100,9 @@ static void telephone_callTelNumber(struct evhttp_request *req, const char *imei
 {
     char post_data[128] = {0};
     char telNumber[TELNUMBER_LENGTH + 1] = {0};
-    char caller[TELNUMBER_LENGTH + 1] = {0};
+    char callNumber[TELNUMBER_LENGTH + 1] = {0};
 
-    int rc = db_getTelNumber(imeiName,telNumber);
+    int rc = db_getTelNumber(imeiName,telNumber, callNumber);
     if(rc != 0)
     {
         if(3 == rc)
@@ -113,10 +130,17 @@ static void telephone_callTelNumber(struct evhttp_request *req, const char *imei
         http_errorReply(req, CODE_ERROR_CONTENT);
         return;
     }
-    strncpy(caller, telephone->valuestring, TELNUMBER_LENGTH);
+    unsigned char id = telephone->valueint;
+    if(id > MAX_CLLAER_COUNT)
+    {
+        LOG_ERROR("id > %d, no more caller", MAX_CLLAER_COUNT);
+        http_errorReply(req, CODE_RANGE_TOO_LARGE);
+        return;
+    }
     cJSON_Delete(json);
-    LOG_INFO("test call alarm server imei(%s) telNumber(%s) caller(%s)", imeiName, telNumber, caller);
-    phone_alarmWithCaller(telNumber, caller);
+    LOG_INFO("test call alarm server imei(%s) telNumber(%s) caller(%s)", imeiName, telNumber, callerNumber[id]);
+    db_updateCallNumber(imeiName, callerNumber[id]);
+    phone_alarmWithCaller(telNumber, callerNumber[id]);
 
     http_okReply(req);
     return;
