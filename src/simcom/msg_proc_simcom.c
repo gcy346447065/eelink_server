@@ -159,7 +159,6 @@ static int simcom_login(const void *msg, SESSION *session)
             }
 
             obj_add(obj);
-            redis_AddDevice(obj->IMEI);
             sync_newIMEI(obj->IMEI);
             mqtt_subscribe(obj->IMEI);
         }
@@ -167,6 +166,7 @@ static int simcom_login(const void *msg, SESSION *session)
         session->obj = obj;
         session_add(session);
         obj->session = session;
+        redis_AddDevice(obj->IMEI);
     }
     else
     {
