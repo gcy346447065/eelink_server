@@ -32,6 +32,7 @@
 #include "msg_http.h"
 #include "request_table.h"
 #include "phone_alarm.h"
+#include "redis.h"
 
 #define EARTH_RADIUS 6378137 //radius of our earth unit :  m
 #define PI 3.141592653
@@ -158,7 +159,7 @@ static int simcom_login(const void *msg, SESSION *session)
             }
 
             obj_add(obj);
-
+            redis_AddDevice(obj->IMEI);
             sync_newIMEI(obj->IMEI);
             mqtt_subscribe(obj->IMEI);
         }
