@@ -193,19 +193,18 @@ static int simcom_login(const void *msg, SESSION *session)
     int num = 0;
     if(!db_isTableCreated(obj->IMEI, &num) && 2 > num)
     {
-        LOG_INFO("db_isTableCreated:%d", num);
+        LOG_DEBUG("db_isTableCreated:%d", num);
         db_createGPS(obj->IMEI);
         db_createiItinerary(obj->IMEI);
     }
 
     //get version, compare the version number; if not, send upgrade start message
-    int theLastVersion = getFirmwarePkgVersion(obj->version);
-    LOG_INFO("devVersion: %d, theLastVersion: %d", obj->version, theLastVersion);
     int theSize = 0;
+    int theLastVersion = getFirmwarePkgVersion(obj->version);
     if(theLastVersion)
     {
         theSize = getFirmwarePkg(obj->version, NULL);
-        if(!theSize)
+        if(theSize < 0)
         {
             LOG_ERROR("No appfile in server,obj->version: %d, theLastVersion: %d", obj->version, theLastVersion);
             return 0;
