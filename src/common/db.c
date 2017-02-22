@@ -175,6 +175,21 @@ static int _db_initial()
             return 2;
         }
 
+        /* creat table motorcycle if not exists */
+        snprintf(query, MAX_QUERY, "create table if not exists motorcycle(imei varchar(15) not null primary key)");
+
+        if(mysql_ping(conn))
+        {
+            LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+            return 1;
+        }
+
+        if(mysql_query(conn, query))
+        {
+            LOG_ERROR("can't creat table log(%u, %s)", mysql_errno(conn), mysql_error(conn));
+            return 2;
+        }
+
         LOG_INFO("create and use database %s; creat table object, imei2objectID and log", DB_NAME);
         return 0;
     }
@@ -1164,6 +1179,36 @@ static int _db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName)
     return rc;
 }
 
+static int _db_isMotorCycle(const char *imeiName)
+{
+    int rc = 0;
+    char query[MAX_QUERY] = {0};
+
+    snprintf(query,MAX_QUERY, "select * from motorcycle where imei='%s'", imeiName);
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 0;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_FATAL("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
+        return 0;
+    }
+
+    MYSQL_ROW row;
+    MYSQL_RES *result;
+    result = mysql_store_result(conn);
+
+    if(row = mysql_fetch_row(result))
+    {
+        rc = 1;
+    }
+
+    mysql_free_result(result);
+    return rc;
+}
 
 int db_initial(void)
 {
@@ -1420,6 +1465,15 @@ int db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName)
 {
 #ifdef WITH_DB
     return _db_getFirmwarePkg(oldVersion, pLastVersion, fileName);
+#else
+    return 0;
+#endif
+}
+
+int db_isMotorCycle(const char *imeiName)
+{
+#ifdef WITH_DB
+    return _db_isMotorCycle(imeiName);
 #else
     return 0;
 #endif

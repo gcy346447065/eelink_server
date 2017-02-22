@@ -434,6 +434,7 @@ static int simcom_alarm(const void *msg, SESSION *session)
 
     //send alarm by jiguang push
     jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
+    LOG_INFO("alarm(%s) alarmType(%d)", obj->IMEI, req->alarmType);
 
     switch(req->alarmType)
     {
@@ -466,14 +467,29 @@ static int simcom_alarm(const void *msg, SESSION *session)
             break;
 
         case ALARM_BATTERY50:
-            db_add_log(obj->IMEI, DEVICE_ALARM_MOVE);
+            if(db_isMotorCycle(obj->IMEI))
+            {
+                LOG_INFO("motorcycle, no need to alarm");
+                break;
+            }
+            db_add_log(obj->IMEI, DEVICE_ALARM_LOWPOWER);
             break;
 
         case ALARM_BATTERY30:
-            db_add_log(obj->IMEI, DEVICE_ALARM_MOVE);
+            if(db_isMotorCycle(obj->IMEI))
+            {
+                LOG_INFO("motorcycle, no need to alarm");
+                break;
+            }
+            db_add_log(obj->IMEI, DEVICE_ALARM_LOWPOWER);
             break;
 
         case ALARM_BAT_CUT:
+            if(db_isMotorCycle(obj->IMEI))
+            {
+                LOG_INFO("motorcycle, no need to alarm");
+                break;
+            }
             db_add_log(obj->IMEI, DEVICE_ALARM_CUTPOWER);
             break;
 
