@@ -60,6 +60,8 @@ int db_getItinerary(const char *imeiName);
 int db_getAppPackage(void *action, void *userdata);
 int db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName);
 
+int db_isMotorCycle(const char *imeiName);
+
 enum{
     DEVICE_LOGIN,
     DEVICE_ALARM_MOVE,

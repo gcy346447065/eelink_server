@@ -193,19 +193,18 @@ static int simcom_login(const void *msg, SESSION *session)
     int num = 0;
     if(!db_isTableCreated(obj->IMEI, &num) && 2 > num)
     {
-        LOG_INFO("db_isTableCreated:%d", num);
+        LOG_DEBUG("db_isTableCreated:%d", num);
         db_createGPS(obj->IMEI);
         db_createiItinerary(obj->IMEI);
     }
 
     //get version, compare the version number; if not, send upgrade start message
-    int theLastVersion = getFirmwarePkgVersion(obj->version);
-    LOG_INFO("devVersion: %d, theLastVersion: %d", obj->version, theLastVersion);
     int theSize = 0;
+    int theLastVersion = getFirmwarePkgVersion(obj->version);
     if(theLastVersion)
     {
         theSize = getFirmwarePkg(obj->version, NULL);
-        if(!theSize)
+        if(theSize < 0)
         {
             LOG_ERROR("No appfile in server,obj->version: %d, theLastVersion: %d", obj->version, theLastVersion);
             return 0;
@@ -432,10 +431,7 @@ static int simcom_alarm(const void *msg, SESSION *session)
     //send to APP by MQTT
     //app_sendAlarmMsg2App(req->alarmType, NULL, session);
 
-
     //send alarm by jiguang push
-    jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
-
     switch(req->alarmType)
     {
         case ALARM_VIBRATE:
@@ -462,30 +458,48 @@ static int simcom_alarm(const void *msg, SESSION *session)
                 }
 
                 db_add_log(obj->IMEI, DEVICE_ALARM_MOVE);
+                jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
 
             }
             break;
 
         case ALARM_BATTERY50:
-            db_add_log(obj->IMEI, DEVICE_ALARM_MOVE);
+            if(db_isMotorCycle(obj->IMEI))
+            {
+                LOG_INFO("motorcycle, no need to alarm");
+                break;
+            }
+            db_add_log(obj->IMEI, DEVICE_ALARM_LOWPOWER);
+            jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
             break;
 
         case ALARM_BATTERY30:
-            db_add_log(obj->IMEI, DEVICE_ALARM_MOVE);
+            if(db_isMotorCycle(obj->IMEI))
+            {
+                LOG_INFO("motorcycle, no need to alarm");
+                break;
+            }
+            db_add_log(obj->IMEI, DEVICE_ALARM_LOWPOWER);
+            jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
             break;
 
         case ALARM_BAT_CUT:
+            if(db_isMotorCycle(obj->IMEI))
+            {
+                LOG_INFO("motorcycle, no need to alarm");
+                break;
+            }
             db_add_log(obj->IMEI, DEVICE_ALARM_CUTPOWER);
+            jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
             break;
 
         case ALARM_SWITCH_OPEN:
             db_add_log(obj->IMEI, DEVICE_ALARM_SIWTCHOPEN);
+            jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
             break;
     }
 
     LOG_INFO("imei(%s) send alarm(%d)", obj->IMEI, req->alarmType);
-
-    //add alarm log in db
 
     //alarm rsp
     MSG_ALARM_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);

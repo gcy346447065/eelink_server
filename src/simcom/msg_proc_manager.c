@@ -674,8 +674,17 @@ static int manager_upgrade(const void *msg, SESSION_MANAGER *sessionManager)
         if(theLastVersion)
         {
             unsigned int theFakeVersion = theLastVersion + 100;
+            if(theFakeVersion % 256 < 100)
+            {
+                theFakeVersion = theFakeVersion - theFakeVersion % 256 - 1;
+            }
 
             int theSize = getFirmwarePkg(obj->version, NULL);
+            if(theSize < 0)
+            {
+                return -1;
+            }
+
             LOG_INFO("obj->version is %d, theLastVersion is %d, theFakeVersion is %d, theSize is %d", obj->version, theLastVersion, theFakeVersion, theSize);
 
             MSG_UPGRADE_START_REQ *req4simcom = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theFakeVersion, theSize);

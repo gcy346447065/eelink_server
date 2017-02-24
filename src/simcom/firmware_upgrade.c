@@ -52,7 +52,7 @@ int getFirmwarePkg(int version, char *LastFileNamewithPath)
     if(0 != db_getFirmwarePkg(version, &LastVersion, firmwarePkg))
     {
         LOG_INFO("No Firmware Package in Database");
-        return 0;
+        return -1;
     }
 
     if(LastFileNamewithPath)
@@ -61,7 +61,7 @@ int getFirmwarePkg(int version, char *LastFileNamewithPath)
         if(stat(LastFileNamewithPath, &buf) < 0)
         {
             LOG_ERROR("stat errno is %d", errno);
-            return 0;
+            return -1;
         }
     }
     else
@@ -71,7 +71,7 @@ int getFirmwarePkg(int version, char *LastFileNamewithPath)
         if(stat(FileNamewithPath, &buf) < 0)
         {
             LOG_ERROR("stat errno is %d", errno);
-            return 0;
+            return -1;
         }
     }
 
@@ -82,6 +82,10 @@ int getDataSliceWithGottenSize(int version, int gottenSize, char *data, int *pSe
 {
     char LastFileNamewithPath[256] = {0};
     int filesize = getFirmwarePkg(version, LastFileNamewithPath);
+    if(filesize < 0)
+    {
+        return -1;
+    }
 
     if(gottenSize < filesize)
     {
@@ -90,6 +94,12 @@ int getDataSliceWithGottenSize(int version, int gottenSize, char *data, int *pSe
         {
             //send FIRMWARE_SEGMENT_SIZE
             int fd = open(LastFileNamewithPath, O_RDONLY);
+            if(!fd)
+            {
+                LOG_ERROR("open file errno(%d)", errno);
+                return -1;
+            }
+
             lseek(fd, gottenSize, SEEK_SET);
             int sendSize = read(fd, data, FIRMWARE_SEGMENT_SIZE);
             close(fd);
@@ -111,6 +121,12 @@ int getDataSliceWithGottenSize(int version, int gottenSize, char *data, int *pSe
         {
             //send delta
             int fd = open(LastFileNamewithPath, O_RDONLY);
+            if(!fd)
+            {
+                LOG_ERROR("open file errno(%d)", errno);
+                return -1;
+            }
+
             lseek(fd, gottenSize, SEEK_SET);
             int sendSize = read(fd, data, delta);
             close(fd);
