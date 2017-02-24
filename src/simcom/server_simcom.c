@@ -69,7 +69,6 @@ static void event_cb(struct bufferevent *bev, short events, void *arg)
     OBJECT *obj = (OBJECT *)session->obj;
     if(!obj)
     {
-        LOG_WARN("obj ptr null");
         return;
     }
 
@@ -124,7 +123,7 @@ static void accept_conn_cb(struct evconnlistener *listener,
     inet_ntop(address->sa_family, &p->sin_addr, addr, sizeof addr);
 
     /* We got a new connection! Set up a bufferevent for it. */
-    LOG_INFO("simcom connect from %s:%d", addr, ntohs(p->sin_port));
+    //LOG_INFO("simcom connect from %s:%d", addr, ntohs(p->sin_port));
     struct event_base *base = evconnlistener_get_base(listener);
     struct bufferevent *bev = bufferevent_socket_new(base, fd, BEV_OPT_CLOSE_ON_FREE);
     if (!bev)
