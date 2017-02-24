@@ -6,7 +6,7 @@
 #define ELECTROMBILE_PORT_H
 
 #define HOST_SIMCOM     "test.xiaoan110.com"
-#define HOST_REDIS      "test.xiaoan110.com"
+#define HOST_REDIS      "innerredis.xiaoan110.com"
 
 #define PORT_TK115      9870
 #define PORT_SIMCOM     9880
