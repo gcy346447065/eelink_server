@@ -209,7 +209,7 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 void mqtt_initial(MQTT_ARG* mqtt_arg)
 {
     char *mqtt_id = 0;
-    char *host = "127.0.0.1";
+    char *host = "InnerMqtt.xiaoan110.com";
     int port = 1883;
 
     char hostname[256] = {0};
