@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
@@ -115,7 +116,11 @@ int redis_getSelfSimcomIp(char *hostSimcom)
 {
     int sock_num;
     struct ifreq ifR;
-    sock_num = socket(AF_INET, SOCK_DGRAM, 0);
+    if ( (sock_num = socket(AF_INET, SOCK_DGRAM, 0)) == -1 )
+    {
+        LOG_ERROR("create socket error:%s\n",strerror(errno));
+        return -1;
+    }
     strcpy(ifR.ifr_name,"eth0");
     //SIOCGIFADDR Get interface address
     if(ioctl(sock_num, SIOCGIFADDR, &ifR) < 0)
@@ -124,6 +129,7 @@ int redis_getSelfSimcomIp(char *hostSimcom)
         return -1;
     }
     hostSimcom = inet_ntoa(((struct sockaddr_in*)&(ifR.ifr_addr))->sin_addr);
+    close(sock_num);
     return 0;
 }
 
