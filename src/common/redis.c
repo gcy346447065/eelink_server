@@ -33,6 +33,17 @@ int redis_initial(void)
         return -1;
     }
 
+    redisReply *reply = redisCommand(c,"auth %s", AUTH_REDIS);
+    LOG_DEBUG("result: %s", reply->str);
+
+    if(!strstr(reply->str, "OK"))
+    {
+        LOG_ERROR("Login redis server error");
+        return -1;
+
+    }
+    freeReplyObject(reply);
+
     return 0;
 }
 
