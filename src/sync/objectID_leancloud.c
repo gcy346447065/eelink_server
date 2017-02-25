@@ -35,8 +35,12 @@ int objectID_add_hash(const char *imei, const char *objectID)
         return -1;
     }
 
-    int rc = g_hash_table_insert(objectID_table, g_strdup(imei), g_strdup(objectID));
-    LOG_INFO("rc(%d), add hash imei(%s)->objectID(%s)",rc , imei, objectID);
+    //int rc = g_hash_table_insert(objectID_table, g_strdup(imei), g_strdup(objectID));
+    //LOG_INFO("rc(%d), add hash imei(%s)->objectID(%s)",rc , imei, objectID);
+    //to avoid compile error: void value not ignored as it ought to be
+    //because in old version of glib release, g_hash_table_insert returns void
+    //just to support travis-ci
+    g_hash_table_insert(objectID_table, g_strdup(imei), g_strdup(objectID));
 
     return 0;
 }
