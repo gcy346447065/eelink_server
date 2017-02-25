@@ -711,31 +711,6 @@ static int _db_getLastGPS(OBJECT *obj)
 {
     char query[MAX_QUERY];
 
-    snprintf(query, MAX_QUERY, "select count(*) from gps_%s",obj->IMEI);
-    if(mysql_ping(conn))
-    {
-        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
-        return 1;
-    }
-
-    if(mysql_query(conn, query))
-    {
-        LOG_ERROR("can't get objects from db(%u, %s)", mysql_errno(conn), mysql_error(conn));
-        return 2;
-    }
-
-    MYSQL_RES *result;
-    MYSQL_ROW row;
-    result = mysql_store_result(conn);
-    row = mysql_fetch_row(result);
-    int num = atoi(row[0]);
-    mysql_free_result(result);
-    if(0 >= num)
-    {
-        LOG_INFO("NO gps data in gps_%s database.", obj->IMEI);
-        return 3;
-    }
-
     snprintf(query, MAX_QUERY, "select * from gps_%s order by timestamp desc limit 1", obj->IMEI);
     if(mysql_query(conn, query))
     {
@@ -743,8 +718,16 @@ static int _db_getLastGPS(OBJECT *obj)
         return 2;
     }
 
+    MYSQL_ROW row;
+    MYSQL_RES *result;
+
     result = mysql_store_result(conn);
     row = mysql_fetch_row(result);
+    if(!row)
+    {
+        LOG_INFO("NO gps data in gps_%s database.", obj->IMEI);
+        return 3;
+    }
 
     if(row[0])
     {
