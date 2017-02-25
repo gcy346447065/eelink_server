@@ -15,7 +15,7 @@ int redis_initial(void);
 int redis_AddDevice(const char *imei);
 int redis_DelDevice(const char *imei);
 int redis_getDeviceServer(const char *imei, char *hostNamewithPort);
-
+int redis_getSelfSimcomIp(char * hostSimcom);
 
 #endif/*__USER_HIREDIS_H__*/
 
