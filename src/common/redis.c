@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "redis.h"
 #include "log.h"
@@ -37,17 +41,18 @@ int redis_initial(void)
 int redis_AddDevice(const char *imei)
 {
     redisReply *reply;
-    char *hostSimcon = HOST_SIMCOM;
+    char hostSimcom[20] = HOST_SIMCOM;
 
     reply = redisCommand(c,"PING");
     LOG_DEBUG("PING: %s", reply->str);
     freeReplyObject(reply);
 
-    if(redis_getSelfSimcomIp(hostSimcon) == -1)
+    if(redis_getSelfSimcomIp(hostSimcom) == -1)
     {
         LOG_ERROR("Get Self IP error");
+        return -1;
     }
-    reply = redisCommand(c,"SET %s %s:%d", imei,hostSimcon, PORT_SIMCOMHTTP);
+    reply = redisCommand(c,"SET %s %s:%d", imei,hostSimcom, PORT_SIMCOMHTTP);
     LOG_INFO("SET: %s %s", imei, reply->str);
     freeReplyObject(reply);
 
@@ -106,21 +111,19 @@ int redis_getDeviceServer(const char *imei, char *hostNamewithPort)
 * param: hostSimcom [IN][OUT]
 * return: if get IP return SUCCESS, else return -1
 */
-int redis_getSelfSimcomIp(const char *hostSimcom)
+int redis_getSelfSimcomIp(char *hostSimcom)
 {
-    struct hostent *host;
-    char hostname[20] = {0};
-    if(gethostname(hostname,sizeof(hostname)) < 0)
+    int sock_num;
+    struct ifreq ifR;
+    sock_num = socket(AF_INET, SOCK_DGRAM, 0);
+    strcpy(ifR.ifr_name,"eth0");
+    //SIOCGIFADDR Get interface address
+    if(ioctl(sock_num, SIOCGIFADDR, &ifR) < 0)
     {
-        LOG_ERROR("Get self IP error in the redis_getSelfSimcomIp function first step");
+        LOG_ERROR("Get self ip error!");
         return -1;
     }
-    if((host = gethostbyname(hostname) == NULL)
-    {
-        LOG_ERROR("Get self IP error in the redis_getSelfSimcomIp function second step");
-        return -1;
-    }
-    hostSimcom = inet_ntoa(*(struct in_addr*)(host->h_addr));
+    hostSimcom = inet_ntoa(((struct sockaddr_in*)&(ifR.ifr_addr))->sin_addr);
     return 0;
 }
 
