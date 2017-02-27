@@ -188,7 +188,7 @@ static int simcom_login(const void *msg, SESSION *session)
     }
 
     //add login log in db
-    db_add_log(obj->IMEI, DEVICE_LOGIN);
+    db_add_log(obj->IMEI, "login");
 
     int num = 0;
     if(!db_isTableCreated(obj->IMEI, &num) && 2 > num)
@@ -457,7 +457,7 @@ static int simcom_alarm(const void *msg, SESSION *session)
                     phone_alarmWithCaller(telNumber, callNumber);
                 }
 
-                db_add_log(obj->IMEI, DEVICE_ALARM_MOVE);
+                db_add_log(obj->IMEI, "alarmmove");
                 jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
 
             }
@@ -469,7 +469,7 @@ static int simcom_alarm(const void *msg, SESSION *session)
                 LOG_INFO("motorcycle, no need to alarm");
                 break;
             }
-            db_add_log(obj->IMEI, DEVICE_ALARM_LOWPOWER);
+            db_add_log(obj->IMEI, "batterylow");
             jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
             break;
 
@@ -479,7 +479,7 @@ static int simcom_alarm(const void *msg, SESSION *session)
                 LOG_INFO("motorcycle, no need to alarm");
                 break;
             }
-            db_add_log(obj->IMEI, DEVICE_ALARM_LOWPOWER);
+            db_add_log(obj->IMEI, "batterylow");
             jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
             break;
 
@@ -489,12 +489,12 @@ static int simcom_alarm(const void *msg, SESSION *session)
                 LOG_INFO("motorcycle, no need to alarm");
                 break;
             }
-            db_add_log(obj->IMEI, DEVICE_ALARM_CUTPOWER);
+            db_add_log(obj->IMEI, "alarmcut");
             jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
             break;
 
         case ALARM_SWITCH_OPEN:
-            db_add_log(obj->IMEI, DEVICE_ALARM_SIWTCHOPEN);
+            db_add_log(obj->IMEI, "swicthopen");
             jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
             break;
     }
@@ -1162,7 +1162,7 @@ static int simcom_DefendOn(const void *msg, SESSION *session)
 
     if(rsp->result == 0)
     {
-        db_add_log(strIMEI, DEVICE_DEFEND_ON);
+        db_add_log(strIMEI, "defendon");
         app_sendCmdRsp2App(APP_CMD_FENCE_ON, CODE_SUCCESS, strIMEI);
     }
     else
@@ -1205,7 +1205,7 @@ static int simcom_DefendOff(const void *msg, SESSION *session)
 
     if(rsp->result == 0)
     {
-        db_add_log(strIMEI, DEVICE_DEFEND_OFF);
+        db_add_log(strIMEI, "defendoff");
         app_sendCmdRsp2App(APP_CMD_FENCE_OFF, CODE_SUCCESS, strIMEI);
     }
     else
@@ -1288,7 +1288,7 @@ static int simcom_DefendNotify(const void *msg, SESSION *session)
     LOG_INFO("imei(%s) DefendNotify status(%d)", obj->IMEI, rsp->status);
 
     //add autolock log in db
-    db_add_log(obj->IMEI,  DEVICE_AUTOLOCK);
+    db_add_log(obj->IMEI,  "autolock");
 
     if(rsp->status == 0 || rsp->status == 1)
     {

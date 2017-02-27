@@ -1009,10 +1009,10 @@ static int _db_add_ObjectID(const char *imei, const char *objectID)
     return 0;
 }
 
-static int _db_add_log(const char *imei, int event)
+static int _db_add_log(const char *imei, const char *event)
 {
     char query[MAX_QUERY];
-    snprintf(query, MAX_QUERY, "insert into log(imei, event) values(\'%s\', %d)", imei, event);
+    snprintf(query, MAX_QUERY, "insert into log(imei, event) values(\'%s\', \'%s\')", imei, event);
 
     if(mysql_ping(conn))
     {
@@ -1408,7 +1408,7 @@ int db_add_ObjectID(const char *imei, const char *objectID)
 #endif
 }
 
-int db_add_log(const char *imei, int event)
+int db_add_log(const char *imei, const char *event)
 {
 #ifdef WITH_DB
     return _db_add_log(imei, event);

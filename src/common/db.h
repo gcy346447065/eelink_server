@@ -54,26 +54,13 @@ int db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*));
 
 int db_doWithObjectID(int (*func1)(const char*, const char*));
 int db_add_ObjectID(const char *imei, const char *objectID);
-int db_add_log(const char *imei, int event);
+int db_add_log(const char *imei, const char *event);
 int db_updateItinerary(const char *imeiName, long itinerary);
 int db_getItinerary(const char *imeiName);
 int db_getAppPackage(void *action, void *userdata);
 int db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName);
 
 int db_isMotorCycle(const char *imeiName);
-
-enum{
-    DEVICE_LOGIN,
-    DEVICE_ALARM_MOVE,
-    DEVICE_ALARM_LOWPOWER,
-    DEVICE_ALARM_CUTPOWER,
-    DEVICE_DEFEND_ON,
-    DEVICE_DEFEND_OFF,
-    DEVICE_AUTOLOCK,
-    DEVICE_TIMEOUT,
-    DEVICE_LOGOUT,
-    DEVICE_ALARM_SIWTCHOPEN,
-};
 
 #ifdef __cplusplus
     }
