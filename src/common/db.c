@@ -668,7 +668,7 @@ static int _db_getTelNumber(const char *imeiName, char *telNumber, char *callNum
 
     if(!row)
     {
-        LOG_ERROR("No telNumber(%s) in imei2Telnumber",imeiName);
+        LOG_DEBUG("No telNumber(%s) in imei2Telnumber",imeiName);
         return 3;
     }
 

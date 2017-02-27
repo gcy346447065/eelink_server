@@ -442,7 +442,7 @@ static int simcom_alarm(const void *msg, SESSION *session)
                 int rc = db_getTelNumber(obj->IMEI, telNumber, callNumber);
                 if(rc)
                 {
-                    LOG_WARN("No telNumber(%s) in database!",obj->IMEI);
+                    LOG_DEBUG("No telNumber(%s) in database!",obj->IMEI);
                     return;
                 }
 
