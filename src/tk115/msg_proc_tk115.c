@@ -250,7 +250,7 @@ int tk115_alarm(const void *msg, SESSION *ctx)
     jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, 0);
 
     //add alarm log in db
-    db_add_log(obj->IMEI, DEVICE_ALARM_MOVE);
+    db_add_log(obj->IMEI, "alarmmove");
 
 	return 0;
 }

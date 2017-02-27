@@ -18,6 +18,7 @@
 #include "macro.h"
 #include "mqtt.h"
 #include "timer.h"
+#include "port.h"
 
 static struct mosquitto *mosq = NULL;
 static struct event *evTimerReconnect = NULL;
@@ -209,8 +210,8 @@ static struct mosquitto* mqtt_login(const char* id, const char* host, int port,
 void mqtt_initial(MQTT_ARG* mqtt_arg)
 {
     char *mqtt_id = 0;
-    char *host = "InnerMqtt.xiaoan110.com";
-    int port = 1883;
+    char *host = HOST_MQTT;
+    int port = PORT_MQTT;
 
     char hostname[256] = {0};
     gethostname(hostname, 256);
