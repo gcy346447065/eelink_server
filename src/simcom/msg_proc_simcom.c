@@ -439,7 +439,7 @@ static int simcom_alarm(const void *msg, SESSION *session)
                 if(rc)
                 {
                     LOG_DEBUG("No telNumber(%s) in database!",obj->IMEI);
-                    return;
+                    break;
                 }
 
                 if (strlen(callNumber) == 0)
