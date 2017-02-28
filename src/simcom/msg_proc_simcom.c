@@ -425,11 +425,13 @@ static int simcom_alarm(const void *msg, SESSION *session)
     //send to APP by MQTT
     //app_sendAlarmMsg2App(req->alarmType, NULL, session);
 
-    //send alarm by jiguang push
-    switch(req->alarmType)
+    switch(req->alarmType)//send alarm by jiguang push
     {
         case ALARM_VIBRATE:
             {
+                db_add_log(obj->IMEI, "alarmmove");
+                jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
+
                 char telNumber[TELNUMBER_LENGTH + 1] = {0};
                 char callNumber[TELNUMBER_LENGTH + 1] = {0};
 
@@ -450,10 +452,6 @@ static int simcom_alarm(const void *msg, SESSION *session)
                     LOG_INFO("%s:%s", telNumber, callNumber);
                     phone_alarmWithCaller(telNumber, callNumber);
                 }
-
-                db_add_log(obj->IMEI, "alarmmove");
-                jiguang_push(obj->IMEI, JIGUANG_CMD_ALARM, req->alarmType);
-
             }
             break;
 
