@@ -110,7 +110,7 @@ static int getMsgCmd(cJSON* appMsg)
 static int app_sendWildMsg2Device(cJSON* appMsg, OBJECT* obj)
 {
     cJSON *dataItem = cJSON_GetObjectItem(appMsg, "data");
-    if(!dataItem) 
+    if(!dataItem)
     {
         LOG_ERROR("wild cmd with no data");
         return -1;
@@ -240,14 +240,14 @@ static int app_sendAutoPeriodSetMsg2Device(cJSON* appMsg, OBJECT* obj)
     int cmd = getMsgCmd(appMsg);
 
     cJSON *periodItem = cJSON_GetObjectItem(appMsg, "period");
-    if (!periodItem) 
+    if (!periodItem)
     {
         LOG_ERROR("period format error:no period item");
         return -1;
     }
 
     MSG_AUTOPERIOD_SET_REQ *req = (MSG_AUTOPERIOD_SET_REQ *)alloc_simcomAutoPeriodSetReq(cmd, periodItem->valueint);
-    if (!req) 
+    if (!req)
     {
         LOG_FATAL("insufficient memory");
         app_sendCmdRsp2App(cmd, CODE_INTERNAL_ERR, obj->IMEI);
@@ -379,7 +379,7 @@ typedef struct
     APP_MSG_PROC pfn;
 } APP_MSG_PROC_MAP;
 
-APP_MSG_PROC_MAP msg_proc_map[] = 
+APP_MSG_PROC_MAP msg_proc_map[] =
 {
     {APP_CMD_WILD,              app_sendWildMsg2Device},
     {APP_CMD_FENCE_ON,          app_sendFenceOnMsg2Device},
@@ -429,6 +429,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len __at
     if (!cmdItem)
     {
         LOG_ERROR("no cmd item");
+        cJSON_Delete(appMsg);
         return -1;
     }
     int cmd = cmdItem->valueint;
@@ -449,6 +450,7 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len __at
             app_sendLocationRsp2App(CODE_DEVICE_OFFLINE, obj);
         }
 
+        cJSON_Delete(appMsg);
         return 0;
     }
 
@@ -461,13 +463,16 @@ int app_handleApp2devMsg(const char* topic, const char* data, const int len __at
             APP_MSG_PROC pfn = msg_proc_map[i].pfn;
             if (pfn)
             {
-                return pfn(appMsg, obj);
+                pfn(appMsg, obj);
+                cJSON_Delete(appMsg);
+                return 0;
             }
         }
     }
 
     LOG_ERROR("unknown app cmd:%d", cmd);
 
+    cJSON_Delete(appMsg);
     return -1;
 }
 
