@@ -22,6 +22,7 @@
 #include "session_manager.h"
 #include "http_simcom.h"
 #include "redis.h"
+#include "msg_proc_simcom.h"
 
 static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {

@@ -9,7 +9,6 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <malloc.h>
-#include <time.h>
 #include <math.h>
 #include <object.h>
 
@@ -94,7 +93,7 @@ int simcom_startUpgradeRequest(OBJECT *obj)
     return 0;
 }
 
-static time_t get_time()
+time_t get_time(void)
 {
     time_t rawtime;
     time(&rawtime);
