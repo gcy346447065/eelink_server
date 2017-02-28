@@ -41,6 +41,18 @@ static void ItieraryJudge_cb(evutil_socket_t fd __attribute__((unused)), short w
     return;
 }
 
+static void FirmwareUpgrade_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
+{
+    time_t current = get_time();
+    if(current % 86400 >= 0 && current % 86400 < 5 * 60)
+    {
+        obj_table_FirmwareUpgrade(arg);
+    }
+
+    return;
+}
+
+
 int main(int argc, char **argv)
 {
     int simcom_port = PORT_SIMCOM;
@@ -164,8 +176,11 @@ int main(int argc, char **argv)
     }
 
     //start a one minutes timer to resave multiple unsaved DIDs
-    struct timeval five_min = { 60, 0 };
-    (void)timer_newLoop(base, &five_min, ItieraryJudge_cb, db_saveiItinerary);
+    struct timeval one_min = { 60, 0 };
+    (void)timer_newLoop(base, &one_min, ItieraryJudge_cb, db_saveiItinerary);
+
+    struct timeval five_min = { 5 * 60, 0 };
+    (void)timer_newLoop(base, &five_min, FirmwareUpgrade_cb, simcom_startUpgradeRequest);
 
     rc = sync_init(base);
     if (rc)

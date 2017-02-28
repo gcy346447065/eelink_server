@@ -12,5 +12,6 @@
 #include "session.h"
 
 int handle_simcom_msg(const char* m, size_t msgLen, void* arg);
+int simcom_startUpgradeRequest(OBJECT *obj);
 
 #endif /* SRC_MSG_PROC_SIMCOM_H_ */

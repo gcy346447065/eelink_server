@@ -81,12 +81,14 @@ typedef struct
 
 typedef int (*SIMCOM_SAVEITINERARY_PROC)(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary);
 typedef int (*MANAGER_SEND_PROC)(const void *msg, const char*imei, const char on_offline, int version, int timestamp, float lat, float lon, char speed, short course, char voltage);
+typedef int (*SIMCOM_STARTUPGRADE_REQUEST)(OBJECT *obj);
 
 void obj_sendData2Manager(const void *msg, MANAGER_SEND_PROC func);
 
 void obj_table_initial(void (*mqtt_sub)(const char *), int ObjectType);
 void obj_table_GPSinitial(void);
 void obj_table_ItieraryJudge(void *arg);
+void obj_table_FirmwareUpgrade(void *arg);
 void obj_table_destruct();
 
 OBJECT *obj_new();

@@ -78,6 +78,21 @@ static void obj_ItieraryJudge(gpointer key, gpointer value, gpointer user_data)
     return;
 }
 
+static void obj_FirmwareUpgrade(gpointer key, gpointer value, gpointer user_data)
+{
+    char *imei = (char *)key;
+    OBJECT *obj = (OBJECT *)value;
+    SIMCOM_STARTUPGRADE_REQUEST fun = (SIMCOM_STARTUPGRADE_REQUEST)user_data;
+
+    if(obj->session)
+    {
+        fun(obj);
+    }
+
+    return;
+}
+
+
 
 //it is a callback to update obj into db
 static void obj_update(gpointer key, gpointer value, gpointer user_data)
@@ -134,6 +149,11 @@ void obj_table_GPSinitial(void)
 void obj_table_ItieraryJudge(void *arg)
 {
     g_hash_table_foreach(object_table, (GHFunc)obj_ItieraryJudge, arg);
+}
+
+void obj_table_FirmwareUpgrade(void *arg)
+{
+    g_hash_table_foreach(object_table, (GHFunc)obj_FirmwareUpgrade, arg);
 }
 
 void obj_table_destruct()
