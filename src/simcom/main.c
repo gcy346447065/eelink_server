@@ -24,6 +24,8 @@
 #include "redis.h"
 #include "msg_proc_simcom.h"
 
+#define isZeroTime_East8(time) (time % 86400 >= 16 * 3600 && time % 86400 < 16 * 3600 + 60) // 00:00 -> 16:00
+
 static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
     struct event_base *base = arg;
@@ -33,26 +35,21 @@ static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __a
     event_base_loopbreak(base);
 }
 
-static void ItieraryJudge_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
+static void one_minute_loop_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
     LOG_INFO("one minutes timer for ItieraryJudge_cb");
 
-    obj_table_ItieraryJudge(arg); //simcom_server to judge if the itinerary reaches end
+    obj_table_ItieraryJudge((void *)db_saveiItinerary); //simcom_server to judge if the itinerary reaches end
 
-    return;
-}
 
-static void FirmwareUpgrade_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
-{
-    time_t current = get_time();
-    if(current % 86400 >= 0 && current % 86400 < 5 * 60)
+    time_t current = get_time();// everyday at 00:00, simcom_server to judge if devices need to be upgraded
+    if(isZeroTime_East8(current))
     {
-        obj_table_FirmwareUpgrade(arg);
+        obj_table_FirmwareUpgrade((void *)simcom_startUpgradeRequest);
     }
 
     return;
 }
-
 
 int main(int argc, char **argv)
 {
@@ -178,10 +175,7 @@ int main(int argc, char **argv)
 
     //start a one minutes timer to resave multiple unsaved DIDs
     struct timeval one_min = { 60, 0 };
-    (void)timer_newLoop(base, &one_min, ItieraryJudge_cb, db_saveiItinerary);
-
-    struct timeval five_min = { 5 * 60, 0 };
-    (void)timer_newLoop(base, &five_min, FirmwareUpgrade_cb, simcom_startUpgradeRequest);
+    (void)timer_newLoop(base, &one_min, one_minute_loop_cb, NULL);
 
     rc = sync_init(base);
     if (rc)

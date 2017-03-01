@@ -30,7 +30,7 @@ int getFirmwarePkgVersion(int version)
 
     if(0 != db_getFirmwarePkg(version, &Lastversion, firmwarePkg))
     {
-        LOG_INFO("No Firmware Package in Database");
+        LOG_DEBUG("No Firmware Package in Database");
         return 0;
     }
 

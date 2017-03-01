@@ -1127,7 +1127,7 @@ static int _db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName)
     int micro = oldVersion & 0xff;
     int maxVersion = (major << 16 | (minor + 1) << 8 | 0);
 
-    LOG_INFO("oldVersion: %d, maxVersion: %d", oldVersion, maxVersion);
+    LOG_DEBUG("oldVersion: %d, maxVersion: %d", oldVersion, maxVersion);
     snprintf(query,MAX_QUERY,
             "select * from FirmwarePkg where version > %d and version < %d order by version desc limit 1",
             oldVersion, maxVersion);

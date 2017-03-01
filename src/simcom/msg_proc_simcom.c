@@ -78,7 +78,7 @@ int simcom_startUpgradeRequest(OBJECT *obj)
             return 0;
         }
 
-        LOG_INFO("req->version is %d, theLastVersion is %d, theSize is %d", obj->version, theLastVersion, fileSize);
+        LOG_INFO("imei(%s), obj->version(%d), theLastVersion(%d), fileSize(%d)", obj->IMEI, obj->version, theLastVersion, fileSize);
 
         MSG_UPGRADE_START_REQ *req4upgrade = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, fileSize);
         if(!req4upgrade)
@@ -220,7 +220,7 @@ static int simcom_login(const void *msg, SESSION *session)
         db_createiItinerary(obj->IMEI);
     }
 
-    simcom_startUpgradeRequest(obj);
+    //simcom_startUpgradeRequest(obj);
 
     return 0;
 }
