@@ -137,8 +137,77 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     return;
 }
 
+
+static void simcom_deviceData(struct evhttp_request *req)
+{
+    char imei[MAX_IMEI_LENGTH + 1] = {0};
+    int rc = 0;
+    LOG_INFO("%s", req->uri);
+
+    rc = sscanf(req->uri, "/v1/imeiData/%15s%*s", imei);
+    if(rc != 1)
+    {
+        http_errorReply(req, CODE_IMEI_NOT_FOUND);
+        return;
+    }
+    LOG_INFO("%s", imei);
+    OBJECT *obj = obj_get(imei);
+    if(!obj)
+    {
+        LOG_WARN("object not exists");
+        http_errorReply(req, CODE_IMEI_NOT_FOUND);
+        return;
+    }
+
+    cJSON *root = cJSON_CreateObject();
+    if(!root)
+    {
+        http_errorReply(req, CODE_INTERNAL_ERROR);
+        return;
+    }
+
+    cJSON_AddStringToObject(root, "imei", obj->IMEI);
+    cJSON_AddNumberToObject(root, "version", obj->version);
+    cJSON_AddNumberToObject(root, "timestamp", obj->timestamp);
+    cJSON_AddNumberToObject(root, "latitude", obj->lat);
+    cJSON_AddNumberToObject(root, "longitude", obj->lon);
+    cJSON_AddNumberToObject(root, "course", obj->course);
+    cJSON_AddNumberToObject(root, "speed", obj->speed);
+    cJSON_AddNumberToObject(root, "GSM", obj->gsm);
+    cJSON_AddNumberToObject(root, "voltage", obj->voltage);
+
+    SESSION *session = obj->session;
+    if(session && session->pSendMsg)
+    {
+        cJSON_AddNumberToObject(root, "state", 1);
+    }
+    else
+    {
+        cJSON_AddNumberToObject(root, "state", 0);
+    }
+
+
+    char *data = cJSON_PrintUnformatted(root);
+    if(!data)
+    {
+        LOG_ERROR("internal error");
+        http_errorReply(req, CODE_INTERNAL_ERROR);
+    }
+    else
+    {
+        LOG_INFO("%s", data);
+        http_postReply(req, data);
+        free(data);
+    }
+    cJSON_Delete(root);
+
+    return;
+}
+
+
 void simcom_http_handler(struct evhttp_request *req, void *arg __attribute__((unused)))
 {
+    LOG_INFO("%s", req->uri);
     switch(req->type)
     {
         case EVHTTP_REQ_POST:
@@ -149,8 +218,15 @@ void simcom_http_handler(struct evhttp_request *req, void *arg __attribute__((un
             }
             break;
 
-        case EVHTTP_REQ_PUT:
         case EVHTTP_REQ_GET:
+            if(strstr(req->uri, "/v1/imeiData"))
+            {
+                simcom_deviceData(req);
+                return;
+            }
+            break;
+
+        case EVHTTP_REQ_PUT:
         case EVHTTP_REQ_DELETE:
         default:
             break;
