@@ -27,6 +27,13 @@ typedef struct
 static void device_timeout_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
     REQ_EVENT *req_event = arg;
+
+    if(!req_event->request_table || !req_event->seq)
+    {
+        free(req_event);
+        return;
+    }
+
     struct evhttp_request *req = request_get(req_event->request_table, req_event->seq);
     if(req)
     {
