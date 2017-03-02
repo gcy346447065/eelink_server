@@ -5,7 +5,7 @@
 #ifndef ELECTROMBILE_PORT_H
 #define ELECTROMBILE_PORT_H
 
-#define HOST_SIMCOM     "test.xiaoan110.com"
+#define HOST_SIMCOM     "www.xiaoan110.com"
 #define HOST_MQTT       "innermqtt.xiaoan110.com"
 
 #define HOST_REDIS      "innerredis.xiaoan110.com"
