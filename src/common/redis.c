@@ -54,7 +54,7 @@ int redis_initial(void)
 int redis_AddDevice(const char *imei)
 {
     redisReply *reply;
-    char hostSimcom[MAX_HOSTNAMEWITHPORT_LEN] = HOST_SIMCOM;
+    char hostSimcom[MAX_HOSTNAMEWITHPORT_LEN] = {0};
 
     reply = redisCommand(c,"PING");
     LOG_DEBUG("PING: %s", reply->str);
