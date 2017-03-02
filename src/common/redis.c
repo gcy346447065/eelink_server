@@ -140,7 +140,7 @@ int redis_getSelfSimcomIp(char *hostSimcom)
         LOG_ERROR("Get self ip error!");
         return -1;
     }
-    hostSimcom = inet_ntoa(((struct sockaddr_in*)&(ifR.ifr_addr))->sin_addr);
+    strncpy(hostSimcom, inet_ntoa(((struct sockaddr_in*)&(ifR.ifr_addr))->sin_addr), MAX_HOSTNAMEWITHPORT_LEN);
     close(sock_num);
     return 0;
 }
