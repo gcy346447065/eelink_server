@@ -397,7 +397,10 @@ void app_sendFTPPutEndMsg2App(int notify, char *fileName, void *session)
     cJSON_AddNumberToObject(root, "notify", notify);
 
     cJSON *data = cJSON_CreateObject();
-    cJSON_AddStringToObject(data, "fileName", fileName);
+    if(fileName)
+    {
+        cJSON_AddStringToObject(data, "fileName", fileName);
+    }
 
     cJSON_AddItemToObject(root, "data", data);
 
