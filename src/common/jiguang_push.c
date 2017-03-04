@@ -68,8 +68,8 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
                         break;
 
                     case 5:
-                        cJSON_AddStringToObject(android, "alert", "低电量提醒：低于30%");
-                        cJSON_AddStringToObject(ios, "alert", "低电量提醒：低于30%");
+                        cJSON_AddStringToObject(android, "alert", "低电量提醒：您的电动车电池电量不足，请注意充电");
+                        cJSON_AddStringToObject(ios, "alert", "低电量提醒：您的电动车电池电量不足，请注意充电");
                         cJSON_AddStringToObject(ios, "sound", "default");
                         break;
 
@@ -80,8 +80,8 @@ int jiguang_push(char *imei, int jiguang_cmd, int status)
                         break;
 
                     case 7:
-                        cJSON_AddStringToObject(android, "alert", "告警：您的电动车被非法启动");
-                        cJSON_AddStringToObject(ios, "alert", "告警：您的电动车被非法启动");
+                        cJSON_AddStringToObject(android, "alert", "通知：您的电动车已启动");
+                        cJSON_AddStringToObject(ios, "alert", "通知：您的电动车已启动");
                         cJSON_AddStringToObject(ios, "sound", "default");
                         break;
 
