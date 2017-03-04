@@ -181,6 +181,7 @@ static void simcom_deviceData(struct evhttp_request *req)
     cJSON_AddNumberToObject(root, "course", obj->course);
     cJSON_AddNumberToObject(root, "speed", obj->speed);
     cJSON_AddNumberToObject(root, "GSM", obj->gsm);
+    cJSON_AddNumberToObject(root, "MAXGSM", obj->max_gsm);
     cJSON_AddNumberToObject(root, "voltage", obj->voltage);
 
     SESSION *session = obj->session;
