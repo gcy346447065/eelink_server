@@ -259,6 +259,10 @@ static int simcom_ping(const void *msg, SESSION *session)
         return -1;
     }
     obj->gsm = req->gsm;
+    if(obj->gsm > obj->max_gsm)
+    {
+        obj->max_gsm = obj->gsm;
+    }
     obj->voltage = req->voltage;
     LOG_INFO("imei(%s) ping, gsm(%d), voltage(%d)", obj->IMEI, obj->gsm, obj->voltage);
 

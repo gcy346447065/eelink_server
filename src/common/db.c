@@ -159,9 +159,8 @@ static int _db_initial()
 
         /* creat table log if not exists */
         snprintf(query, MAX_QUERY, "create table if not exists log(time timestamp default CURRENT_TIMESTAMP, \
-                                    imei char(15) not null,  \
-                                    event char(16) not null, \
-                                    primary key(time, imei))");
+        imei char(15) not null, \
+        event char(16) not null)");
 
         if(mysql_ping(conn))
         {

@@ -52,6 +52,7 @@ typedef struct
     char isGPSlocated;
 
     char gsm;
+    char max_gsm;
     char voltage;
     short analog1;
     short analog2;
