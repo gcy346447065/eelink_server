@@ -48,6 +48,7 @@ int db_getTelNumber(const char *imeiName, char *telNumber, char *callNumber);
 
 int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *), int ObjectType);
 int db_insertOBJ(const char *imeiName, int ObjectType, char Volatge);
+int db_updateObjectType(const char *imeiName, int ObjectType, char voltage);
 int db_updateSimInfo(const char *imeiName, const char *ccid, const char *imsi);
 int db_updateOBJIsPosted(const char *imeiName);
 int db_ResaveOBJUnpostedImei_cb(void (*func1)(const char*));

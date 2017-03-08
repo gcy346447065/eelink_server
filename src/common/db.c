@@ -893,6 +893,26 @@ static int _db_insertOBJ(const char *imeiName, int ObjectType, char voltage)
     return 0;
 }
 
+static int _db_updateObjectType(const char *imeiName, int ObjectType, char voltage)
+{
+    char query[MAX_QUERY];
+    snprintf(query, MAX_QUERY, "update object set ObjectType=%d,voltage=%d where imei=\'%s\'", ObjectType, voltage, imeiName);
+
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_ERROR("can't insert %s into object(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+    return 0;
+}
+
+
 static int _db_updateSimInfo(const char *imeiName, const char *ccid, const char *imsi)
 {
     char query[MAX_QUERY];
@@ -1126,7 +1146,7 @@ static int _db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName)
     int micro = oldVersion & 0xff;
     int maxVersion = (major << 16 | (minor + 1) << 8 | 0);
 
-    LOG_INFO("oldVersion: %d, maxVersion: %d", oldVersion, maxVersion);
+    LOG_DEBUG("oldVersion: %d, maxVersion: %d", oldVersion, maxVersion);
     snprintf(query,MAX_QUERY,
             "select * from FirmwarePkg where version > %d and version < %d order by version desc limit 1",
             oldVersion, maxVersion);
@@ -1361,6 +1381,17 @@ int db_insertOBJ(const char *imeiName, int ObjectType, char voltage)
     return 0;
 #endif
 }
+
+
+int db_updateObjectType(const char *imeiName, int ObjectType, char voltage)
+{
+#ifdef WITH_DB
+    return _db_updateObjectType(imeiName, ObjectType, voltage);
+#else
+    return 0;
+#endif
+}
+
 
 int db_updateSimInfo(const char *imeiName, const char *ccid, const char *imsi)
 {

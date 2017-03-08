@@ -9,7 +9,6 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <malloc.h>
-#include <time.h>
 #include <math.h>
 #include <object.h>
 
@@ -67,7 +66,34 @@ static int simcom_sendMsg(void *msg, size_t len, SESSION *session)
     return 0;
 }
 
-static time_t get_time()
+int simcom_startUpgradeRequest(OBJECT *obj)
+{
+    int fileSize = 0;//get version, compare the version number; if not, send upgrade start message
+    int theLastVersion = getFirmwarePkgVersion(obj->version);
+    if(theLastVersion)
+    {
+        fileSize = getFirmwarePkg(obj->version, NULL);
+        if(fileSize < 0)
+        {
+            return 0;
+        }
+
+        LOG_INFO("imei(%s), obj->version(%d), theLastVersion(%d), fileSize(%d)", obj->IMEI, obj->version, theLastVersion, fileSize);
+
+        MSG_UPGRADE_START_REQ *req4upgrade = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, fileSize);
+        if(!req4upgrade)
+        {
+            LOG_FATAL("insufficient memory");
+            return 0;
+        }
+
+        simcom_sendMsg(req4upgrade, sizeof(MSG_UPGRADE_START_REQ), obj->session);
+    }
+
+    return 0;
+}
+
+time_t get_time(void)
 {
     time_t rawtime;
     time(&rawtime);
@@ -142,21 +168,10 @@ static int simcom_login(const void *msg, SESSION *session)
 
             //if there is no data uploaded in 10 min, the device will become offline
             //for the 600s timeout of connection in server_simcom.c
-
             obj = obj_new();
 
             memcpy(obj->IMEI, imei, IMEI_LENGTH + 1);
             memcpy(obj->DID,  imei, IMEI_LENGTH + 1);//IMEI and DID mean the same now
-            obj->ObjectType = ObjectType_simcom;
-
-            if(ntohs(req->header.length) < sizeof(MSG_LOGIN_REQ_NEW) - MSG_HEADER_LEN)
-            {
-                obj->voltage = 0;
-            }
-            else
-            {
-                obj->voltage = req->voltage;
-            }
 
             obj_add(obj);
             sync_newIMEI(obj->IMEI);
@@ -167,66 +182,45 @@ static int simcom_login(const void *msg, SESSION *session)
         session_add(session);
         obj->session = session;
         redis_AddDevice(obj->IMEI);
+
+        if(ntohs(req->header.length) < sizeof(MSG_LOGIN_REQ_NEW) - MSG_HEADER_LEN)
+        {
+            obj->voltage = 0;
+        }
+        else
+        {
+            obj->voltage = req->voltage;
+        }
+        obj->ObjectType = req->deviceType;
+        db_updateObjectType(obj->IMEI, obj->ObjectType, obj->voltage);
     }
     else
     {
         LOG_INFO("simcom IMEI(%s) already login", imei);
     }
+
     obj->version = ntohl(req->version); //remember the version of firmware of the device
 
-    //login rsp
-    MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg);
-    if(rsp)
-    {
-        simcom_sendMsg(rsp, sizeof(MSG_LOGIN_RSP), session);
-        LOG_INFO("send login rsp");
-    }
-    else
+    MSG_LOGIN_RSP *rsp = alloc_simcom_rspMsg((const MSG_HEADER *)msg); //login rsp
+    if(!rsp)
     {
         LOG_ERROR("insufficient memory");
         return -1;
     }
 
-    //add login log in db
-    db_add_log(obj->IMEI, "login");
+    LOG_INFO("send login rsp");
+    db_add_log(obj->IMEI, "login");//add login log in db
+    simcom_sendMsg(rsp, sizeof(MSG_LOGIN_RSP), session);
 
-    int num = 0;
-    if(!db_isTableCreated(obj->IMEI, &num) && 2 > num)
+    int tablenum = 0;
+    if(!db_isTableCreated(obj->IMEI, &tablenum) && 2 > tablenum)
     {
-        LOG_DEBUG("db_isTableCreated:%d", num);
+        LOG_DEBUG("db_isTableCreated:%d", tablenum);
         db_createGPS(obj->IMEI);
         db_createiItinerary(obj->IMEI);
     }
 
-    //get version, compare the version number; if not, send upgrade start message
-    int theSize = 0;
-    int theLastVersion = getFirmwarePkgVersion(obj->version);
-    if(theLastVersion)
-    {
-        theSize = getFirmwarePkg(obj->version, NULL);
-        if(theSize < 0)
-        {
-            LOG_ERROR("No appfile in server,obj->version: %d, theLastVersion: %d", obj->version, theLastVersion);
-            return 0;
-        }
-
-        LOG_INFO("req->version is %d, theLastVersion is %d, theSize is %d", obj->version, theLastVersion, theSize);
-
-        if(ntohl(req->version) < theLastVersion)
-        {
-            MSG_UPGRADE_START_REQ *req4upgrade = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, theSize);
-            if(!req4upgrade)
-            {
-                LOG_FATAL("insufficient memory");
-            }
-
-            simcom_sendMsg(req4upgrade, sizeof(MSG_UPGRADE_START_REQ), session);
-        }
-    }
-    else
-    {
-        LOG_WARN("can't get valid theLastVersion");
-    }
+    //simcom_startUpgradeRequest(obj);
 
     return 0;
 }

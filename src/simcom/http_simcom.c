@@ -130,6 +130,8 @@ static void simcom_deviceHandler(struct evhttp_request *req)
     LOG_HEX(msg, sizeof(MSG_DEVICE_REQ));
     pfn(session->bev, msg, msgLen); //simcom_sendMsg
 
+    free_simcom_msg(msg);
+
     request_add(session->request_table, req, session->request_seq);
 
     REQ_EVENT *req_event = (REQ_EVENT *)malloc(sizeof(REQ_EVENT));
