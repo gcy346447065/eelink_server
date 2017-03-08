@@ -894,6 +894,26 @@ static int _db_insertOBJ(const char *imeiName, int ObjectType, char voltage)
     return 0;
 }
 
+static int _db_updateObjectType(const char *imeiName, int ObjectType, char voltage)
+{
+    char query[MAX_QUERY];
+    snprintf(query, MAX_QUERY, "update object set ObjectType=%d,voltage=%d where imei=\'%s\'", ObjectType, voltage, imeiName);
+
+    if(mysql_ping(conn))
+    {
+        LOG_ERROR("can't ping mysql(%u, %s)",mysql_errno(conn), mysql_error(conn));
+        return 1;
+    }
+
+    if(mysql_query(conn, query))
+    {
+        LOG_ERROR("can't insert %s into object(%u, %s)", imeiName, mysql_errno(conn), mysql_error(conn));
+        return 2;
+    }
+    return 0;
+}
+
+
 static int _db_updateSimInfo(const char *imeiName, const char *ccid, const char *imsi)
 {
     char query[MAX_QUERY];
@@ -1362,6 +1382,17 @@ int db_insertOBJ(const char *imeiName, int ObjectType, char voltage)
     return 0;
 #endif
 }
+
+
+int db_updateObjectType(const char *imeiName, int ObjectType, char voltage)
+{
+#ifdef WITH_DB
+    return _db_updateObjectType(imeiName, ObjectType, voltage);
+#else
+    return 0;
+#endif
+}
+
 
 int db_updateSimInfo(const char *imeiName, const char *ccid, const char *imsi)
 {

@@ -168,21 +168,10 @@ static int simcom_login(const void *msg, SESSION *session)
 
             //if there is no data uploaded in 10 min, the device will become offline
             //for the 600s timeout of connection in server_simcom.c
-
             obj = obj_new();
 
             memcpy(obj->IMEI, imei, IMEI_LENGTH + 1);
             memcpy(obj->DID,  imei, IMEI_LENGTH + 1);//IMEI and DID mean the same now
-            obj->ObjectType = ObjectType_simcom;
-
-            if(ntohs(req->header.length) < sizeof(MSG_LOGIN_REQ_NEW) - MSG_HEADER_LEN)
-            {
-                obj->voltage = 0;
-            }
-            else
-            {
-                obj->voltage = req->voltage;
-            }
 
             obj_add(obj);
             sync_newIMEI(obj->IMEI);
@@ -193,6 +182,17 @@ static int simcom_login(const void *msg, SESSION *session)
         session_add(session);
         obj->session = session;
         redis_AddDevice(obj->IMEI);
+
+        if(ntohs(req->header.length) < sizeof(MSG_LOGIN_REQ_NEW) - MSG_HEADER_LEN)
+        {
+            obj->voltage = 0;
+        }
+        else
+        {
+            obj->voltage = req->voltage;
+        }
+        obj->ObjectType = req->deviceType;
+        db_updateObjectType(obj->IMEI, obj->ObjectType, obj->voltage);
     }
     else
     {
