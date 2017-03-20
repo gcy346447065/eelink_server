@@ -1692,7 +1692,7 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
         obj->starttime = ntohl(gps[0].timestamp);
         obj->startlat = gps[0].latitude;
         obj->startlon = gps[0].longitude;
-        obj->itineray = (int)miles;;
+        obj->itineray = 0;
     }
     obj->timecount = 0;//every GPS comes, set the count as 0, when it reach 5, one itinerary generats
 
