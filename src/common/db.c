@@ -1136,7 +1136,7 @@ static int _db_getAppPackage(void *action, void *userdata)
 }
 
 
-static int _db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName)
+static int _db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName, char *pIsImmediately)
 {
     int rc = -1;
     char query[MAX_QUERY] = {0};
@@ -1168,8 +1168,19 @@ static int _db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName)
 
     if(row = mysql_fetch_row(result))
     {
-        *pLastVersion = atoi(row[0]);
-        strcpy(fileName, row[1]);
+        if(row[0])
+        {
+            *pLastVersion = atoi(row[0]);
+        }
+        if(row[1])
+        {
+            strcpy(fileName, row[1]);
+        }
+        if(row[2])
+        {
+            *pIsImmediately = atoi(row[2]);
+        }
+        LOG_INFO("VERSION:%d, foleName:%s, isimmediately:%d", *pLastVersion, fileName, *pIsImmediately);
         rc = 0;
     }
     else
@@ -1474,10 +1485,10 @@ int db_getAppPackage(void *action, void *userdata)
 #endif
 }
 
-int db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName)
+int db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName, char *pIsImmediately)
 {
 #ifdef WITH_DB
-    return _db_getFirmwarePkg(oldVersion, pLastVersion, fileName);
+    return _db_getFirmwarePkg(oldVersion, pLastVersion, fileName, pIsImmediately);
 #else
     return 0;
 #endif

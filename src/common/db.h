@@ -59,7 +59,7 @@ int db_add_log(const char *imei, const char *event);
 int db_updateItinerary(const char *imeiName, long itinerary);
 int db_getItinerary(const char *imeiName);
 int db_getAppPackage(void *action, void *userdata);
-int db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName);
+int db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName, char *pIsImmediately);
 
 int db_isMotorCycle(const char *imeiName);
 

@@ -25,7 +25,7 @@
 #include "msg_proc_simcom.h"
 
 #define isZeroTime_East8(time) (time % 86400 >= 16 * 3600 && time % 86400 < 16 * 3600 + 60) // 00:00 -> 16:00
-
+#define isNoonTime_East8(time) (time % 86400 >= 4 * 3600 && time % 86400 < 4 * 3600 + 60) // 00:00 -> 16:00
 static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
     struct event_base *base = arg;
@@ -43,7 +43,7 @@ static void one_minute_loop_cb(evutil_socket_t fd __attribute__((unused)), short
 
 
     time_t current = get_time();// everyday at 00:00, simcom_server to judge if devices need to be upgraded
-    if(isZeroTime_East8(current))
+    if(isZeroTime_East8(current) || isNoonTime_East8(current))
     {
         obj_table_FirmwareUpgrade((void *)simcom_startUpgradeRequest);
     }

@@ -670,7 +670,8 @@ static int manager_upgrade(const void *msg, SESSION_MANAGER *sessionManager)
         }
 
         //send fake upgrade start msg
-        unsigned int theLastVersion = getFirmwarePkgVersion(obj->version);
+        char isImmediately = 0;
+        unsigned int theLastVersion = getFirmwarePkgVersion(obj->version, &isImmediately);
         if(theLastVersion)
         {
             unsigned int theFakeVersion = theLastVersion + 100;

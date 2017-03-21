@@ -69,7 +69,8 @@ static int simcom_sendMsg(void *msg, size_t len, SESSION *session)
 int simcom_startUpgradeRequest(OBJECT *obj)
 {
     int fileSize = 0;//get version, compare the version number; if not, send upgrade start message
-    int theLastVersion = getFirmwarePkgVersion(obj->version);
+    char isImmediately = 0;
+    int theLastVersion = getFirmwarePkgVersion(obj->version, &isImmediately);
     if(theLastVersion)
     {
         fileSize = getFirmwarePkg(obj->version, NULL);
@@ -92,6 +93,35 @@ int simcom_startUpgradeRequest(OBJECT *obj)
 
     return 0;
 }
+
+static int simcom_startUpgradeRequestIfImmediately(OBJECT *obj)
+{
+    int fileSize = 0;//get version, compare the version number; if not, send upgrade start message
+    char isImmediately = 0;
+    int theLastVersion = getFirmwarePkgVersion(obj->version, &isImmediately);
+    if(theLastVersion && isImmediately)
+    {
+        fileSize = getFirmwarePkg(obj->version, NULL);
+        if(fileSize < 0)
+        {
+            return 0;
+        }
+
+        LOG_INFO("imei(%s), obj->version(%d), theLastVersion(%d), fileSize(%d)", obj->IMEI, obj->version, theLastVersion, fileSize);
+
+        MSG_UPGRADE_START_REQ *req4upgrade = (MSG_UPGRADE_START_REQ *)alloc_simcomUpgradeStartReq(theLastVersion, fileSize);
+        if(!req4upgrade)
+        {
+            LOG_FATAL("insufficient memory");
+            return 0;
+        }
+
+        simcom_sendMsg(req4upgrade, sizeof(MSG_UPGRADE_START_REQ), obj->session);
+    }
+
+    return 0;
+}
+
 
 time_t get_time(void)
 {
@@ -220,7 +250,7 @@ static int simcom_login(const void *msg, SESSION *session)
         db_createiItinerary(obj->IMEI);
     }
 
-    //simcom_startUpgradeRequest(obj);
+    simcom_startUpgradeRequestIfImmediately(obj);
 
     return 0;
 }
