@@ -123,7 +123,7 @@ static int _db_initial()
 
         /* creat table FirmwarePkg if not exists */
         snprintf(query, MAX_QUERY, "create table if not exists FirmwarePkg(version bigint not null primary key, \
-        fileName varchar(128) not null)");
+        fileName varchar(128) not null, isImmediately tinyint default 0)");
 
         if(mysql_ping(conn))
         {
@@ -1136,7 +1136,7 @@ static int _db_getAppPackage(void *action, void *userdata)
 }
 
 
-static int _db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName)
+static int _db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName, char *pIsImmediately)
 {
     int rc = -1;
     char query[MAX_QUERY] = {0};
@@ -1168,8 +1168,18 @@ static int _db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName)
 
     if(row = mysql_fetch_row(result))
     {
-        *pLastVersion = atoi(row[0]);
-        strcpy(fileName, row[1]);
+        if(row[0])
+        {
+            *pLastVersion = atoi(row[0]);
+        }
+        if(row[1])
+        {
+            strcpy(fileName, row[1]);
+        }
+        if(row[2])
+        {
+            *pIsImmediately = atoi(row[2]);
+        }
         rc = 0;
     }
     else
@@ -1474,10 +1484,10 @@ int db_getAppPackage(void *action, void *userdata)
 #endif
 }
 
-int db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName)
+int db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName, char *pIsImmediately)
 {
 #ifdef WITH_DB
-    return _db_getFirmwarePkg(oldVersion, pLastVersion, fileName);
+    return _db_getFirmwarePkg(oldVersion, pLastVersion, fileName, pIsImmediately);
 #else
     return 0;
 #endif

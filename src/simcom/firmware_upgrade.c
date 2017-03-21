@@ -23,12 +23,12 @@
 *param:version input
 *return:Lastversion
 */
-int getFirmwarePkgVersion(int version)
+int getFirmwarePkgVersion(int version, char *pImmediately)
 {
     int Lastversion = 0;
     char firmwarePkg[128] = {0};// no use, just Intermediate variable
 
-    if(0 != db_getFirmwarePkg(version, &Lastversion, firmwarePkg))
+    if(0 != db_getFirmwarePkg(version, &Lastversion, firmwarePkg, pImmediately))
     {
         LOG_DEBUG("No Firmware Package in Database");
         return 0;
@@ -48,8 +48,9 @@ int getFirmwarePkg(int version, char *LastFileNamewithPath)
     struct stat buf;
     int LastVersion = 0;
     char firmwarePkg[128] = {0};
+    char isImmediately = 0;
 
-    if(0 != db_getFirmwarePkg(version, &LastVersion, firmwarePkg))
+    if(0 != db_getFirmwarePkg(version, &LastVersion, firmwarePkg, &isImmediately))
     {
         LOG_INFO("No Firmware Package in Database");
         return -1;
