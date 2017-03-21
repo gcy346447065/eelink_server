@@ -17,5 +17,6 @@ int handle_simcom_msg(const char* m, size_t msgLen, void* arg);
 
 time_t get_time(void);
 int simcom_startUpgradeRequest(OBJECT *obj);
+int simcom_startUpgradeRequestObligatory(OBJECT *obj);
 
 #endif /* SRC_MSG_PROC_SIMCOM_H_ */

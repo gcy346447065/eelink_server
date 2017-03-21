@@ -17,6 +17,7 @@
 #include "msg_simcom.h"
 #include "msg_http.h"
 #include "request_table.h"
+#include "msg_proc_simcom.h"
 
 typedef struct
 {
@@ -214,6 +215,89 @@ static void simcom_deviceData(struct evhttp_request *req)
     return;
 }
 
+enum
+{
+    SERVER_UPGRADEDEVICE = 0
+}SERVER_CMD_HANDLER;
+
+static void simcom_serverHandler(struct evhttp_request *req)
+{
+    int c = 0;
+    char post_data[MAX_MSGHTTP_LEN] = {0};
+    evbuffer_copyout(req->input_buffer,post_data,MAX_MSGHTTP_LEN);
+
+    LOG_INFO("get the request from http:%s", post_data);
+
+    cJSON *json = cJSON_Parse(post_data);
+    if(!json)
+    {
+        LOG_ERROR("get data is not json type");
+        http_errorReply(req, CODE_ERROR_CONTENT);
+        return;
+    }
+
+    cJSON *imei = cJSON_GetObjectItem(json, "imei");
+    if(!imei)
+    {
+        LOG_ERROR("no imei in data");
+        cJSON_Delete(json);
+        http_errorReply(req, CODE_ERROR_CONTENT);
+        return;
+    }
+
+    OBJECT *obj = obj_get(imei->valuestring);
+    if(!obj)
+    {
+        LOG_WARN("object not exists");
+        cJSON_Delete(json);
+        http_errorReply(req, CODE_IMEI_NOT_FOUND);
+        return;
+    }
+
+    cJSON *cmd = cJSON_GetObjectItem(json, "cmd");
+    if(!cmd)
+    {
+        LOG_ERROR("no cmd in data");
+        cJSON_Delete(json);
+        http_errorReply(req, CODE_ERROR_CONTENT);
+        return;
+    }
+    c = cmd->valueint;
+    cJSON_Delete(json);
+
+    switch(c)
+    {
+        case SERVER_UPGRADEDEVICE:
+            {
+                SESSION *session = obj->session;
+                if(!session)
+                {
+                    LOG_ERROR("device offline");
+                    cJSON_Delete(json);
+                    http_errorReply(req, CODE_DEVICE_OFF);
+                    return;
+                }
+
+                MSG_SEND pfn = session->pSendMsg;
+                if (!pfn)
+                {
+                    LOG_ERROR("device offline");
+                    http_errorReply(req, CODE_DEVICE_OFF);
+                    return;
+                }
+                simcom_startUpgradeRequestObligatory(obj);
+            }
+            break;
+        default:
+            http_errorReply(req, CODE_RANGE_TOO_LARGE);
+            return;
+    }
+
+    http_postReply(req, "{\"code\":0}");
+    return;
+
+}
+
 
 void simcom_http_handler(struct evhttp_request *req, void *arg __attribute__((unused)))
 {
@@ -224,6 +308,11 @@ void simcom_http_handler(struct evhttp_request *req, void *arg __attribute__((un
             if(strstr(req->uri, "/v1/device"))
             {
                 simcom_deviceHandler(req);
+                return;
+            }
+            if(strstr(req->uri, "/v1/server"))
+            {
+                simcom_serverHandler(req);
                 return;
             }
             break;
