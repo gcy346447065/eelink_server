@@ -25,7 +25,8 @@
 #include "msg_proc_simcom.h"
 
 #define isZeroTime_East8(time) (time % 86400 >= 16 * 3600 && time % 86400 < 16 * 3600 + 60) // 00:00 -> 16:00
-#define isNoonTime_East8(time) (time % 86400 >= 4 * 3600 && time % 86400 < 4 * 3600 + 60) // 00:00 -> 16:00
+#define isNoonTime_East8(time) (time % 86400 >= 4 * 3600 && time % 86400 < 4 * 3600 + 60) // 12:00 -> 4:00
+
 static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
     struct event_base *base = arg;
