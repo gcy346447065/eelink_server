@@ -1180,7 +1180,6 @@ static int _db_getFirmwarePkg(int oldVersion, int *pLastVersion, char *fileName,
         {
             *pIsImmediately = atoi(row[2]);
         }
-        LOG_INFO("VERSION:%d, foleName:%s, isimmediately:%d", *pLastVersion, fileName, *pIsImmediately);
         rc = 0;
     }
     else
