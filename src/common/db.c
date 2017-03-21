@@ -123,7 +123,7 @@ static int _db_initial()
 
         /* creat table FirmwarePkg if not exists */
         snprintf(query, MAX_QUERY, "create table if not exists FirmwarePkg(version bigint not null primary key, \
-        fileName varchar(128) not null)");
+        fileName varchar(128) not null, isImmediately tinyint default 0)");
 
         if(mysql_ping(conn))
         {
