@@ -1805,7 +1805,6 @@ static MSG_PROC_MAP msgProcs[] =
     {CMD_GET_AUTOSWITCH,    simcom_GetAutoswitch},
     {CMD_SET_PERIOD,        simcom_SetPeriod},
     {CMD_GET_PERIOD,        simcom_GetPeriod},
-    {CMD_ITINERARY,         simcom_itinerary},
     {CMD_BATTERY,           simcom_battery},
     {CMD_DEFEND_ON,         simcom_DefendOn},
     {CMD_DEFEND_OFF,        simcom_DefendOff},
