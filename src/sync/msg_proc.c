@@ -192,7 +192,7 @@ int handle_incoming_msg(const char *m, size_t msgLen, void *arg)
                 break;
 
             case CMD_SYNC_CALL_ALARM:
-                msg_callAlarm(root);
+                //msg_callAlarm(root);
                 break;
 
             default:

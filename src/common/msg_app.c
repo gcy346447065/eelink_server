@@ -379,7 +379,7 @@ void app_sendAlarmMsg2App(int type, const char *msg, void *session)
     return;
 }
 
-/* dev2app/<imei>/ftp */
+/* dev2app/<imei>/notify */
 void app_sendFTPPutEndMsg2App(int notify, char *fileName, void *session)
 {
     OBJECT* obj = (OBJECT *)((SESSION *)session)->obj;
