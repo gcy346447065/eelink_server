@@ -10,8 +10,6 @@
 #include "log.h"
 #include "version.h"
 #include "server_simcom.h"
-#include "server_manager.h"
-//#include "yunba_push.h"
 #include "object.h"
 #include "mqtt.h"
 #include "db.h"
@@ -19,7 +17,6 @@
 #include "port.h"
 #include "sync.h"
 #include "session.h"
-#include "session_manager.h"
 #include "http_simcom.h"
 #include "redis.h"
 #include "msg_proc_simcom.h"
@@ -150,7 +147,6 @@ int main(int argc, char **argv)
     obj_table_initial(mqtt_subscribe, ObjectType_simcom);
     obj_table_GPSinitial();
     session_table_initial();
-    sessionManager_table_initial();
 
     struct evconnlistener *listener_simcom = server_simcom(base, simcom_port);
     if (listener_simcom)
@@ -160,17 +156,6 @@ int main(int argc, char **argv)
     else
     {
         LOG_FATAL("start simcom server failed at port:%d", simcom_port);
-        return 2;
-    }
-
-    struct evconnlistener *listener_manager = server_manager(base, manager_port);
-    if (listener_manager)
-    {
-        LOG_INFO("start manager server successfully at port:%d", manager_port);
-    }
-    else
-    {
-        LOG_FATAL("start manager server failed at port:%d", manager_port);
         return 2;
     }
 
@@ -222,7 +207,6 @@ int main(int argc, char **argv)
     curl_global_cleanup();
 
     mqtt_cleanup();
-//    yunba_disconnect();
 
     mosquitto_lib_cleanup();
 

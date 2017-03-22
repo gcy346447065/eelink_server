@@ -4,14 +4,8 @@ SET(SOURCE_FILE
     firmware_upgrade.c
     firmware_upgrade.h
 
-    msg_manager.c
-    msg_manager.h
-
     msg_proc_app.c
     msg_proc_app.h
-
-    msg_proc_manager.c
-    msg_proc_manager.h
 
     msg_proc_simcom.c
     msg_proc_simcom.h
@@ -20,16 +14,9 @@ SET(SOURCE_FILE
     msg_simcom.h
 
     protocol.h
-    protocol_manager.h
-
-    server_manager.c
-    server_manager.h
 
     server_simcom.c
     server_simcom.h
-
-    session_manager.h
-    session_manager.c
 
     http_simcom.c
     http_simcom.h
