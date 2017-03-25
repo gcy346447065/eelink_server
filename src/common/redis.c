@@ -11,7 +11,6 @@
 
 #include "redis.h"
 #include "log.h"
-#include "port.h"
 #include "setting.h"
 
 static redisContext *c = NULL;
