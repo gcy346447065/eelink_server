@@ -46,7 +46,6 @@ int main(int argc, char *argv[])
         LOG_ERROR("eelink_server.ini failed: rc=%d", rc);
     	return rc;
     }
-    int http_port = 8081;
 
     rc = db_initial();
     if(rc)
@@ -78,7 +77,9 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-    if (evhttp_bind_socket(httpd, "0.0.0.0", http_port) != 0)
+    int http_port = 8081;
+    char *http_host = "0.0.0.0";
+    if (evhttp_bind_socket(httpd, http_host, http_port) != 0)
     {
         LOG_ERROR("bind socket failed at port:%d", http_port);
         return 1;
