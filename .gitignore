@@ -64,3 +64,6 @@ nbproject/
 *.PRI
 *.PS
 *.WK3
+
+#setting
+*.ini
