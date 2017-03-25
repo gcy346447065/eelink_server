@@ -12,7 +12,7 @@
 #include "macro.h"
 #include "msg_proc_http.h"
 #include "redis.h"
-
+#include "setting.h"
 
 static void signal_handler(int sig)
 {
@@ -32,21 +32,7 @@ static void signal_handler(int sig)
 
 int main(int argc, char *argv[])
 {
-    int http_port = PORT_HTTP;
-    char *httpd_listen = "0.0.0.0"; // locaol adress
-    int httpd_timeout = 5;         // in seconds
-
     setvbuf(stdout, NULL, _IONBF, 0);
-
-    if (argc >= 2)
-    {
-    	char* port = argv[1];
-    	int num = atoi(port);
-    	if (num)
-    	{
-    		http_port = num;
-    	}
-    }
 
     int rc = log_init("../conf/http_log.conf");
     if (rc)
@@ -54,6 +40,14 @@ int main(int argc, char *argv[])
         LOG_ERROR("log initial failed: rc=%d", rc);
     	return rc;
     }
+
+    rc = setting_initail("../conf/eelink_server.ini");
+    if (rc < 0)
+    {
+        LOG_ERROR("eelink_server.ini failed: rc=%d", rc);
+    	return rc;
+    }
+    int http_port = 8081;
 
     rc = db_initial();
     if(rc)
@@ -85,12 +79,13 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-    if (evhttp_bind_socket(httpd, httpd_listen, http_port) != 0)
+    if (evhttp_bind_socket(httpd, "0.0.0.0", http_port) != 0)
     {
         LOG_ERROR("bind socket failed at port:%d", http_port);
         return 1;
     }
 
+    int httpd_timeout = 5;         // in seconds
     evhttp_set_timeout(httpd, httpd_timeout);
     evhttp_set_gencb(httpd, httpd_handler, base);
 

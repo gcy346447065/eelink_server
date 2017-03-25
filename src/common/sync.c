@@ -18,7 +18,7 @@
 #include "cJSON.h"
 #include "inter_msg.h"
 #include "log.h"
-#include "port.h"
+#include "setting.h"
 #include "timer.h"
 #include "macro.h"
 
@@ -111,12 +111,13 @@ static void write_cb(struct bufferevent* bev, void *arg)
 
 int sync_init(struct event_base *base)
 {
+    short port = setting.sync_port;
     struct sockaddr_in sin;
 
     memset(&sin, 0, sizeof(sin));
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(0x7f000001); /* 127.0.0.1 */
-    sin.sin_port = htons(PORT_SYNC);
+    sin.sin_port = htons(port);
 
     bev = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
 

@@ -12,6 +12,7 @@
 #include "redis.h"
 #include "log.h"
 #include "port.h"
+#include "setting.h"
 
 static redisContext *c = NULL;
 
@@ -22,7 +23,7 @@ static redisContext *c = NULL;
 int redis_initial(void)
 {
     struct timeval timeout = { 1, 500000 }; // 1.5 seconds
-    c = redisConnectWithTimeout(HOST_REDIS, PORT_REDIS, timeout);
+    c = redisConnectWithTimeout(setting.redis_host, setting.redis_port, timeout);
     if (!c) {
         LOG_FATAL("redis connection error: can't allocate redis context");
         return -1;
@@ -33,7 +34,7 @@ int redis_initial(void)
         return -1;
     }
 
-    redisReply *reply = redisCommand(c,"auth %s", AUTH_REDIS);
+    redisReply *reply = redisCommand(c,"auth %s", setting.redis_auth);
     LOG_DEBUG("result: %s", reply->str);
 
     if(!strstr(reply->str, "OK"))

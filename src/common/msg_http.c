@@ -17,7 +17,7 @@
 
 #include "log.h"
 #include "msg_http.h"
-#include "port.h"
+#include "setting.h"
 
 
 typedef struct
@@ -72,7 +72,7 @@ void http_sendData(struct event_base *base, struct evhttp_request *req, char *ur
 	int port = evhttp_uri_get_port(uri);// get the port from uri
 
     // no need dns base
-	struct evhttp_connection *evcon = evhttp_connection_base_new(base, NULL, evhttp_uri_get_host(uri), (port == -1 ? PORT_SIMCOMHTTP : port));
+	struct evhttp_connection *evcon = evhttp_connection_base_new(base, NULL, evhttp_uri_get_host(uri), (port == -1 ? setting.simhttp_port: port));
     if (!evcon)
     {
         LOG_ERROR("couldn't generate connection");

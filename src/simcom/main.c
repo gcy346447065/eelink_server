@@ -14,7 +14,7 @@
 #include "mqtt.h"
 #include "db.h"
 #include "msg_proc_app.h"
-#include "port.h"
+#include "setting.h"
 #include "sync.h"
 #include "session.h"
 #include "http_simcom.h"
@@ -51,50 +51,33 @@ static void one_minute_loop_cb(evutil_socket_t fd __attribute__((unused)), short
 
 int main(int argc, char **argv)
 {
-    int simcom_port = PORT_SIMCOM;
-    int manager_port = PORT_MANAGER;
-    int http_port = PORT_SIMCOMHTTP;
-
     setvbuf(stdout, NULL, _IONBF, 0);
-
-    if (argc >= 2)
-    {
-    	char* strPort = argv[1];
-    	int num = atoi(strPort);
-    	if (num)
-    	{
-    		simcom_port = num;
-    	}
-    }
-
-    if (argc >= 3)
-    {
-        char* strPort = argv[2];
-        int num = atoi(strPort);
-        if (num)
-        {
-            manager_port = num;
-        }
-    }
-
-    /* log haven't work now, it will be writen into nohup file */
-    printf("Electrombile Server %s, with event %s, mosquitto %d, curl %s\n",
-    		VERSION_STR,
-			LIBEVENT_VERSION,
-			mosquitto_lib_version(NULL, NULL, NULL),
-			curl_version());
-
-    struct event_base *base = event_base_new();
-    if (!base)
-    {
-        return 1; /*XXXerr*/
-    }
 
     int rc = log_init("../conf/simcom_log.conf");
     if (rc)
     {
         LOG_ERROR("log initial failed: rc=%d", rc);
     	return rc;
+    }
+
+    LOG_INFO("Electrombile Server %s, with event %s, mosquitto %d, curl %s\n",
+    		VERSION_STR, LIBEVENT_VERSION, mosquitto_lib_version(NULL, NULL, NULL), curl_version());
+
+    rc = setting_initail("../conf/eelink_server.ini");
+    if (rc < 0)
+    {
+        LOG_ERROR("eelink_server.ini failed: rc=%d", rc);
+    	return rc;
+    }
+
+    int simcom_port = setting.simcom_port;
+    int http_port = setting.simhttp_port;
+
+
+    struct event_base *base = event_base_new();
+    if (!base)
+    {
+        return 1; /*XXXerr*/
     }
 
     struct event *evTerm = evsignal_new(base, SIGTERM, signal_cb, base);
@@ -123,19 +106,21 @@ int main(int argc, char **argv)
     mqtt_arg.base = base;
 
     mqtt_initial(&mqtt_arg);
-
+    LOG_INFO("HERE");
     rc = redis_initial();
     if (rc)
     {
     	LOG_ERROR("connect to redis failed");
     	return -1;
     }
+    LOG_INFO("HERE");
 
     rc = curl_global_init(CURL_GLOBAL_DEFAULT);
     if (rc != CURLE_OK)
     {
     	LOG_FATAL("curl lib initial failed:%d", rc);
     }
+    LOG_INFO("HERE");
 
     rc = db_initial();
     if(rc)
@@ -143,10 +128,12 @@ int main(int argc, char **argv)
         LOG_FATAL("connect to mysql failed");
         return -1;
     }
+    LOG_INFO("HERE");
 
     obj_table_initial(mqtt_subscribe, ObjectType_simcom);
     obj_table_GPSinitial();
     session_table_initial();
+    LOG_INFO("HERE");
 
     struct evconnlistener *listener_simcom = server_simcom(base, simcom_port);
     if (listener_simcom)
@@ -162,12 +149,14 @@ int main(int argc, char **argv)
     //start a one minutes timer to resave multiple unsaved DIDs
     struct timeval one_min = { 60, 0 };
     (void)timer_newLoop(base, &one_min, one_minute_loop_cb, NULL);
+    LOG_INFO("HERE");
 
     rc = sync_init(base);
     if (rc)
     {
         LOG_ERROR("connect to sync server failed, try later");
     }
+    LOG_INFO("HERE");
 
 	struct evhttp *httpd = evhttp_new(base);
 	if (!httpd) {
