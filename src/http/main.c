@@ -8,7 +8,6 @@
 
 #include "db.h"
 #include "log.h"
-#include "port.h"
 #include "macro.h"
 #include "msg_proc_http.h"
 #include "redis.h"
