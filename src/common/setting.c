@@ -144,7 +144,6 @@ int setting_initail(char *file)
         return -1;
     }
     strncpy(setting.redis_auth, redis_auth, MAX_NAME_LEN);
-    LOG_INFO("%s:%d %s", setting.redis_host, setting.redis_port, setting.redis_auth);
 
 
     iniparser_freedict(ini);//free dirctionary obj
