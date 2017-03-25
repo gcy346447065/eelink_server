@@ -65,7 +65,7 @@ int redis_AddDevice(const char *imei)
         LOG_ERROR("Get Self IP error");
         return -1;
     }
-    reply = redisCommand(c,"SET %s %s:%d", imei,hostSimcom, PORT_SIMCOMHTTP);
+    reply = redisCommand(c,"SET %s %s:%d", imei,hostSimcom, setting.simhttp_port);
     LOG_INFO("SET: %s %s", imei, reply->str);
     freeReplyObject(reply);
 
