@@ -13,13 +13,6 @@ const string DB::database = "gps";
 
 void DB::addGPS(string imei, GPS *gps)
 {
-    string check = "create table if not exists `gps_" + imei + "`(`timestamp` INT,`lat` DOUBLE(9,6),`lon` DOUBLE(9,6),`speed` TINYINT,`course` SMALLINT,primary key(`timestamp`))";
-
-    db_conn.prepare(check);
-
-    db_conn.execute();
-
-
     string sql = "insert into `gps_" + imei + "`(`timestamp`,`lat`,`lon`,`speed`,`course`) values(?,?,?,?,?)";
 
     db_conn.prepare(sql);
