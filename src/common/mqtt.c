@@ -320,4 +320,29 @@ void mqtt_unsubscribe(const char *imei)
     return;
 }
 
+int mqtt_subscribe_allGPS(void)
+{
+	char topic[] = "app2dev/+/gps";
+
+	int rc = mosquitto_subscribe(mosq, NULL, topic, 0);
+	if(MOSQ_ERR_SUCCESS != rc)
+	{
+		LOG_ERROR("subscribe topic: %s error %d", topic, rc);
+        return -1;
+	}
+
+    LOG_INFO("subscribe topic: %s", topic);
+    return 0;
+}
+
+int mqtt_unsubscribe_allGPS(void)
+{
+	char topic[] = "app2dev/+/gps";
+
+    LOG_INFO("unsubscribe topic: %s", topic);
+	mosquitto_unsubscribe(mosq, NULL, topic);
+
+    return 0;
+}
+
 

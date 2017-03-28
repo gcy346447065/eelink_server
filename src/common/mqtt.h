@@ -23,4 +23,7 @@ void mqtt_publish(const char *topic, const void *payload, size_t payloadlen);
 void mqtt_subscribe(const char *imei);
 void mqtt_unsubscribe(const char *imei);
 
+int mqtt_subscribe_allGPS(void);
+int mqtt_unsubscribe_allGPS(void);
+
 #endif /* SRC_MQTT_H_ */
