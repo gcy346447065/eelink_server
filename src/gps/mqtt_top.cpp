@@ -33,18 +33,18 @@ bool myMosq::send_message(const char *imei, GPS *gps)
 void myMosq::on_connect(int rc)
 {
     if ( rc == 0 ) {
-        std::cout << ">> myMosq - connected with server" << std::endl;
+        LOG(INFO) << ">> myMosq - connected with server";
     } else {
-        std::cout << ">> myMosq - Impossible to connect with server(" << rc << ")" << std::endl;
+        LOG(ERROR) << ">> myMosq - Impossible to connect with server(" << rc << ")";;
     }
 }
 
 void myMosq::on_disconnect(int rc) {
-    std::cout << ">> myMosq - disconnection(" << rc << ")" << std::endl;
+    LOG(ERROR) << ">> myMosq - disconnection(" << rc << ")";
 }
 
 void myMosq::on_publish(int mid)
 {
-    std::cout << ">> myMosq - Message (" << mid << ") succeed to be published " << std::endl;
+    LOG(INFO) << ">> myMosq - Message (" << mid << ") succeed to be published ";
 }
 

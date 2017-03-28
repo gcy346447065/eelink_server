@@ -9,7 +9,7 @@
 
 int main(int argc, char **argv)
 {
-    google::SetLogDestination(google::INFO,"log/gps_");
+    google::SetLogDestination(google::INFO,"../log/gps_");
     google::InitGoogleLogging(argv[0]);
 
     IUdpServer* pUdpServer = CreateUdpServerInstance();
