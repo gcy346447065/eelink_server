@@ -4,9 +4,10 @@
 #include <netinet/in.h>
 #include <glog/logging.h>
 
+#include "DB.h"
+#include "mqtt_top.h"
 #include "Message.h"
 #include "protocol.h"
-#include "DB.h"
 
 using namespace std;
 
@@ -27,18 +28,18 @@ void Message::process()
         default:
             break;
     }
-
 }
 
 void Message::handle_cmd_gps()
 {
+    int i = 0;
     string IMEI(imei, imei + IMEI_LENGTH);
-
     GPS *gps = reinterpret_cast<GPS*> (data);
 
-
-    for(int i = 0; i < ntohs(length)/sizeof(GPS); i++)
+    for(i = 0; i < ntohs(length)/sizeof(GPS); i++)
     {
         DB::instance().addGPS(IMEI, gps + i);
     }
+
+    myMosq::instance().send_message(IMEI.data(), gps + (i - 1));
 }

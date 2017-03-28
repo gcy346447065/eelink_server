@@ -1,3 +1,5 @@
+#include <math.h>
+#include <string.h>
 #include <stdio.h>
 #include <signal.h>
 #include <mosquitto.h>
@@ -9,6 +11,10 @@
 #include "mqtt.h"
 #include "cJSON.h"
 #include "itinerary_object.h"
+
+#define EARTH_RADIUS 6378137 //radius of our earth unit :  m
+#define PI 3.141592653
+#define DEG2RAD(d) (d * PI / 180.f)//degree to radian
 
 static long double get_distancebetweenGPS(float pre_gpsLat, float pre_gpsLon,float new_gpsLat,float new_gpsLon)
 {
