@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
     struct timeval one_min = { 60, 0 };
     timer_newLoop(base, &one_min, one_minute_loop_cb, NULL);
 
-    int rc = mqtt_subscribe_allGPS();
+    rc = mqtt_subscribe_allGPS();
     if (rc < 0)
     {
         LOG_FATAL("mqtt subscribe failed: %d", rc);
