@@ -39,13 +39,13 @@ void mqtt_message_callback(struct mosquitto *m __attribute__((unused)), void *us
 
     if(strncmp(message->topic, "app2dev/", strlen("app2dev/")) == 0)
     {
-        mqtt_arg->app_msg_handler(message->topic, message->payload, message->payloadlen);
         LOG_INFO("recieve app2dev PUBLISH: %s", message->topic);
+        mqtt_arg->app_msg_handler(message->topic, message->payload, message->payloadlen);
     }
     else if(strncmp(message->topic, "dev2app/", strlen("dev2app/")) == 0)
     {
-        mqtt_arg->app_msg_handler(message->topic, message->payload, message->payloadlen);
         LOG_INFO("Receive dev2app PUBLISH: %s", message->topic);
+        mqtt_arg->app_msg_handler(message->topic, message->payload, message->payloadlen);
     }
     else
     {
