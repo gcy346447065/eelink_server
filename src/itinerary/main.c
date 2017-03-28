@@ -155,6 +155,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    itineraryObj_table_initial();
+
     struct event_base *base = event_base_new();
     if (!base)
     {
@@ -169,29 +171,32 @@ int main(int argc, char *argv[])
     	return -1;
     }
 
-    MQTT_ARG mqtt_arg ={ base, itinerary_handleAppGPSMsg };
+    static MQTT_ARG mqtt_arg =
+    {
+        .app_msg_handler = itinerary_handleAppGPSMsg
+    };
+    mqtt_arg.base = base;
     mqtt_initial(&mqtt_arg);
 
-    rc = mqtt_subscribe_allGPS();
+    struct timeval one_min = { 60, 0 };
+    timer_newLoop(base, &one_min, one_minute_loop_cb, NULL);
+
+    int rc = mqtt_subscribe_allGPS();
     if (rc < 0)
     {
         LOG_FATAL("mqtt subscribe failed: %d", rc);
     	return rc;
     }
 
-    struct timeval one_min = { 60, 0 };
-    timer_newLoop(base, &one_min, one_minute_loop_cb, NULL);
-
     event_base_dispatch(base);
 
-    event_base_free(base);
 
     mqtt_cleanup();
-
+    event_base_free(base);
     mosquitto_lib_cleanup();
+    itineraryObj_table_destruct();
 
     LOG_FATAL("mqtt subscribe failed: %d", rc);
-
 	return 0;
 }
 
