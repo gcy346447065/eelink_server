@@ -5,11 +5,11 @@
 #ifndef ELECTROMBILE_PORT_H
 #define ELECTROMBILE_PORT_H
 
-#define HOST_SIMCOM     "www.xiaoan110.com"
-#define HOST_MQTT       "innermqtt.xiaoan110.com"
+#define HOST_SIMCOM     "127.0.0.1"
+#define HOST_MQTT       "127.0.0.1"
 
-#define HOST_REDIS      "innerredis.xiaoan110.com"
-#define AUTH_REDIS      "Bbj4VzYmDTufJU8KPBP9FKj5"
+#define HOST_REDIS      "127.0.0.1"
+#define AUTH_REDIS      "ZzsLcc2017"
 
 #define PORT_TK115      9870
 #define PORT_SIMCOM     9880

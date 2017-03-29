@@ -2,11 +2,11 @@
 // Created by jk on 16-6-25.
 //
 #include <netinet/in.h>
-#include <glog/logging.h>
 
 #include "DB.h"
-#include "mqtt_top.h"
+#include "logger.h"
 #include "Message.h"
+#include "mqtt_top.h"
 #include "protocol.h"
 
 using namespace std;
@@ -15,14 +15,14 @@ void Message::process()
 {
     if (ntohs(signature) != START_FLAG_UDP)
     {
-        LOG(ERROR) << "message signature not valid";
+        LOG_ERROR << "message signature not valid";
         return;
     }
 
     switch (cmd)
     {
         case CMD_UDP_GPS:
-            LOG(INFO) << "handle gps message";
+            LOG_INFO << "handle gps message";
             handle_cmd_gps();
             break;
         default:
