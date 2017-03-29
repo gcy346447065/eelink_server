@@ -840,13 +840,13 @@ static int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[],
     return 0;
 }
 
-static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *), int ObjectType)
+static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *))
 {
 #define MAX_QUERY_LEN 128
     char imei[IMEI_LENGTH];
     char query[MAX_QUERY_LEN] = {0};
 
-    snprintf(query,MAX_QUERY_LEN,"select imei from object where length(imei)=15 and ObjectType=%d",ObjectType);
+    snprintf(query,MAX_QUERY_LEN,"select imei from object where length(imei)=15");
 
     if(mysql_ping(conn))
     {
@@ -1374,10 +1374,10 @@ int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cel
 #endif
 }
 
-int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *), int ObjectType)
+int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *))
 {
 #ifdef WITH_DB
-    return _db_doWithOBJ(func, func2, ObjectType);
+    return _db_doWithOBJ(func, func2);
 #else
     return 0;
 #endif
