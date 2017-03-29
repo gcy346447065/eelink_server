@@ -86,7 +86,7 @@ typedef int (*SIMCOM_STARTUPGRADE_REQUEST)(OBJECT *obj);
 
 void obj_sendData2Manager(const void *msg, MANAGER_SEND_PROC func);
 
-void obj_table_initial(void (*mqtt_sub)(const char *), int ObjectType);
+void obj_table_initial(void (*mqtt_sub)(const char *));
 void obj_table_GPSinitial(void);
 void obj_table_ItieraryJudge(void *arg);
 void obj_table_FirmwareUpgrade(void *arg);
