@@ -13,7 +13,7 @@ using namespace std;
 
 void Message::process()
 {
-    if (signature != START_FLAG_UDP)
+    if (signature != ntohs(START_FLAG_UDP))
     {
         LOG(ERROR) << "message signature not valid";
         return;

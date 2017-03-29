@@ -20,5 +20,7 @@ int main(int argc, char **argv)
 
     pUdpServer->Start(0, PORT);
 
+    LOG(INFO) << "gps server stoped";
+
     return 0;
 }
