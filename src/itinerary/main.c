@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
     mqtt_arg.base = base;
     mqtt_initial(&mqtt_arg);
 
-    struct timeval one_min = { 5, 0 };
+    struct timeval one_min = { 60, 0 };
     timer_newLoop(base, &one_min, one_minute_loop_cb, NULL);
 
     rc = mqtt_subscribe_allGPS();

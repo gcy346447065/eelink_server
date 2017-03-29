@@ -7,9 +7,8 @@
 
 int myMosq::port = 1883;
 int myMosq::keepalive = 60;// Basic configuration setup for myMosq class
-const char * myMosq::id = "client_test";
+const char * myMosq::id = "gps_server";
 const char * myMosq::host = "localhost";
-const char * myMosq::topic = "dev2app/+/gps";
 
 bool myMosq::send_message(const char *imei, GPS *gps)
 {
@@ -38,7 +37,7 @@ bool myMosq::send_message(const char *imei, GPS *gps)
     }
     cJSON_Delete(root);
 
-    int ret = publish(NULL,this->topic, strlen(_message), _message, 2, false);
+    int ret = publish(NULL, topic, strlen(_message), _message, 2, false);
 
     free(_message);
 

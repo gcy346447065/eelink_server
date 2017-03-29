@@ -21,7 +21,6 @@ static void itineraryObj_ItieraryJudge(gpointer key, gpointer value, gpointer us
     ITINERARY_OBJECT *obj = (ITINERARY_OBJECT *)value;
     ITINERARY_PROC fun = (ITINERARY_PROC)user_data;
 
-    LOG_INFO("imei :%s isStarted:%d, timecount %d", obj->IMEI, obj->isStarted, obj->timecount);
     if(++obj->timecount >= 5)
     {
         if(obj->starttime < obj->timestamp && obj->isStarted)
@@ -87,7 +86,6 @@ ITINERARY_OBJECT *itineraryObj_new()
 
 void itineraryObj_del(ITINERARY_OBJECT *obj)
 {
-    LOG_INFO("imei :%s isStarted:%d, timecount %d", obj->IMEI, obj->isStarted, obj->timecount);
     ITINERARY_OBJECT *t_obj = itineraryObj_get(obj->IMEI);
     if(t_obj)
     {
