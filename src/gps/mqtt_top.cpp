@@ -1,3 +1,4 @@
+#include <netinet/in.h>
 #include <glog/logging.h>
 
 #include "mqtt_top.h"
@@ -15,12 +16,12 @@ bool myMosq::send_message(const char *imei, GPS *gps)
     snprintf(topic, 50, "dev2app/%s/gps", imei);
 
     cJSON * root = cJSON_CreateObject();
-    cJSON_AddNumberToObject(root, "timestamp", gps->timestamp);
+    cJSON_AddNumberToObject(root, "timestamp", ntohl(gps->timestamp));
     cJSON_AddNumberToObject(root, "isGPSlocated", 1);
     cJSON_AddNumberToObject(root, "lat", gps->latitude);
     cJSON_AddNumberToObject(root, "lng", gps->longitude);
     cJSON_AddNumberToObject(root, "speed", gps->speed);
-    cJSON_AddNumberToObject(root, "course", gps->course);
+    cJSON_AddNumberToObject(root, "course", ntohs(gps->course));
 
     char *_message = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);

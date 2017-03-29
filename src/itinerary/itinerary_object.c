@@ -22,9 +22,9 @@ static void itineraryObj_ItieraryJudge(gpointer key, gpointer value, gpointer us
     ITINERARY_PROC fun = (ITINERARY_PROC)user_data;
 
     LOG_INFO("imei :%s isStarted:%d, timecount %d", obj->IMEI, obj->isStarted, obj->timecount);
-    if(++obj->timecount >= 5 && obj->isStarted)
+    if(++obj->timecount >= 5)
     {
-        if(obj->starttime < obj->timestamp)
+        if(obj->starttime < obj->timestamp && obj->isStarted)
         {
             fun(obj->IMEI, obj->starttime, obj->startlat, obj->startlon, obj->timestamp, obj->lat, obj->lon, obj->itineray);
         }
