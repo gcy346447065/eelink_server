@@ -77,7 +77,7 @@ ITINERARY_OBJECT *itineraryObj_new()
     {
         return NULL;
     }
-
+    memset(obj, 0, sizeof(ITINERARY_OBJECT));
 	obj->isStarted = 0;
     obj->itineray = 0;
     obj->timecount = 0;
