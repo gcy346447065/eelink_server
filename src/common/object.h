@@ -78,6 +78,9 @@ typedef struct
     float startlat;
     float startlon;
     int itineray;
+
+    GHashTable * request_table;
+    unsigned char request_seq;
 } OBJECT;
 
 typedef int (*SIMCOM_SAVEITINERARY_PROC)(const char* tableName, int starttime, float startlat, float startlon, int endtime, float endlat, float endlon, short itinerary);

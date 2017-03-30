@@ -125,6 +125,7 @@ void obj_freeKey(gpointer key)
 void obj_freeValue(gpointer value)
 {
     OBJECT *obj = (OBJECT *)value;
+    request_destruct(obj->request_table);
 
     LOG_DEBUG("free value IMEI:%s of object_table", get_IMEI_STRING(obj->IMEI));
 
@@ -184,6 +185,8 @@ OBJECT *obj_new()
     obj->gps_switch = 1;
     obj->isStarted = 0;
     obj->timestamp = 0;
+    obj->request_table = request_initial();
+    obj->request_seq = 0;
 
 	return obj;
 }
