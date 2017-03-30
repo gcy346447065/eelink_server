@@ -1757,11 +1757,11 @@ static int simcom_deviceReply(const void *msg, SESSION *session)
     }
     LOG_INFO("imei(%s) get device rsp:%s", obj->IMEI, rsp->data);
 
-    struct evhttp_request *req = request_get(session->request_table, rsp->header.seq);
+    struct evhttp_request *req = request_get(obj->request_table, rsp->header.seq);
     if(req)
     {
         http_postReply(req, rsp->data);
-        request_del(session->request_table, rsp->header.seq);
+        request_del(obj->request_table, rsp->header.seq);
     }
     return 0;
 }

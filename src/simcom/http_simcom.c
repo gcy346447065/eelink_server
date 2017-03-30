@@ -116,7 +116,7 @@ static void simcom_deviceHandler(struct evhttp_request *req)
 
     int msgLen = sizeof(MSG_DEVICE_REQ) + strlen(data);
 
-    MSG_DEVICE_REQ *msg = alloc_device_msg(CMD_DEVICE, session->request_seq, msgLen);
+    MSG_DEVICE_REQ *msg = alloc_device_msg(CMD_DEVICE, obj->request_seq, msgLen);
     if(!msg)
     {
         LOG_ERROR("no memory");
@@ -133,12 +133,12 @@ static void simcom_deviceHandler(struct evhttp_request *req)
 
     free_simcom_msg(msg);
 
-    request_add(session->request_table, req, session->request_seq);
+    request_add(obj->request_table, req, obj->request_seq);
 
     REQ_EVENT *req_event = (REQ_EVENT *)malloc(sizeof(REQ_EVENT));
 
-    req_event->request_table = session->request_table;
-    req_event->seq = session->request_seq++;
+    req_event->request_table = obj->request_table;
+    req_event->seq = obj->request_seq++;
 
     //set a timer to response to http if request can't get response from device.
     struct timeval tv = {4, 5000};// X.005 seconds

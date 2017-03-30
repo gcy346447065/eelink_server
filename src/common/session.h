@@ -17,8 +17,6 @@ typedef struct
 {
     struct event_base *base;
     struct bufferevent *bev;
-    GHashTable * request_table;
-    unsigned char request_seq;
 
     void *obj;
     MSG_SEND pSendMsg;
