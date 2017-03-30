@@ -15,12 +15,6 @@
     extern "C"{
 #endif
 
-/* database settings */
-#define DB_HOST "127.0.0.1"
-#define DB_USER "eelink"
-#define DB_PWD  "eelink"
-#define DB_PORT (3306)
-#define DB_NAME "gps"
 #define MAX_QUERY 400
 
 typedef int (*GET_APP_PACKAGE_PROC)(const char *versionName, int versionCode, const char *changeLog, const char *fileName, int type, void *userdata);
@@ -46,7 +40,7 @@ int db_replaceTelNumber(const char *imeiName, const char *telNumber);
 int db_updateCallNumber(const char *imeiName, const char *callNumber);
 int db_getTelNumber(const char *imeiName, char *telNumber, char *callNumber);
 
-int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *), int ObjectType);
+int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *));
 int db_insertOBJ(const char *imeiName, int ObjectType, char Volatge);
 int db_updateObjectType(const char *imeiName, int ObjectType, char voltage);
 int db_updateSimInfo(const char *imeiName, const char *ccid, const char *imsi);

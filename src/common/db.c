@@ -14,6 +14,7 @@
 #include "log.h"
 #include "macro.h"
 #include "object.h"
+#include "setting.h"
 
 static MYSQL *conn = NULL;
 
@@ -25,7 +26,7 @@ static int _db_initial()
 
     mysql_options(conn, MYSQL_OPT_RECONNECT, (char *)&value);
 
-    if(!mysql_real_connect(conn, DB_HOST, DB_USER, DB_PWD, NULL, DB_PORT, NULL, 0))
+    if(!mysql_real_connect(conn, setting.db_host, setting.db_user, setting.db_pwd, NULL, setting.db_port, NULL, 0))
     {
         LOG_ERROR("can't connect to mysql(%u, %s)", mysql_errno(conn), mysql_error(conn));
         return -1;
@@ -34,7 +35,7 @@ static int _db_initial()
     {
         /* create database if not exists gps */
         char query[MAX_QUERY];
-        snprintf(query, MAX_QUERY, "create database if not exists %s", DB_NAME);
+        snprintf(query, MAX_QUERY, "create database if not exists %s", setting.db_database);
 
         if(mysql_ping(conn))
         {
@@ -44,12 +45,12 @@ static int _db_initial()
 
         if(mysql_query(conn, query))
         {
-            LOG_ERROR("can't create database %s(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
+            LOG_ERROR("can't create database %s(%u, %s)", setting.db_database, mysql_errno(conn), mysql_error(conn));
             return 2;
         }
 
         /* use gps */
-        snprintf(query, MAX_QUERY, "use %s", DB_NAME);
+        snprintf(query, MAX_QUERY, "use %s", setting.db_database);
 
         if(mysql_ping(conn))
         {
@@ -59,7 +60,7 @@ static int _db_initial()
 
         if(mysql_query(conn, query))
         {
-            LOG_ERROR("can't use %s(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
+            LOG_ERROR("can't use %s(%u, %s)", setting.db_database, mysql_errno(conn), mysql_error(conn));
             return 2;
         }
 
@@ -189,12 +190,12 @@ static int _db_initial()
             return 2;
         }
 
-        LOG_INFO("create and use database %s; creat table object, imei2objectID and log", DB_NAME);
+        LOG_INFO("create and use database %s; creat table object, imei2objectID and log", setting.db_database);
         return 0;
     }
 
 #if 0
-    if(!mysql_real_connect(conn, DB_HOST, DB_USER, DB_PWD, DB_NAME, DB_PORT, NULL, 0))
+    if(!mysql_real_connect(conn, DB_HOST, DB_USER, DB_PWD, setting.db_database, DB_PORT, NULL, 0))
     {
         if(mysql_errno(conn) == 1049)
         {
@@ -209,7 +210,7 @@ static int _db_initial()
             {
                 /* create database gps */
                 char query[MAX_QUERY];
-                snprintf(query, MAX_QUERY, "create database %s", DB_NAME);
+                snprintf(query, MAX_QUERY, "create database %s", setting.db_database);
 
                 if(mysql_ping(conn))
                 {
@@ -219,12 +220,12 @@ static int _db_initial()
 
                 if(mysql_query(conn, query))
                 {
-                    LOG_ERROR("can't create database %s(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
+                    LOG_ERROR("can't create database %s(%u, %s)", setting.db_database, mysql_errno(conn), mysql_error(conn));
                     return 2;
                 }
 
                 /* use gps */
-                snprintf(query, MAX_QUERY, "use %s", DB_NAME);
+                snprintf(query, MAX_QUERY, "use %s", setting.db_database);
 
                 if(mysql_ping(conn))
                 {
@@ -234,7 +235,7 @@ static int _db_initial()
 
                 if(mysql_query(conn, query))
                 {
-                    LOG_ERROR("can't use %s(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
+                    LOG_ERROR("can't use %s(%u, %s)", setting.db_database, mysql_errno(conn), mysql_error(conn));
                     return 2;
                 }
 
@@ -272,19 +273,19 @@ static int _db_initial()
                     return 2;
                 }
 
-                LOG_INFO("create and use database: %s, creat table object, creat table imei2objectID", DB_NAME);
+                LOG_INFO("create and use database: %s, creat table object, creat table imei2objectID", setting.db_database);
                 return 0;
             }
         }
         else
         {
-            LOG_ERROR("can't connect database: %s(%u, %s)", DB_NAME, mysql_errno(conn), mysql_error(conn));
+            LOG_ERROR("can't connect database: %s(%u, %s)", setting.db_database, mysql_errno(conn), mysql_error(conn));
             return -1;
         }
     }
     else
     {
-        LOG_INFO("connect database: %s", DB_NAME);
+        LOG_INFO("connect database: %s", setting.db_database);
 
         /* creat table object if not exists */
         char query[MAX_QUERY];
@@ -345,7 +346,7 @@ static int _db_initial()
 static int _db_destruct()
 {
     mysql_close(conn);
-    LOG_INFO("destruct database: %s", DB_NAME);
+    LOG_INFO("destruct database: %s", setting.db_database);
     return 0;
 }
 
@@ -840,13 +841,13 @@ static int _db_saveCGI(const char *imeiName, int timestamp, const CGI_MC cell[],
     return 0;
 }
 
-static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *), int ObjectType)
+static int _db_doWithOBJ(void (*func1)(const char*), void (*func2)(const char *))
 {
 #define MAX_QUERY_LEN 128
     char imei[IMEI_LENGTH];
     char query[MAX_QUERY_LEN] = {0};
 
-    snprintf(query,MAX_QUERY_LEN,"select imei from object where length(imei)=15 and ObjectType=%d",ObjectType);
+    snprintf(query,MAX_QUERY_LEN,"select imei from object where length(imei)=15");
 
     if(mysql_ping(conn))
     {
@@ -1374,10 +1375,10 @@ int db_saveCGI(const char* imeiName, int timestamp, const CGI_MC cell[], int cel
 #endif
 }
 
-int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *), int ObjectType)
+int db_doWithOBJ(void (*func)(const char*), void (*func2)(const char *))
 {
 #ifdef WITH_DB
-    return _db_doWithOBJ(func, func2, ObjectType);
+    return _db_doWithOBJ(func, func2);
 #else
     return 0;
 #endif
