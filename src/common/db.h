@@ -15,12 +15,6 @@
     extern "C"{
 #endif
 
-/* database settings */
-#define DB_HOST "rm-wz9g7kzr9u0o7m477.mysql.rds.aliyuncs.com"
-#define DB_USER "eelink"
-#define DB_PWD  "Xiaoan2015"
-#define DB_PORT (3306)
-#define DB_NAME "gps"
 #define MAX_QUERY 400
 
 typedef int (*GET_APP_PACKAGE_PROC)(const char *versionName, int versionCode, const char *changeLog, const char *fileName, int type, void *userdata);

@@ -12,7 +12,7 @@
 #include "mqtt.h"
 #include "db.h"
 #include "msg_proc_app.h"
-#include "port.h"
+#include "setting.h"
 #include "sync.h"
 #include "macro.h"
 
@@ -27,25 +27,27 @@ static void signal_cb(evutil_socket_t fd __attribute__((unused)), short what __a
 
 int main(int argc, char **argv)
 {
-    int port = PORT_TK115;
-
     setvbuf(stdout, NULL, _IONBF, 0);
 
-    if (argc >= 2)
+    int rc = log_init("../conf/tk115_log.conf");
+    if (rc)
     {
-    	char* strPort = argv[1];
-    	int num = atoi(strPort);
-    	if (num)
-    	{
-    		port = num;
-    	}
+        printf("log initial failed: rc=%d", rc);
+    	return rc;
     }
 
-    printf("Electrombile Server %s, with event %s, mosquitto %d, curl %s\n",
-    		VERSION_STR,
-			LIBEVENT_VERSION,
-			mosquitto_lib_version(NULL, NULL, NULL),
-			curl_version());
+    rc = setting_initail("../conf/eelink_server.ini");
+    if (rc < 0)
+    {
+        LOG_ERROR("eelink_server.ini failed: rc=%d", rc);
+    	return rc;
+    }
+
+    int port = setting.tk115_port;
+
+
+    LOG_INFO("Electrombile Server %s, with event %s, mosquitto %d, curl %s\n",
+    		VERSION_STR, LIBEVENT_VERSION, mosquitto_lib_version(NULL, NULL, NULL), curl_version());
 
     struct event_base *base = event_base_new();
     if (!base)
@@ -53,12 +55,6 @@ int main(int argc, char **argv)
         return 1; /*XXXerr*/
     }
 
-    int rc = log_init("../conf/tk115_log.conf");
-    if (rc)
-    {
-        LOG_ERROR("log initial failed: rc=%d", rc);
-    	return rc;
-    }
 
     struct event *evTerm = evsignal_new(base, SIGTERM, signal_cb, base);
     if (!evTerm || evsignal_add(evTerm, NULL) < 0)
@@ -86,13 +82,6 @@ int main(int argc, char **argv)
     mqtt_arg.base = base;
 
     mqtt_initial(&mqtt_arg);
-
-//    rc = yunba_connect();
-//    if (rc)
-//    {
-//    	LOG_FATAL("connect to yunba failed");
-//    	return -1;
-//    }
 
     rc = curl_global_init(CURL_GLOBAL_DEFAULT);
     if (rc != CURLE_OK)
@@ -150,7 +139,6 @@ int main(int argc, char **argv)
     curl_global_cleanup();
 
     mqtt_cleanup();
-//    yunba_disconnect();
 
     mosquitto_lib_cleanup();
 

@@ -9,7 +9,7 @@
 #include "server_sync.h"
 #include "leancloud_req.h"
 #include "session.h"
-#include "port.h"
+#include "setting.h"
 #include "env.h"
 #include "db.h"
 #include "timer.h"
@@ -20,7 +20,7 @@ struct event_base *base = NULL;
 void ResaveUnpostedImei_cb(evutil_socket_t fd __attribute__((unused)), short what __attribute__((unused)), void *arg)
 {
     LOG_INFO("one-day timer for ResaveUnpostedImei_cb");
-    
+
     db_ResaveOBJUnpostedImei_cb(arg); //leancloud_saveDid
 
     return;
@@ -45,39 +45,31 @@ static void sig_usr(int signo)
 
 int main(int argc, char **argv)
 {
-    int port = PORT_SYNC;
-    //int port = 8889;
-
     setvbuf(stdout, NULL, _IONBF, 0);
 
-    if (argc >= 2)
+    int rc = log_init("../conf/sync_log.conf");
+    if (rc)
     {
-    	char* strPort = argv[1];
-    	int num = atoi(strPort);
-    	if (num)
-    	{
-    		port = num;
-    	}
+        printf("log initial failed: rc=%d", rc);
+    	return rc;
     }
 
-    /* log haven't work now, it will be writen into nohup file */
-    printf("Sync Server %s, with event %s, curl %s\n",
-    		VERSION_STR,
-			LIBEVENT_VERSION,
-			curl_version());
+    rc = setting_initail("../conf/eelink_server.ini");
+    if (rc < 0)
+    {
+        LOG_ERROR("eelink_server.ini failed: rc=%d", rc);
+    	return rc;
+    }
+    int port = setting.sync_port;
+
+    LOG_INFO("Sync Server %s, with event %s, curl %s\n",
+    		VERSION_STR, LIBEVENT_VERSION, curl_version());
 
     base = event_base_new();
     if (!base)
     {
         LOG_ERROR("Can't make new event base");
         return 1; /*XXXerr*/
-    }
-
-    int rc = log_init("../conf/sync_log.conf");
-    if (rc)
-    {
-        LOG_ERROR("log initial failed: rc=%d", rc);
-    	return rc;
     }
 
     if (signal(SIGINT, sig_usr) == SIG_ERR)

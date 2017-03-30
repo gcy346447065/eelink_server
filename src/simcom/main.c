@@ -14,7 +14,7 @@
 #include "mqtt.h"
 #include "db.h"
 #include "msg_proc_app.h"
-#include "port.h"
+#include "setting.h"
 #include "sync.h"
 #include "session.h"
 #include "http_simcom.h"
@@ -51,50 +51,33 @@ static void one_minute_loop_cb(evutil_socket_t fd __attribute__((unused)), short
 
 int main(int argc, char **argv)
 {
-    int simcom_port = PORT_SIMCOM;
-    int manager_port = PORT_MANAGER;
-    int http_port = PORT_SIMCOMHTTP;
-
     setvbuf(stdout, NULL, _IONBF, 0);
 
-    if (argc >= 2)
+    int rc = log_init("../conf/simcom_log.conf");
+    if (rc)
     {
-    	char* strPort = argv[1];
-    	int num = atoi(strPort);
-    	if (num)
-    	{
-    		simcom_port = num;
-    	}
+        printf("log initial failed: rc=%d", rc);
+    	return rc;
     }
 
-    if (argc >= 3)
+    LOG_INFO("Electrombile Server %s, with event %s, mosquitto %d, curl %s\n",
+    		VERSION_STR, LIBEVENT_VERSION, mosquitto_lib_version(NULL, NULL, NULL), curl_version());
+
+    rc = setting_initail("../conf/eelink_server.ini");
+    if (rc < 0)
     {
-        char* strPort = argv[2];
-        int num = atoi(strPort);
-        if (num)
-        {
-            manager_port = num;
-        }
+        LOG_ERROR("eelink_server.ini failed: rc=%d", rc);
+    	return rc;
     }
 
-    /* log haven't work now, it will be writen into nohup file */
-    printf("Electrombile Server %s, with event %s, mosquitto %d, curl %s\n",
-    		VERSION_STR,
-			LIBEVENT_VERSION,
-			mosquitto_lib_version(NULL, NULL, NULL),
-			curl_version());
+    int simcom_port = setting.simcom_port;
+    int http_port = setting.simhttp_port;
+
 
     struct event_base *base = event_base_new();
     if (!base)
     {
         return 1; /*XXXerr*/
-    }
-
-    int rc = log_init("../conf/simcom_log.conf");
-    if (rc)
-    {
-        LOG_ERROR("log initial failed: rc=%d", rc);
-    	return rc;
     }
 
     struct event *evTerm = evsignal_new(base, SIGTERM, signal_cb, base);
