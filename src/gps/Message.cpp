@@ -13,7 +13,6 @@ using namespace std;
 
 void Message::process()
 {
-    LOG_DEBUG() << "NIHAO";
     if (ntohs(signature) != START_FLAG_UDP)
     {
         LOG_ERROR() << "message signature not valid";
