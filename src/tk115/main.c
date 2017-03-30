@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     int rc = log_init("../conf/tk115_log.conf");
     if (rc)
     {
-        LOG_ERROR("log initial failed: rc=%d", rc);
+        printf("log initial failed: rc=%d", rc);
     	return rc;
     }
 

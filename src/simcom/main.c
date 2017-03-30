@@ -56,7 +56,7 @@ int main(int argc, char **argv)
     int rc = log_init("../conf/simcom_log.conf");
     if (rc)
     {
-        LOG_ERROR("log initial failed: rc=%d", rc);
+        printf("log initial failed: rc=%d", rc);
     	return rc;
     }
 
@@ -106,21 +106,19 @@ int main(int argc, char **argv)
     mqtt_arg.base = base;
 
     mqtt_initial(&mqtt_arg);
-    LOG_INFO("HERE");
+
     rc = redis_initial();
     if (rc)
     {
     	LOG_ERROR("connect to redis failed");
     	return -1;
     }
-    LOG_INFO("HERE");
 
     rc = curl_global_init(CURL_GLOBAL_DEFAULT);
     if (rc != CURLE_OK)
     {
     	LOG_FATAL("curl lib initial failed:%d", rc);
     }
-    LOG_INFO("HERE");
 
     rc = db_initial();
     if(rc)
@@ -128,12 +126,10 @@ int main(int argc, char **argv)
         LOG_FATAL("connect to mysql failed");
         return -1;
     }
-    LOG_INFO("HERE");
 
     obj_table_initial(mqtt_subscribe, ObjectType_simcom);
     obj_table_GPSinitial();
     session_table_initial();
-    LOG_INFO("HERE");
 
     struct evconnlistener *listener_simcom = server_simcom(base, simcom_port);
     if (listener_simcom)
@@ -149,14 +145,12 @@ int main(int argc, char **argv)
     //start a one minutes timer to resave multiple unsaved DIDs
     struct timeval one_min = { 60, 0 };
     (void)timer_newLoop(base, &one_min, one_minute_loop_cb, NULL);
-    LOG_INFO("HERE");
 
     rc = sync_init(base);
     if (rc)
     {
         LOG_ERROR("connect to sync server failed, try later");
     }
-    LOG_INFO("HERE");
 
 	struct evhttp *httpd = evhttp_new(base);
 	if (!httpd) {
