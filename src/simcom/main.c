@@ -37,7 +37,7 @@ static void one_minute_loop_cb(evutil_socket_t fd __attribute__((unused)), short
 {
     LOG_INFO("one minutes timer for ItieraryJudge_cb");
 
-    obj_table_ItieraryJudge((void *)db_saveiItinerary); //simcom_server to judge if the itinerary reaches end
+    //obj_table_ItieraryJudge((void *)db_saveiItinerary); //simcom_server to judge if the itinerary reaches end
 
 
     time_t current = get_time();// everyday at 00:00, simcom_server to judge if devices need to be upgraded
