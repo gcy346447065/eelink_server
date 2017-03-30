@@ -60,6 +60,6 @@ void myMosq::on_disconnect(int rc) {
 
 void myMosq::on_publish(int mid)
 {
-    LOG_INFO() << "myMosq - Message " << mid <<" succeed to be published ";
+    LOG_INFO() << "myMosq Message succeed to be published " << mid;
 }
 
