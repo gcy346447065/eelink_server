@@ -4,6 +4,9 @@
 
 #ifndef __USER_SETTING_H__
 #define __USER_SETTING_H__
+#ifdef __cplusplus
+    extern "C"{
+#endif
 
 #define MAX_DOMAIN_LEN (64)
 #define MAX_NAME_LEN (32)
@@ -44,5 +47,9 @@ typedef struct{
 extern SETTING setting;
 
 int setting_initail(char *file);
+
+#ifdef __cplusplus
+        }
+#endif
 
 #endif/*__USER_SETTING_H__*/

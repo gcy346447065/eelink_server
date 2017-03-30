@@ -3,12 +3,13 @@
 
 #include "cJSON.h"
 #include "logger.h"
+#include "setting.h"
 #include "mqtt_top.h"
 
 int myMosq::port = 1883;
-int myMosq::keepalive = 60;// Basic configuration setup for myMosq class
-const char * myMosq::id = "gps_server";
-const char * myMosq::host = "localhost";
+int  myMosq::keepalive = 60;
+string myMosq::id = "gps_server";
+string myMosq::host = "127.0.0.1";
 
 bool myMosq::send_message(const char *imei, GPS *gps)
 {
@@ -18,7 +19,7 @@ bool myMosq::send_message(const char *imei, GPS *gps)
     cJSON * root = cJSON_CreateObject();
     if(!root)
     {
-        LOG_FATAL << "no enough memory";
+        LOG_FATAL() << "no enough memory";
         return false;
     }
     cJSON_AddNumberToObject(root, "timestamp", ntohl(gps->timestamp));
@@ -31,7 +32,7 @@ bool myMosq::send_message(const char *imei, GPS *gps)
     char *_message = cJSON_PrintUnformatted(root);
     if(!_message)
     {
-        LOG_FATAL << "no enough memory";
+        LOG_FATAL() << "no enough memory";
         cJSON_Delete(root);
         return false;
     }
@@ -47,18 +48,18 @@ bool myMosq::send_message(const char *imei, GPS *gps)
 void myMosq::on_connect(int rc)
 {
     if ( rc == 0 ) {
-        LOG_INFO << "myMosq connected with server";
+        LOG_INFO() << "myMosq connected with server";
     } else {
-        LOG_ERROR << "myMosq Impossible to connect with server" << rc;
+        LOG_ERROR() << "myMosq Impossible to connect with server" << rc;
     }
 }
 
 void myMosq::on_disconnect(int rc) {
-    LOG_ERROR << "myMosq disconnection with server" << rc;
+    LOG_ERROR() << "myMosq disconnection with server" << rc;
 }
 
 void myMosq::on_publish(int mid)
 {
-    LOG_INFO << "myMosq - Message " << mid <<" succeed to be published ";
+    LOG_INFO() << "myMosq - Message " << mid <<" succeed to be published ";
 }
 

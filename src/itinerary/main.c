@@ -10,6 +10,7 @@
 #include "log.h"
 #include "mqtt.h"
 #include "cJSON.h"
+#include "setting.h"
 #include "itinerary_object.h"
 
 #define EARTH_RADIUS 6378137 //radius of our earth unit :  m
@@ -145,6 +146,13 @@ int main(int argc, char *argv[])
     if (rc)
     {
         LOG_FATAL("log initial failed: %d", rc);
+    	return rc;
+    }
+
+    rc = setting_initail("../conf/eelink_server.ini");
+    if (rc < 0)
+    {
+        LOG_ERROR("eelink_server.ini failed: rc=%d", rc);
     	return rc;
     }
 

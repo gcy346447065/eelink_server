@@ -15,14 +15,14 @@ void Message::process()
 {
     if (ntohs(signature) != START_FLAG_UDP)
     {
-        LOG_ERROR << "message signature not valid";
+        LOG_ERROR() << "message signature not valid";
         return;
     }
 
     switch (cmd)
     {
         case CMD_UDP_GPS:
-            LOG_INFO << "handle gps message";
+            LOG_INFO() << "handle gps message";
             handle_cmd_gps();
             break;
         default:

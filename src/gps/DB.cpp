@@ -6,11 +6,11 @@
 #include "DB.h"
 #include "protocol.h"
 
+string DB::host = "127.0.0.1";
+string DB::user = "user";
+string DB::password = "password";
+string DB::database = "database";
 
-const string DB::host     = "tcp://127.0.0.1:3306";
-const string DB::user     = "eelink";
-const string DB::password = "eelink";
-const string DB::database = "gps";
 
 void DB::addGPS(string imei, GPS *gps)
 {

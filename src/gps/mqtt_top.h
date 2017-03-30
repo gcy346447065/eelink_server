@@ -8,31 +8,34 @@
 #include <mosquittopp.h>
 
 #include "protocol.h"
+#include "setting.h"
 #include "logger.h"
 
 class myMosq : public mosqpp::mosquittopp
 {
 private:
     static int port;
-    static int keepalive;
-    static const char *id;
-    static const char *host;
+    static int  keepalive;
+    static string id;
+    static string host;
 
     void on_connect(int rc);
     void on_disconnect(int rc);
     void on_publish(int mid);
 
 private:
-    myMosq() : mosquittopp(id) {
-        mosqpp::lib_init();     // Mandatory initialization for mosquitto library
+    myMosq() : mosquittopp(id.data()) {
+        port = setting.mqtt_port;
+        host = setting.mqtt_host;
+        mosqpp::lib_init();
         reconnect_delay_set(10, 120, false);
-        connect_async(host, port, keepalive);   // non blocking connection to broker request
-        loop_start();           // Start thread managing connection / publish / subscribe
+        connect_async(host.data(), port, keepalive);
+        loop_start();
     };
 
     ~myMosq() {
-        loop_stop();            // Kill the thread
-        mosqpp::lib_cleanup();  // Mosquitto library cleanup
+        loop_stop();
+        mosqpp::lib_cleanup();
     }
 
 public:

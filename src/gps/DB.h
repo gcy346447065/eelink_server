@@ -6,20 +6,26 @@
 #define ELECTROMBILE_DB_H
 
 #include "mysqlconn_wrapper.h"
+#include "setting.h"
 #include "protocol.h"
 
 class DB {
 private:
     MySQLConnWrapper db_conn;
 
-    static const string host;
-    static const string user;
-    static const string password;
-    static const string database;
+    static string host;
+    static string user;
+    static string password;
+    static string database;
 
 private:
     DB():db_conn(host, user, password)
     {
+        host     = setting.db_host;
+        user     = setting.db_user;
+        password = setting.db_pwd;
+        database = setting.db_database;
+
         db_conn.connect();
         db_conn.switchDb(database);
     }
