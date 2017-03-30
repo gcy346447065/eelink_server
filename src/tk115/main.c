@@ -96,7 +96,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    obj_table_initial(mqtt_subscribe, ObjectType_tk115);
+    obj_table_initial(mqtt_subscribe);
     session_table_initial();
 
     struct evconnlistener* listener = server_start(base, port);

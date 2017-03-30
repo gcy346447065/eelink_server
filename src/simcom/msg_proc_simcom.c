@@ -1682,6 +1682,7 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
     if(obj->isStarted)//if itinerary has started, add the miles instantly
     {
         obj->itineray += (int)miles;
+        db_updateItinerary(obj->IMEI, (int)miles);
     }
     else if(miles > 15)//if itinerary has not started && move above 15m, judge start new itinerary, record the start msg
     {
@@ -1692,8 +1693,6 @@ static int simcom_gpsPack(const void *msg, SESSION *session)
         obj->itineray = 0;
     }
     obj->timecount = 0;//every GPS comes, set the count as 0, when it reach 5, one itinerary generats
-
-    db_updateItinerary(obj->IMEI, (int)miles);
 
     app_sendGpsMsg2App(session);//send the last gps in GPS_PACK to app
     return 0;
