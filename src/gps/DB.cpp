@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 
 #include "DB.h"
+#include "logger.h"
 #include "protocol.h"
 
 string DB::host = "127.0.0.1";

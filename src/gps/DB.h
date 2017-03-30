@@ -19,20 +19,18 @@ private:
     static string database;
 
 private:
-    DB():db_conn(host, user, password)
-    {
+    DB(): db_conn() {
         host     = setting.db_host;
         user     = setting.db_user;
         password = setting.db_pwd;
         database = setting.db_database;
 
-        db_conn.connect();
+        db_conn.connect(host, user, password);
         db_conn.switchDb(database);
     }
 
 public:
-    static DB& instance()
-    {
+    static DB& instance() {
         static DB instance;
         return instance;
     }

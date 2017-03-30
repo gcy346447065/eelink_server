@@ -4,10 +4,12 @@
 #include <new>
 
 #include "UdpServerDataHandle.h"
+#include "logger.h"
 #include "Message.h"
 
 void CUdpServerDataHandle::OnDataReceived(unsigned int IP, unsigned short Port, const char *pData, int nLen)
 {
+    LOG_DEBUG() << "NIHAO";
     if (nLen < sizeof(Message))
     {
         return;
