@@ -9,7 +9,7 @@
 class Message {
 public:
     static const int IMEI_LENGTH = 15;
-    static const short START_FLAG_UDP = 0xA5A5;
+    static const unsigned short START_FLAG_UDP = 0xA5A5;
 
 private:
     short signature;

@@ -39,11 +39,11 @@ void MySQLConnWrapper::manageException(sql::SQLException& e, string file, int li
     }
 }
 
-void MySQLConnWrapper::connect()
+void MySQLConnWrapper::connect(string h, string u, string p)
 {
     try{
         driver = get_driver_instance();
-        con = driver->connect(host, user, password);
+        con = driver->connect(h, u, p);
     } catch (sql::SQLException &e){
         manageException(e, __FILE__, __LINE__, __FUNCTION__);
     }

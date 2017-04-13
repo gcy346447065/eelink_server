@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   mysqlconn_wrapper.h
  * Author: Eduardo Casas (www.eduardocasas.com)
  *
@@ -9,7 +9,7 @@
 #define	MYSQLCONN_WRAPPER_H
 
 #include "mysql_connection.h"
-	
+
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
 #include <cppconn/resultset.h>
@@ -19,19 +19,12 @@ using namespace std;
 
 class MySQLConnWrapper
 {
-          
     public:
-        
         /* Your MySQL server settings */
-        MySQLConnWrapper(string h, string u, string p)
-        {
-            host     = h; //"tcp://127.0.0.1:3306";
-            user     = u; //"root";
-            password = p; //"";
-        };
+        MySQLConnWrapper(){};
         ~MySQLConnWrapper();
         void manageException(sql::SQLException& e, string file, int line, string function);
-        void connect();
+        void connect(string h, string u, string p);
         void switchDb(const string& db_name);
         void prepare(const string& query);
         void setInt(const int& num, const int& data);
@@ -43,10 +36,7 @@ class MySQLConnWrapper
         string print(const int& index);
 
     private:
-        
-        string host;
-        string user;
-        string password;
+
         sql::Driver* driver;
         sql::Connection* con;
         sql::Statement* stmt;

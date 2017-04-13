@@ -36,10 +36,15 @@ void mqtt_message_callback(struct mosquitto *m __attribute__((unused)), void *us
         LOG_ERROR("%s no payload(null)", message->topic);
     }
 
-    LOG_INFO("recieve PUBLISH: %s", message->topic);
 
     if(strncmp(message->topic, "app2dev/", strlen("app2dev/")) == 0)
     {
+        LOG_INFO("recieve app2dev PUBLISH: %s", message->topic);
+        mqtt_arg->app_msg_handler(message->topic, message->payload, message->payloadlen);
+    }
+    else if(strncmp(message->topic, "dev2app/", strlen("dev2app/")) == 0)
+    {
+        LOG_INFO("Receive dev2app PUBLISH: %s", message->topic);
         mqtt_arg->app_msg_handler(message->topic, message->payload, message->payloadlen);
     }
     else
@@ -318,6 +323,31 @@ void mqtt_unsubscribe(const char *imei)
 	mosquitto_unsubscribe(mosq, NULL, topic);
 
     return;
+}
+
+int mqtt_subscribe_allGPS(void)
+{
+	char topic[] = "dev2app/+/gps";
+
+	int rc = mosquitto_subscribe(mosq, NULL, topic, 0);
+	if(MOSQ_ERR_SUCCESS != rc)
+	{
+		LOG_ERROR("subscribe topic: %s error %d", topic, rc);
+        return -1;
+	}
+
+    LOG_INFO("subscribe topic: %s", topic);
+    return 0;
+}
+
+int mqtt_unsubscribe_allGPS(void)
+{
+	char topic[] = "dev2app/+/gps";
+
+    LOG_INFO("unsubscribe topic: %s", topic);
+	mosquitto_unsubscribe(mosq, NULL, topic);
+
+    return 0;
 }
 
 
